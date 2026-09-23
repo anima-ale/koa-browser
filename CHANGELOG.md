@@ -14,6 +14,11 @@ di `zendate\make-zendate.ps1`, più il testo della Release GitHub.
 ### Corretto
 -
 
+## [1.0.6] - 2026-09-23
+
+### Cambiato
+- Finestra senza bordi di Windows: X, massimizza e riduci integrati nella barra schede, trascinamento dall'header
+
 ## [1.0.5] - 2026-09-23
 
 ### Corretto

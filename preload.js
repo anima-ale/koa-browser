@@ -13,5 +13,11 @@ contextBridge.exposeInMainWorld('browserAPI', {
   getVersion: () => ipcRenderer.invoke('zen:get-version'),
   checkUpdate: () => ipcRenderer.invoke('zen:check-update'),
   toggleDevTools: () => ipcRenderer.invoke('zen:toggle-devtools'),
+  // Controlli finestra custom (frame:false)
+  winMin: () => ipcRenderer.invoke('zen:win-min'),
+  winMaxToggle: () => ipcRenderer.invoke('zen:win-max-toggle'),
+  winClose: () => ipcRenderer.invoke('zen:win-close'),
+  winIsMax: () => ipcRenderer.invoke('zen:win-is-max'),
+  onWinMaxChanged: (cb) => ipcRenderer.on('zen:win-max-changed', (_e, m) => { try { cb(m); } catch (e) {} }),
   onUpdateStatus: (cb) => ipcRenderer.on('zen:update-status', (_e, s) => { try { cb(s); } catch (e) {} })
 });

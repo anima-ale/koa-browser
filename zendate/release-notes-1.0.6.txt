@@ -1,0 +1,2 @@
+### Cambiato
+- Finestra senza bordi di Windows: X, massimizza e riduci integrati nella barra schede, trascinamento dall'header

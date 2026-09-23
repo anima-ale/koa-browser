@@ -1,6 +1,6 @@
 {
-    "version":  "1.0.5",
-    "notes":  "### Corretto\n- Blindatura navigazioni webview: solo http(s), mai view-source/file/data; popup in nuove schede",
-    "url":  "https://github.com/anima-ale/koa-browser/releases/download/v1.0.5/KOA.Browser.1.0.5.exe",
-    "sha256":  "cf0087e3a5b211e344b2b9e5a7f9d89d9a93ccdeccbf14e082783be01eb6b5fb"
+    "version":  "1.0.6",
+    "notes":  "### Cambiato\n- Finestra senza bordi di Windows: X, massimizza e riduci integrati nella barra schede, trascinamento dall\u0027header",
+    "url":  "https://github.com/anima-ale/koa-browser/releases/download/v1.0.6/KOA.Browser.1.0.6.exe",
+    "sha256":  "c9d99e2a671607e00af592fad788021d8279e549d5c3dc6280887acc91e2997b"
 }

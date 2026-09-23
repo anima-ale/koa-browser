@@ -22,6 +22,7 @@ function createWindow() {
   const win = new BrowserWindow({
     width: 1400,
     height: 900,
+    frame: false, // niente barra di Windows: controlli integrati nella UI
     title: 'KOA Browser v' + app.getVersion(),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
@@ -32,6 +33,11 @@ function createWindow() {
   });
 
   win.loadFile('index.html');
+
+  // Stato massimizzata → renderer (per l'icona ripristina/massimizza).
+  const sendMax = () => { try { win.webContents.send('zen:win-max-changed', win.isMaximized()); } catch (e) {} };
+  win.on('maximize', sendMax);
+  win.on('unmaximize', sendMax);
 
   // In background via tray invece di chiudere (Chromium iberna da solo le pagine nascoste).
   win.on('close', (e) => {
@@ -238,6 +244,14 @@ ipcMain.handle('zen:toggle-devtools', () => {
   const w = BrowserWindow.getFocusedWindow();
   if (w) { try { w.webContents.toggleDevTools(); } catch (e) {} }
 });
+// Controlli finestra custom (frame:false)
+ipcMain.handle('zen:win-min', (e) => { const w = BrowserWindow.fromWebContents(e.sender); if (w) w.minimize(); });
+ipcMain.handle('zen:win-max-toggle', (e) => {
+  const w = BrowserWindow.fromWebContents(e.sender);
+  if (w) { if (w.isMaximized()) w.unmaximize(); else w.maximize(); }
+});
+ipcMain.handle('zen:win-close', (e) => { const w = BrowserWindow.fromWebContents(e.sender); if (w) w.close(); });
+ipcMain.handle('zen:win-is-max', (e) => { const w = BrowserWindow.fromWebContents(e.sender); return !!(w && w.isMaximized()); });
 
 function setupTray() {
   try {

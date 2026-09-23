@@ -173,6 +173,27 @@
   #new-tab-btn:hover { color: var(--orange); background: rgba(232, 106, 44, 0.09); text-shadow: var(--glow); }
   #new-tab-btn svg { width: 16px; height: 16px; }
 
+  /* Controlli finestra integrati nella barra schede */
+  #win-controls {
+    margin-left: auto;
+    display: flex; align-items: stretch; flex-shrink: 0;
+    -webkit-app-region: no-drag;
+  }
+  .win-btn {
+    width: 48px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: background 120ms var(--ease), color 120ms var(--ease);
+  }
+  .win-btn:hover { background: rgba(255, 255, 255, 0.07); color: var(--text); }
+  .win-btn.close:hover { background: #C63F1B; color: #fff; }
+  .win-btn svg { width: 12px; height: 12px; }
+
+  /* Trascinamento finestra dall'header (i controlli restano cliccabili) */
+  #toolbar { -webkit-app-region: drag; }
+  #toolbar .nav-btn, #toolbar #brand, #toolbar #url-form { -webkit-app-region: no-drag; }
+
   /* ---------- KOA · Toolbar ---------- */
   #toolbar {
     display: flex;
@@ -760,6 +781,18 @@
   <div id="tabs">
     <div id="new-tab-btn" title="Nuova scheda">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"><path d="M12 5v14M5 12h14"/></svg>
+    </div>
+    <div id="win-controls" title="">
+      <div class="win-btn" id="win-min" title="Riduci a icona">
+        <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square"><path d="M2 6h8"/></svg>
+      </div>
+      <div class="win-btn" id="win-max" title="Massimizza / Ripristina">
+        <svg id="win-ico-max" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="2" width="8" height="8"/></svg>
+        <svg id="win-ico-restore" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.3" style="display:none"><path d="M4 1h7v7M8 4H1v7h7z"/></svg>
+      </div>
+      <div class="win-btn close" id="win-close" title="Chiudi">
+        <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square"><path d="M3 3l6 6M9 3l-6 6"/></svg>
+      </div>
     </div>
   </div>
 
@@ -1858,6 +1891,33 @@
   }
 
   addMsg('koa', 'Ciao, sono KOA con AI. Scrivimi pure — conosco anche la pagina che hai aperta. Comandi: /calc, /cerca, /riassumi, /aiuto', false);
+
+  // ---- Controlli finestra custom (frame:false) ----
+  const winMinBtn = document.getElementById('win-min');
+  const winMaxBtn = document.getElementById('win-max');
+  const winCloseBtn = document.getElementById('win-close');
+  const winIcoMax = document.getElementById('win-ico-max');
+  const winIcoRestore = document.getElementById('win-ico-restore');
+
+  function refreshMaxIcon(max) {
+    winIcoMax.style.display = max ? 'none' : '';
+    winIcoRestore.style.display = max ? '' : 'none';
+    winMaxBtn.title = max ? 'Ripristina' : 'Massimizza';
+  }
+
+  function winApi(fn) {
+    try { if (window.browserAPI && window.browserAPI[fn]) return window.browserAPI[fn](); } catch (e) {}
+  }
+  winMinBtn.addEventListener('click', () => winApi('winMin'));
+  winMaxBtn.addEventListener('click', () => winApi('winMaxToggle'));
+  winCloseBtn.addEventListener('click', () => winApi('winClose'));
+  try {
+    if (window.browserAPI && window.browserAPI.onWinMaxChanged) window.browserAPI.onWinMaxChanged(refreshMaxIcon);
+    if (window.browserAPI && window.browserAPI.winIsMax) {
+      const r = window.browserAPI.winIsMax();
+      if (r && typeof r.then === 'function') r.then(refreshMaxIcon).catch(() => {});
+    }
+  } catch (e) {}
 
   // ================= ZENdate MAX · impostazioni + aggiornamenti =================
   const settingsBtn = document.getElementById('settings-btn');
