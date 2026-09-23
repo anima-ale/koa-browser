@@ -22,7 +22,7 @@ function createWindow() {
   const win = new BrowserWindow({
     width: 1400,
     height: 900,
-    title: 'KOA Browser',
+    title: 'KOA Browser v' + app.getVersion(),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       webviewTag: true, // abilita il tag <webview> nell'interfaccia
@@ -232,6 +232,10 @@ async function installUpdate(filePath) {
 
 ipcMain.handle('zen:get-version', () => app.getVersion());
 ipcMain.handle('zen:check-update', () => checkForUpdates('manual'));
+ipcMain.handle('zen:toggle-devtools', () => {
+  const w = BrowserWindow.getFocusedWindow();
+  if (w) { try { w.webContents.toggleDevTools(); } catch (e) {} }
+});
 
 function setupTray() {
   try {

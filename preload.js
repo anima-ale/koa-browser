@@ -2,7 +2,7 @@
 // se in futuro ti serve comunicare con il processo main (es. salvare i preferiti,
 // gestire la cronologia su file, ecc.)
 
-const { contextBridge } = require('electron');
+const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('browserAPI', {
   // ZEN Supervisor: attiva/disattiva anti-tracker + anti-pubblicità
@@ -12,5 +12,6 @@ contextBridge.exposeInMainWorld('browserAPI', {
   // ZENdate MAX: versione, controllo aggiornamenti, stati live
   getVersion: () => ipcRenderer.invoke('zen:get-version'),
   checkUpdate: () => ipcRenderer.invoke('zen:check-update'),
+  toggleDevTools: () => ipcRenderer.invoke('zen:toggle-devtools'),
   onUpdateStatus: (cb) => ipcRenderer.on('zen:update-status', (_e, s) => { try { cb(s); } catch (e) {} })
 });

@@ -1452,6 +1452,10 @@
     if (ctrlOrCmd && e.key === 'w') { e.preventDefault(); const t = getFocusedTab(); if (t) closeTab(t.id); }
     if (ctrlOrCmd && e.key === 'l') { e.preventDefault(); urlBar.focus(); urlBar.select(); }
     if (ctrlOrCmd && e.key === 'r') { e.preventDefault(); reloadBtn.click(); }
+    if (ctrlOrCmd && e.shiftKey && (e.key === 'I' || e.key === 'i')) {
+      e.preventDefault();
+      try { if (window.browserAPI && window.browserAPI.toggleDevTools) window.browserAPI.toggleDevTools(); } catch (err) {}
+    }
     if (e.altKey && (e.key === 'ArrowLeft' || e.key === 'ArrowRight') && splitState && showingSplit) {
       e.preventDefault();
       const n = splitState.panes.length;
@@ -1805,11 +1809,16 @@
   const settingsClose = document.getElementById('settings-close');
 
   async function refreshVersion() {
-    try {
-      if (window.browserAPI && window.browserAPI.getVersion) {
-        settingsVersion.textContent = 'v' + (await window.browserAPI.getVersion());
-      }
-    } catch (e) {}
+    for (let i = 0; i < 4; i++) {
+      try {
+        if (window.browserAPI && window.browserAPI.getVersion) {
+          const v = await window.browserAPI.getVersion();
+          if (v) { settingsVersion.textContent = 'v' + v; return; }
+        }
+      } catch (e) {}
+      await new Promise(r => setTimeout(r, 500));
+    }
+    settingsVersion.textContent = 'v?';
   }
   refreshVersion();
 

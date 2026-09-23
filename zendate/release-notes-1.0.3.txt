@@ -1,2 +1,3 @@
 ### Corretto
 - ZENdate non resta più appeso su "Controllo aggiornamenti": watchdog 90s nel main, pulsante disabilitato durante il check, messaggio di fallback dopo 45s
+- Fix critico: manca import `ipcRenderer` in preload (versione e check muti), più scorciatoia Ctrl+Shift+I per i DevTools

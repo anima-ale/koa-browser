@@ -18,6 +18,7 @@ di `zendate\make-zendate.ps1`, più il testo della Release GitHub.
 
 ### Corretto
 - ZENdate non resta più appeso su "Controllo aggiornamenti": watchdog 90s nel main, pulsante disabilitato durante il check, messaggio di fallback dopo 45s
+- Fix critico: manca import `ipcRenderer` in preload (versione e check muti), più scorciatoia Ctrl+Shift+I per i DevTools
 
 ## [1.0.2] - 2026-09-23
 
