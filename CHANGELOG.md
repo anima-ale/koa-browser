@@ -14,6 +14,11 @@ di `zendate\make-zendate.ps1`, più il testo della Release GitHub.
 ### Corretto
 -
 
+## [1.0.9] - 2026-09-23
+
+### Corretto
+- Updater corazzato: backup pre-swap, verifica taglia, ripristino automatico, log diagnostico, conferma versione reale (mai più loop né falsi "aggiornato")
+
 ## [1.0.8] - 2026-09-23
 
 ### Aggiunto

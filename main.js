@@ -19,6 +19,17 @@ app.commandLine.appendSwitch('disable-gpu-shader-disk-cache');
 app.commandLine.appendSwitch('disable-http-cache');
 app.disableHardwareAcceleration();
 
+// Log persistente: se il main inciampa, resta scritto qui (niente più misteri).
+function koaLogError(tag, err) {
+  try {
+    const f = path.join(app.getPath('userData'), 'koa-error.log');
+    const msg = '[' + new Date().toISOString() + '][' + tag + '] ' + String((err && err.stack) || err) + '\n';
+    fs.appendFileSync(f, msg);
+  } catch (e) {}
+}
+process.on('uncaughtException', (e) => koaLogError('uncaught', e));
+process.on('unhandledRejection', (e) => koaLogError('unhandled', e));
+
 function createWindow() {
   // UI istantanea: se esiste un bundle UI verificato pari o più nuovo dell'exe, usalo.
   const customUi = effectiveUiPath();
@@ -44,6 +55,8 @@ function createWindow() {
   const sendMax = () => { try { win.webContents.send('zen:win-max-changed', win.isMaximized()); } catch (e) {} };
   win.on('maximize', sendMax);
   win.on('unmaximize', sendMax);
+  // Se la finestra smette di rispondere, resta traccia nel log.
+  win.on('unresponsive', () => koaLogError('unresponsive', 'window non risponde'));
 
   // In background via tray invece di chiudere (Chromium iberna da solo le pagine nascoste).
   win.on('close', (e) => {
@@ -222,7 +235,7 @@ async function checkForUpdates(source) {
       if (digest.toLowerCase() !== String(man.sha256).toLowerCase()) throw new Error('hash di sicurezza non corrispondente');
     }
     sendUpdate({ state: 'ready', version: man.version });
-    await installUpdate(tmpFile);
+    await installUpdate(tmpFile, man.version);
     return { state: 'ready', version: man.version };
   } catch (e) {
     sendUpdate({ state: 'error', message: (e && e.message) || 'errore di rete' });
@@ -230,8 +243,9 @@ async function checkForUpdates(source) {
   } finally { clearTimeout(updateWatchdog); updateChecking = false; }
 }
 
-// Swap atomico: un helper .bat attende l'uscita, sostituisce l'exe e rilancia.
-async function installUpdate(filePath) {
+// Swap verificato: backup, attesa uscita, sostituzione, controllo taglia,
+// ripristino se corrotto, log diagnostico, rilancio con versione attesa.
+async function installUpdate(filePath, version) {
   const cur = process.execPath;
   const bat = path.join(os.tmpdir(), 'koa-zendate-' + Date.now() + '.bat');
   const lines = [
@@ -239,6 +253,15 @@ async function installUpdate(filePath) {
     'set "ZPID=%~1"',
     'set "ZCUR=%~2"',
     'set "ZNEW=%~3"',
+    'set "ZVER=%~4"',
+    'set "ZLOG=%TEMP%\\koa-zendate-last.log"',
+    'set "ZBAK=%ZCUR%.bak"',
+    'if not exist "%ZNEW%" (',
+    '  echo FAIL new-missing >> "%ZLOG%"',
+    '  start "" "%ZCUR%"',
+    '  (goto) 2>nul & del "%~f0"',
+    ')',
+    'copy /y "%ZCUR%" "%ZBAK%" >nul',
     ':zendate_wait',
     'tasklist /FI "PID eq %ZPID%" 2>nul | find /I "%ZPID%" >nul',
     'if not errorlevel 1 (',
@@ -246,17 +269,44 @@ async function installUpdate(filePath) {
     '  goto zendate_wait',
     ')',
     'move /y "%ZNEW%" "%ZCUR%" >nul',
-    'start "" "%ZCUR%" --zendate-updated',
+    'set ZSZ=0',
+    'for %%A in ("%ZCUR%") do set ZSZ=%%~zA',
+    'if %ZSZ% LSS 30000000 (',
+    '  echo RESTORED backup size=%ZSZ% >> "%ZLOG%"',
+    '  move /y "%ZBAK%" "%ZCUR%" >nul',
+    '  del "%ZNEW%" 2>nul',
+    '  start "" "%ZCUR%"',
+    '  (goto) 2>nul & del "%~f0"',
+    ')',
+    'del "%ZBAK%" 2>nul',
+    'del "%ZNEW%" 2>nul',
+    'echo OK swapped size=%ZSZ% >> "%ZLOG%"',
+    'start "" "%ZCUR%" --zendate-updated=%ZVER%',
     '(goto) 2>nul & del "%~f0"'
   ];
   fs.writeFileSync(bat, lines.join('\r\n'));
   sendUpdate({ state: 'installing' });
   willQuit = true;
   try {
-    spawn('cmd.exe', ['/c', 'start', '/min', '', bat, String(process.pid), cur, filePath],
+    spawn('cmd.exe', ['/c', 'start', '/min', '', bat, String(process.pid), cur, filePath, String(version || '')],
       { detached: true, stdio: 'ignore', windowsHide: true }).unref();
   } catch (e) {}
   setTimeout(() => { try { app.quit(); } catch (e) {} }, 900);
+}
+
+// Legge il log dell'updater precedente: se fallì, lo mostra una volta sola.
+function checkUpdaterLog() {
+  try {
+    const f = path.join(os.tmpdir(), 'koa-zendate-last.log');
+    if (!fs.existsSync(f)) return;
+    const lines = fs.readFileSync(f, 'utf8').split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+    try { fs.unlinkSync(f); } catch (e) {}
+    if (!lines.length) return;
+    const last = lines[lines.length - 1];
+    if (/FAIL|RESTORED/i.test(last)) {
+      sendUpdate({ state: 'error', message: 'Update precedente: ' + last.slice(0, 140) });
+    }
+  } catch (e) {}
 }
 
 ipcMain.handle('zen:get-version', () => app.getVersion());
@@ -1212,9 +1262,17 @@ app.whenReady().then(() => {
       const u = (process.argv || []).slice(1).map(externalUrlFromArg).find(Boolean);
       if (u) openExternalInWindow(u);
     }, 1200);
-    if (process.argv.includes('--zendate-updated')) {
-      setTimeout(() => sendUpdate({ state: 'installed', version: app.getVersion() }), 1500);
-    }
+    // Esito updater precedente (una tantum) + conferma versione reale, mai presunta.
+    setTimeout(() => {
+      checkUpdaterLog();
+      const flag = (process.argv || []).find(a => typeof a === 'string' && a.indexOf('--zendate-updated') === 0);
+      if (flag) {
+        const expected = flag.includes('=') ? flag.split('=')[1] : null;
+        if (expected && expected === app.getVersion()) {
+          sendUpdate({ state: 'installed', version: app.getVersion() });
+        }
+      }
+    }, 1500);
   });
 }
 

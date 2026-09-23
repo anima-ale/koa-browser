@@ -1,0 +1,2 @@
+### Corretto
+- Updater corazzato: backup pre-swap, verifica taglia, ripristino automatico, log diagnostico, conferma versione reale (mai più loop né falsi "aggiornato")

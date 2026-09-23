@@ -1436,8 +1436,15 @@
         } catch (err) {}
       }
     });
+    // Se il processo della pagina muore, ricarica (max 2 volte di fila).
+    webview.addEventListener('render-process-gone', () => {
+      try {
+        tab.crashCount = (tab.crashCount || 0) + 1;
+        if (tab.crashCount <= 2) webview.reload();
+      } catch (e) {}
+    });
     // Scrollbar liquida su ogni pagina (anche SPA / navigazioni interne)
-    webview.addEventListener('did-finish-load', () => injectKoaScrollbar(webview));
+    webview.addEventListener('did-finish-load', () => { tab.crashCount = 0; injectKoaScrollbar(webview); });
     webview.addEventListener('did-navigate-in-page', () => injectKoaScrollbar(webview));
     // Menu contestuale custom (tasto destro nella pagina).
     webview.addEventListener('context-menu', (e) => openCtxMenu(id, e));
@@ -2121,7 +2128,7 @@
 
   function closeFind() {
     const t = getTab(findTabId);
-    if (t) { try { t.webview.stopFind('clearSelection'); } catch (e) {} }
+    if (t) { try { t.webview.stopFindInPage('clearSelection'); } catch (e) {} }
     findTabId = null;
     findBar.hidden = true;
   }
