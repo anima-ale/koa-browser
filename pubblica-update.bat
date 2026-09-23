@@ -108,7 +108,7 @@ if not errorlevel 1 (
 
 if not "%UIVER%"=="" (
     echo Carico i file interfaccia v%UIVER% ^(update istantaneo, senza riavvio^)...
-    gh release upload %TAG% index.html preload.js assets\logo.svg start.html --clobber --repo %GH_REPO%
+    gh release upload %TAG% index.html preload.js vault-preload.js assets\logo.svg start.html --clobber --repo %GH_REPO%
     if errorlevel 1 (
         echo [AVVISO] Upload file interfaccia fallito: l'update exe resta valido.
     )

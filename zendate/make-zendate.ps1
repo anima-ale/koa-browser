@@ -76,6 +76,7 @@ if (-not [string]::IsNullOrWhiteSpace($UiVersion)) {
   $uiMap = [ordered]@{
     'index.html' = 'index.html'
     'preload.js' = 'preload.js'
+    'vault-preload.js' = 'vault-preload.js'
     'logo.svg'   = 'assets/logo.svg'
     'start.html' = 'start.html'
   }

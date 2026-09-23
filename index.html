@@ -193,6 +193,79 @@
   /* Trascinamento finestra dall'header (i controlli restano cliccabili) */
   #toolbar { -webkit-app-region: drag; }
   #toolbar .nav-btn, #toolbar #brand, #toolbar #url-form { -webkit-app-region: no-drag; }
+  /* Riflesso vetro sulla barra sopra: luce radente che scivola sul cromo */
+  #toolbar::after {
+    content: "";
+    position: absolute; inset: 0;
+    pointer-events: none;
+    background: linear-gradient(105deg,
+      transparent 30%,
+      rgba(255, 255, 255, 0.025) 42%,
+      rgba(255, 255, 255, 0.075) 50%,
+      rgba(255, 255, 255, 0.025) 58%,
+      transparent 70%);
+  }
+  #star-btn.on { color: var(--highlight); }
+  #star-btn.on svg { fill: currentColor; filter: drop-shadow(0 0 6px rgba(232, 168, 60, 0.7)); }
+
+  /* ---------- KOA · barra preferiti a bollicine ---------- */
+  #fav-bar {
+    display: flex;
+    align-items: center;
+    padding: 5px 12px;
+    background: rgba(8, 5, 3, 0.55);
+    border-bottom: 1px solid var(--line-soft);
+    min-height: 34px;
+  }
+  #fav-bar[hidden] { display: none; }
+  #fav-scroll {
+    display: flex; align-items: center; gap: 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    width: 100%;
+  }
+  #fav-scroll::-webkit-scrollbar { display: none; }
+  .fav-bubble {
+    position: relative;
+    width: 24px; height: 24px; flex-shrink: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--line);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    overflow: hidden;
+    transition: border-color 120ms var(--ease), box-shadow 120ms var(--ease), transform 100ms var(--ease);
+  }
+  .fav-bubble:hover { border-color: var(--accent); box-shadow: var(--glow-soft); transform: translateY(-1px); }
+  .fav-bubble img { width: 15px; height: 15px; }
+  .fav-bubble .fav-letter {
+    font-size: 11px; font-weight: 700; color: var(--text);
+    background: var(--grad);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .fav-bubble .fav-x {
+    position: absolute; inset: 0;
+    display: none; align-items: center; justify-content: center;
+    background: rgba(10, 6, 3, 0.85);
+    color: #bf616a; font-size: 14px; line-height: 1;
+  }
+  .fav-bubble:hover .fav-x { display: flex; }
+
+  /* ---------- KOA · cronologia ---------- */
+  #hist-count { margin-left: auto; font-size: 10px; color: var(--text-muted); }
+  #hist-search { margin-bottom: 2px; }
+  #hist-list { display: flex; flex-direction: column; gap: 4px; max-height: 260px; overflow-y: auto; scrollbar-width: thin; }
+  .hist-item {
+    padding: 7px 9px;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 100ms var(--ease), border-color 100ms var(--ease);
+  }
+  .hist-item:hover { background: rgba(232, 106, 44, 0.08); border-color: var(--line-soft); }
+  .hist-title { font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .hist-meta { font-size: 10px; color: var(--text-muted); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .hist-empty { font-size: 12px; color: var(--text-muted); padding: 6px 2px; }
 
   /* ---------- KOA · Toolbar ---------- */
   #toolbar {
@@ -574,6 +647,74 @@
   .switch input:checked + i { background: rgba(232, 168, 60, 0.25); border-color: var(--highlight); }
   .switch input:checked + i::after { transform: translateX(17px); background: var(--highlight); box-shadow: 0 0 8px rgba(232, 168, 60, 0.6); }
 
+  /* Vault password */
+  #vault-state { margin-left: auto; font-size: 10px; font-weight: 700; letter-spacing: 0.1em; color: var(--text-muted); }
+  #vault-state.on { color: var(--highlight); text-shadow: 0 0 8px rgba(232, 168, 60, 0.6); }
+  #vault-lock-msg { font-size: 12px; color: var(--text-muted); }
+  #vault-locked, #vault-open { display: flex; flex-direction: column; gap: 8px; }
+  #vault-locked[hidden], #vault-open[hidden] { display: none; }
+  #vault-err { font-size: 11.5px; color: #bf616a; min-height: 0; }
+  #vault-err:empty { display: none; }
+  #vault-pending:empty, #vault-list:empty { display: none; }
+  #vault-pending, #vault-list { display: flex; flex-direction: column; gap: 6px; max-height: 220px; overflow-y: auto; scrollbar-width: thin; }
+  .vault-pend {
+    border: 1px dashed var(--accent);
+    border-radius: var(--radius);
+    padding: 7px 9px;
+    display: flex; flex-direction: column; gap: 6px;
+    background: rgba(232, 106, 44, 0.06);
+  }
+  .vault-pend .vp-top { font-size: 11px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .vault-pend .row { display: flex; gap: 6px; }
+  .vault-row {
+    background: rgba(0, 0, 0, 0.25);
+    border: 1px solid var(--line-soft);
+    border-radius: var(--radius);
+    padding: 7px 9px;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .vault-head { display: flex; align-items: center; gap: 8px; }
+  .vault-site { flex: 1; min-width: 0; font-size: 12.5px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .vault-user { font-size: 11px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .vault-pass { font-size: 12px; font-variant-numeric: tabular-nums; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .vault-tools { display: flex; gap: 6px; flex-wrap: wrap; }
+  .btn.mini { flex: 0 1 auto; font-size: 11px; padding: 5px 9px; }
+  #vault-form { display: flex; flex-direction: column; gap: 6px; }
+  #vault-form[hidden] { display: none; }
+
+  /* Estensioni: bottoni toolbar + lista gestione */
+  browser-action-list {
+    display: flex; align-items: center; gap: 2px;
+    padding: 0 6px;
+    border-right: 1px solid var(--line-soft);
+    -webkit-app-region: no-drag;
+    flex-shrink: 0;
+  }
+  browser-action-list:empty { display: none; }
+  browser-action-list::part(action) { width: 28px; height: 28px; border-radius: 6px; }
+  browser-action-list::part(action):hover { background: rgba(232, 106, 44, 0.12); }
+  #ext-count { margin-left: auto; font-size: 10px; color: var(--text-muted); }
+  #ext-list { display: flex; flex-direction: column; gap: 6px; }
+  .ext-row {
+    display: flex; align-items: center; gap: 8px;
+    background: rgba(0, 0, 0, 0.25);
+    border: 1px solid var(--line-soft);
+    border-radius: var(--radius);
+    padding: 7px 9px;
+  }
+  .ext-info { flex: 1; min-width: 0; }
+  .ext-name { font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ext-sub { font-size: 10px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ext-row .switch { transform: scale(0.85); }
+  .ext-del {
+    border: none; background: none; color: var(--text-muted);
+    font-size: 14px; cursor: pointer; padding: 0 2px; flex-shrink: 0;
+  }
+  .ext-del:hover { color: #bf616a; }
+  #ext-status { font-size: 11px; color: var(--text-muted); min-height: 0; }
+  #ext-status:empty { display: none; }
+  .ext-empty { font-size: 12px; color: var(--text-muted); padding: 6px 2px; }
+
   /* Chat */
   #chat-msgs { display: flex; flex-direction: column; gap: 8px; max-height: 260px; overflow-y: auto; scrollbar-width: thin; }
   .msg { display: flex; gap: 8px; align-items: flex-start; animation: tab-in 160ms var(--ease); }
@@ -722,12 +863,6 @@
     50%      { box-shadow: 0 0 0 7px rgba(232, 106, 44, 0); }
   }
   .channel { font-size: 10.5px; letter-spacing: 0.06em; color: var(--text-muted); opacity: 0.85; }
-  .settings-sep { width: 100%; height: 1px; background: var(--line); opacity: 0.7; }
-  .defbrowser { display: flex; align-items: center; gap: 14px; width: 100%; text-align: left; }
-  .defbrowser-text { flex: 1; min-width: 0; }
-  .defbrowser-title { font-size: 13px; font-weight: 700; letter-spacing: 0.04em; }
-  #defbrowser-status { font-size: 12px; color: var(--text-muted); margin-top: 3px; }
-  #defbrowser-btn { flex-shrink: 0; white-space: nowrap; }
   #update-notes {
     font-size: 12.5px; line-height: 1.6; color: var(--text-muted);
     background: rgba(0, 0, 0, 0.25);
@@ -745,6 +880,11 @@
   .btn:disabled { opacity: 0.45; cursor: default; }
 
   /* ---------- KOA · menu contestuale ---------- */
+  #ctx-catcher {
+    position: fixed; inset: 0; z-index: 590;
+    background: transparent;
+  }
+  #ctx-catcher[hidden] { display: none; }
   #ctx-menu {
     position: fixed; z-index: 600;
     min-width: 240px; max-width: 330px;
@@ -806,6 +946,77 @@
     transition: color 100ms var(--ease), border-color 100ms var(--ease);
   }
   #find-bar button:hover { color: var(--accent); border-color: var(--line); }
+
+  /* ---------- KOA · download shelf ---------- */
+  #dl-badge {
+    position: absolute; top: 3px; right: 4px;
+    min-width: 15px; height: 15px;
+    padding: 0 3px;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--grad);
+    color: #2A1C12;
+    font-size: 9.5px; font-weight: 700;
+    border-radius: 99px;
+  }
+  #dl-badge[hidden] { display: none; }
+  #dl-shelf {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 550;
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 12px;
+    background: rgba(20, 13, 8, 0.95);
+    -webkit-backdrop-filter: var(--glass);
+    backdrop-filter: var(--glass);
+    border-top: 1px solid var(--line);
+    box-shadow: 0 -14px 40px rgba(0, 0, 0, 0.55);
+    animation: tab-in 160ms var(--ease);
+  }
+  #dl-shelf[hidden] { display: none; }
+  #dl-items {
+    flex: 1; min-width: 0;
+    display: flex; gap: 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  #dl-items::-webkit-scrollbar { display: none; }
+  .dl-item {
+    flex: 0 0 300px;
+    max-width: 300px;
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 8px 10px;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .dl-top { display: flex; align-items: center; gap: 8px; }
+  .dl-name { flex: 1; min-width: 0; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .dl-act {
+    width: 22px; height: 22px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: transparent; border: 1px solid transparent; border-radius: 6px;
+    color: var(--text-muted); font-size: 13px; cursor: pointer;
+    transition: color 100ms var(--ease), border-color 100ms var(--ease);
+  }
+  .dl-act:hover { color: var(--accent); border-color: var(--line); }
+  .dl-act svg { width: 13px; height: 13px; }
+  .dl-bar { height: 5px; background: rgba(255, 255, 255, 0.07); border-radius: 99px; overflow: hidden; }
+  .dl-bar i { display: block; height: 100%; width: 0; background: var(--grad); transition: width 250ms linear; }
+  .dl-item.done .dl-bar i { background: var(--highlight); }
+  .dl-meta { font-size: 10.5px; color: var(--text-muted); font-variant-numeric: tabular-nums; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #dl-hide {
+    width: 28px; height: 28px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: transparent; border: 1px solid var(--line); border-radius: 6px;
+    color: var(--text-muted); font-size: 15px; cursor: pointer;
+  }
+  #dl-hide:hover { color: var(--text); border-color: var(--accent); }
+
+  /* ---------- KOA · predefinito (ripristinato, registrazione reale) ---------- */
+  .settings-sep { width: 100%; height: 1px; background: var(--line); opacity: 0.7; }
+  .defbrowser { display: flex; align-items: center; gap: 14px; width: 100%; text-align: left; }
+  .defbrowser-text { flex: 1; min-width: 0; }
+  .defbrowser-title { font-size: 13px; font-weight: 700; letter-spacing: 0.04em; }
+  #defbrowser-status { font-size: 12px; color: var(--text-muted); margin-top: 3px; }
+  #defbrowser-btn { flex-shrink: 0; white-space: nowrap; }
 </style>
 </head>
 <body>
@@ -838,6 +1049,14 @@
       </div>
     </form>
 
+    <div class="nav-btn" id="star-btn" title="Aggiungi ai preferiti">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="miter"><path d="M12 2.8l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.6l-5.8 3.1 1.1-6.5L2.6 9.6l6.5-.9z"/></svg>
+    </div>
+    <div class="nav-btn" id="dl-btn" title="Download">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter"><path d="M12 3v12m0 0l-5-5m5 5l5-5M4 21h16"/></svg>
+      <span id="dl-badge" hidden></span>
+    </div>
+    <browser-action-list id="ext-actions" title="Estensioni"></browser-action-list>
     <div class="nav-btn" id="talk-btn" title="Chat ZEN">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter"><path d="M4 5h16v11H8l-4 4z"/></svg>
       <span class="talk-label">Chat ZEN</span>
@@ -863,6 +1082,10 @@
         <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square"><path d="M3 3l6 6M9 3l-6 6"/></svg>
       </div>
     </div>
+  </div>
+
+  <div id="fav-bar" hidden>
+    <div id="fav-scroll"></div>
   </div>
 
   <div id="content">
@@ -891,6 +1114,53 @@
             <button id="qa-new" class="btn">Nuova scheda</button>
             <button id="qa-split" class="btn">Split 50/50</button>
           </div>
+        </section>
+        <section class="card" id="card-history">
+          <header><span class="card-dot"></span>CRONOLOGIA<span id="hist-count"></span></header>
+          <input id="hist-search" type="text" placeholder="Cerca nella cronologia…" autocomplete="off" />
+          <div id="hist-list"></div>
+          <div class="row">
+            <button id="hist-clear" class="btn danger">Pulisci tutto</button>
+          </div>
+        </section>
+        <section class="card" id="card-vault">
+          <header><span class="card-dot"></span>PASSWORD<span id="vault-state"></span></header>
+          <div id="vault-locked">
+            <div id="vault-lock-msg">Imposta un PIN per cifrare le password.</div>
+            <input id="vault-pin" type="password" inputmode="numeric" placeholder="PIN (min 4)" autocomplete="off" />
+            <input id="vault-pin2" type="password" inputmode="numeric" placeholder="Ripeti PIN" autocomplete="off" hidden />
+            <div class="row">
+              <button id="vault-go" class="btn primary">Crea</button>
+            </div>
+            <div id="vault-err"></div>
+          </div>
+          <div id="vault-open" hidden>
+            <div id="vault-pending"></div>
+            <div id="vault-list"></div>
+            <div class="row">
+              <button id="vault-add" class="btn">+ Nuova</button>
+              <button id="vault-lock-btn" class="btn">Blocca</button>
+            </div>
+            <div id="vault-form" hidden>
+              <input id="vault-f-site" type="text" placeholder="Sito (https://…)" autocomplete="off" />
+              <input id="vault-f-user" type="text" placeholder="Utente" autocomplete="off" />
+              <input id="vault-f-pass" type="password" placeholder="Password" autocomplete="off" />
+              <div class="row">
+                <button id="vault-save" class="btn primary">Salva</button>
+                <button id="vault-cancel" class="btn">Annulla</button>
+              </div>
+            </div>
+          </div>
+          <div class="sup-note">AES-256-GCM · PIN mai salvato · autoblocco 5 min</div>
+        </section>
+        <section class="card" id="card-ext">
+          <header><span class="card-dot"></span>ESTENSIONI<span id="ext-count"></span></header>
+          <div id="ext-list"></div>
+          <div id="ext-status"></div>
+          <div class="row">
+            <button id="ext-load" class="btn">Carica unpacked</button>
+          </div>
+          <div class="sup-note">Cartelle unpacked · MV2 al meglio · niente Web Store diretto</div>
         </section>
       </div>
     </aside>
@@ -936,6 +1206,7 @@
     </div>
   </div>
 
+  <div id="ctx-catcher" hidden></div>
   <div id="ctx-menu" hidden></div>
 
   <div id="find-bar" hidden>
@@ -944,6 +1215,11 @@
     <button id="find-prev" title="Precedente (Maiusc+Invio)">↑</button>
     <button id="find-next" title="Successivo (Invio)">↓</button>
     <button id="find-close" title="Chiudi (Esc)">×</button>
+  </div>
+
+  <div id="dl-shelf" hidden>
+    <div id="dl-items"></div>
+    <button id="dl-hide" title="Nascondi">×</button>
   </div>
 
 <script>
@@ -1066,7 +1342,10 @@
     applyLayout();
   }
 
+  let extNewtabUrl = null; // override newtab dalle estensioni (chrome_url_overrides)
+
   function createTab(url = HOME_URL) {
+    if (url === HOME_URL && extNewtabUrl) url = extNewtabUrl;
     const id = ++tabCounter;
 
     // ---- tab strip entry ----
@@ -1106,6 +1385,9 @@
     const webview = document.createElement('webview');
     webview.setAttribute('src', url);
     webview.setAttribute('allowpopups', '');
+    try {
+      webview.setAttribute('preload', new URL('vault-preload.js', window.location.href).href);
+    } catch (e) {}
     paneEl.appendChild(webview);
     viewContainer.appendChild(paneEl);
 
@@ -1113,6 +1395,7 @@
       tab.title = e.title;
       tabEl.querySelector('.tab-title').textContent = e.title;
       updateGroupTab();
+      try { refreshHistoryTitles(tab.webview.getURL(), e.title); } catch (err) {}
     });
     webview.addEventListener('did-start-loading', () => {
       if (isFocused(id)) setLoading(true);
@@ -1124,6 +1407,7 @@
     webview.addEventListener('did-navigate', (e) => {
       if (isFocused(id)) { urlBar.value = e.url; setProtocol(e.url); }
       updateNavButtons();
+      recordHistory(e.url);
     });
     webview.addEventListener('did-navigate-in-page', (e) => {
       if (isFocused(id)) { urlBar.value = e.url; setProtocol(e.url); }
@@ -1142,6 +1426,16 @@
       e.preventDefault();
       if (e.url && /^https?:\/\//i.test(e.url)) createTab(e.url);
     });
+    // Cattura password dai login (via vault-preload) → main.
+    webview.addEventListener('ipc-message', (e) => {
+      if (e.channel === 'vault-capture' && e.args && e.args[0]) {
+        try {
+          if (window.browserAPI && window.browserAPI.vaultCapture) {
+            window.browserAPI.vaultCapture(e.args[0]).then(() => { try { refreshVaultBadge(); } catch (err) {} }).catch(() => {});
+          }
+        } catch (err) {}
+      }
+    });
     // Scrollbar liquida su ogni pagina (anche SPA / navigazioni interne)
     webview.addEventListener('did-finish-load', () => injectKoaScrollbar(webview));
     webview.addEventListener('did-navigate-in-page', () => injectKoaScrollbar(webview));
@@ -1157,6 +1451,11 @@
 
     const tab = { id, tabEl, paneEl, webview, title: 'Nuova scheda' };
     tabs.push(tab);
+    try {
+      if (window.browserAPI && window.browserAPI.extTabEvent) {
+        window.browserAPI.extTabEvent({ type: 'created', contentsId: webview.getWebContentsId() });
+      }
+    } catch (e) {}
     // Una nuova scheda si mostra singola, ma lo split resta legato in background.
     showingSplit = false;
     activeTabId = id;
@@ -1182,6 +1481,11 @@
     if (idx === -1) return;
     const [tab] = tabs.splice(idx, 1);
     pushClosed(tab);
+    try {
+      if (window.browserAPI && window.browserAPI.extTabEvent) {
+        window.browserAPI.extTabEvent({ type: 'removed', contentsId: tab.webview.getWebContentsId() });
+      }
+    } catch (e) {}
     tab.tabEl.remove();
     tab.paneEl.remove();
 
@@ -1222,6 +1526,11 @@
       if (idx !== -1) {
         const [tab] = tabs.splice(idx, 1);
         pushClosed(tab);
+        try {
+          if (window.browserAPI && window.browserAPI.extTabEvent) {
+            window.browserAPI.extTabEvent({ type: 'removed', contentsId: tab.webview.getWebContentsId() });
+          }
+        } catch (e) {}
         tab.tabEl.remove();
         tab.paneEl.remove();
       }
@@ -1384,6 +1693,7 @@
     }
     refreshToolbarForFocusedTab();
     closeCtxMenu();
+    notifyExtSelected();
   }
 
   function refreshToolbarForFocusedTab() {
@@ -1395,6 +1705,7 @@
     setProtocol(url);
     setLoading(wv.isLoading ? wv.isLoading() : false);
     updateNavButtons();
+    updateStar();
   }
 
   function updateNavButtons() {
@@ -1661,6 +1972,7 @@
 
   // ================= Menu contestuale (tasto destro nella pagina) =================
   const ctxMenu = document.getElementById('ctx-menu');
+  const ctxCatcher = document.getElementById('ctx-catcher');
   let ctxTabId = null;
 
   function apiCall(fn, ...args) {
@@ -1671,6 +1983,7 @@
     if (!ctxMenu) return;
     ctxMenu.hidden = true;
     ctxMenu.innerHTML = '';
+    if (ctxCatcher) ctxCatcher.hidden = true;
     ctxTabId = null;
   }
 
@@ -1774,6 +2087,7 @@
     addCtxItem('Trova nella pagina…', 'Ctrl+F', () => openFind(tabId));
     addCtxItem('Ispeziona', 'Ctrl+Shift+I', () => apiCall('inspectTab', wid, p.x, p.y));
     ctxMenu.hidden = false;
+    if (ctxCatcher) ctxCatcher.hidden = false;
     const mw = ctxMenu.offsetWidth, mh = ctxMenu.offsetHeight;
     let x = r.left + p.x, y = r.top + p.y;
     if (x + mw > window.innerWidth - 8) x = Math.max(8, window.innerWidth - mw - 8);
@@ -1785,6 +2099,9 @@
   document.addEventListener('mousedown', (e) => {
     if (!ctxMenu.hidden && !e.target.closest('#ctx-menu')) closeCtxMenu();
   }, true);
+  // Il catcher copre anche i webview: qualunque clic fuori dal menu lo chiude.
+  ctxCatcher.addEventListener('mousedown', (e) => { e.preventDefault(); closeCtxMenu(); });
+  ctxCatcher.addEventListener('contextmenu', (e) => { e.preventDefault(); closeCtxMenu(); });
 
   // ================= Trova nella pagina (Ctrl+F) =================
   const findBar = document.getElementById('find-bar');
@@ -2240,6 +2557,552 @@
 
   addMsg('koa', 'Ciao, sono KOA con AI. Scrivimi pure — conosco anche la pagina che hai aperta. Comandi: /calc, /cerca, /riassumi, /aiuto', false);
 
+  // ================= Cronologia + preferiti =================
+  const starBtn = document.getElementById('star-btn');
+  const favBar = document.getElementById('fav-bar');
+  const favScroll = document.getElementById('fav-scroll');
+  const histSearch = document.getElementById('hist-search');
+  const histList = document.getElementById('hist-list');
+  const histCount = document.getElementById('hist-count');
+  const histClear = document.getElementById('hist-clear');
+
+  function loadJSON(key, fallback) {
+    try { const v = JSON.parse(localStorage.getItem(key) || ''); return v ?? fallback; }
+    catch (e) { return fallback; }
+  }
+  function saveJSON(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) {} }
+
+  let historyItems = loadJSON('koa.history', []);
+  if (!Array.isArray(historyItems)) historyItems = [];
+  let bookmarks = loadJSON('koa.bookmarks', []);
+  if (!Array.isArray(bookmarks)) bookmarks = [];
+
+  function histTime(t) {
+    const d = new Date(t);
+    const hh = String(d.getHours()).padStart(2, '0'), mm = String(d.getMinutes()).padStart(2, '0');
+    if (d.toDateString() === new Date().toDateString()) return 'oggi ' + hh + ':' + mm;
+    return d.toLocaleDateString('it-IT', { day: 'numeric', month: 'short' }) + ' ' + hh + ':' + mm;
+  }
+
+  function recordHistory(url, title) {
+    if (!url || (!url.startsWith('http://') && !url.startsWith('https://'))) return;
+    const last = historyItems[0];
+    if (last && last.url === url) { last.t = Date.now(); if (title) last.title = title; }
+    else historyItems.unshift({ url, title: title || url, t: Date.now() });
+    if (historyItems.length > 200) historyItems.length = 200;
+    saveJSON('koa.history', historyItems);
+    renderHistory();
+  }
+
+  function refreshHistoryTitles(url, title) {
+    if (!url || !title) return;
+    let changed = false;
+    for (const h of historyItems) {
+      if (h.url === url && (h.title === h.url || h.title === 'Nuova scheda')) { h.title = title; changed = true; }
+    }
+    if (changed) { saveJSON('koa.history', historyItems); renderHistory(); }
+  }
+
+  function renderHistory() {
+    const q = (histSearch.value || '').trim().toLowerCase();
+    histList.innerHTML = '';
+    const items = historyItems.filter(h =>
+      !q || (h.title || '').toLowerCase().includes(q) || (h.url || '').toLowerCase().includes(q));
+    histCount.textContent = historyItems.length ? historyItems.length + ' voci' : '';
+    if (!items.length) {
+      const d = document.createElement('div');
+      d.className = 'hist-empty';
+      d.textContent = q ? 'Nessun risultato.' : 'Nessuna pagina visitata.';
+      histList.appendChild(d);
+      return;
+    }
+    items.slice(0, 80).forEach(h => {
+      const el = document.createElement('div');
+      el.className = 'hist-item';
+      const t = document.createElement('div');
+      t.className = 'hist-title';
+      t.textContent = h.title || h.url;
+      const m = document.createElement('div');
+      m.className = 'hist-meta';
+      m.textContent = histTime(h.t) + ' · ' + h.url;
+      m.title = h.url;
+      el.append(t, m);
+      el.addEventListener('click', () => createTab(h.url));
+      histList.appendChild(el);
+    });
+  }
+  histSearch.addEventListener('input', renderHistory);
+  histClear.addEventListener('click', () => {
+    if (!historyItems.length) return;
+    if (!window.confirm('Cancellare tutta la cronologia?')) return;
+    historyItems = [];
+    saveJSON('koa.history', historyItems);
+    renderHistory();
+  });
+
+  function favHost(url) {
+    try { return new URL(url).hostname; } catch (e) { return ''; }
+  }
+  function isBookmarked(url) { return bookmarks.some(b => b.url === url); }
+
+  function renderFavs() {
+    favScroll.innerHTML = '';
+    favBar.hidden = bookmarks.length === 0;
+    bookmarks.forEach((b, i) => {
+      const el = document.createElement('div');
+      el.className = 'fav-bubble';
+      el.title = (b.title || b.url) + '\n' + b.url;
+      const host = favHost(b.url);
+      const img = document.createElement('img');
+      img.alt = '';
+      img.src = 'https://www.google.com/s2/favicons?domain=' + encodeURIComponent(host) + '&sz=64';
+      img.addEventListener('error', () => {
+        img.remove();
+        const s = document.createElement('span');
+        s.className = 'fav-letter';
+        s.textContent = ((b.title || host || '?').trim()[0] || '?').toUpperCase();
+        el.prepend(s);
+      });
+      const x = document.createElement('span');
+      x.className = 'fav-x';
+      x.textContent = '×';
+      x.title = 'Rimuovi dai preferiti';
+      x.addEventListener('click', (e) => {
+        e.stopPropagation();
+        bookmarks.splice(i, 1);
+        saveJSON('koa.bookmarks', bookmarks);
+        renderFavs();
+        updateStar();
+      });
+      el.append(img, x);
+      el.addEventListener('click', () => createTab(b.url));
+      favScroll.appendChild(el);
+    });
+  }
+
+  function updateStar() {
+    const t = getFocusedTab();
+    let url = '';
+    try { url = t ? (t.webview.getURL() || '') : ''; } catch (e) {}
+    const on = !!url && isBookmarked(url);
+    starBtn.classList.toggle('on', on);
+    starBtn.title = on ? 'Rimuovi dai preferiti' : 'Aggiungi ai preferiti';
+  }
+
+  starBtn.addEventListener('click', () => {
+    const t = getFocusedTab();
+    if (!t) return;
+    let url = '';
+    try { url = t.webview.getURL() || ''; } catch (e) {}
+    if (!url || (!url.startsWith('http://') && !url.startsWith('https://'))) return;
+    const i = bookmarks.findIndex(b => b.url === url);
+    if (i === -1) {
+      let title = t.title || url;
+      try { title = t.webview.getTitle() || title; } catch (e) {}
+      bookmarks.push({ url, title, t: Date.now() });
+      try { koaTone(660, 0.06); } catch (e) {}
+    } else {
+      bookmarks.splice(i, 1);
+    }
+    saveJSON('koa.bookmarks', bookmarks);
+    renderFavs();
+    updateStar();
+  });
+
+  renderHistory();
+  renderFavs();
+
+  let lastExtSelected = 0;
+  function notifyExtSelected() {
+    try {
+      const t = getFocusedTab();
+      if (!t) return;
+      const cid = t.webview.getWebContentsId();
+      if (cid && cid !== lastExtSelected) {
+        lastExtSelected = cid;
+        if (window.browserAPI && window.browserAPI.extTabEvent) {
+          window.browserAPI.extTabEvent({ type: 'selected', contentsId: cid });
+        }
+        const actions = document.getElementById('ext-actions');
+        if (actions) { try { actions.setAttribute('tab', String(cid)); } catch (e) {} }
+      }
+    } catch (e) {}
+  }
+
+  // ================= Estensioni Chrome =================
+  const extListEl = document.getElementById('ext-list');
+  const extLoadBtn = document.getElementById('ext-load');
+  const extCount = document.getElementById('ext-count');
+  const extStatus = document.getElementById('ext-status');
+
+  function renderExtList(payload) {
+    const items = (payload && payload.extensions) || [];
+    extNewtabUrl = (payload && payload.newtab) || null;
+    const on = items.filter(x => x.enabled).length;
+    extCount.textContent = items.length ? on + '/' + items.length + ' attive' : '';
+    extListEl.innerHTML = '';
+    if (!items.length) {
+      const d = document.createElement('div');
+      d.className = 'ext-empty';
+      d.textContent = 'Nessuna estensione. Carica una cartella unpacked.';
+      extListEl.appendChild(d);
+      return;
+    }
+    items.forEach(x => {
+      const row = document.createElement('div');
+      row.className = 'ext-row';
+      const info = document.createElement('div');
+      info.className = 'ext-info';
+      const nm = document.createElement('div');
+      nm.className = 'ext-name';
+      nm.textContent = x.name || '(senza nome)';
+      nm.title = (x.name || '') + '\n' + (x.id || '');
+      const sub = document.createElement('div');
+      sub.className = 'ext-sub';
+      sub.textContent = (x.version ? 'v' + x.version + ' · ' : '') + (x.enabled ? 'attiva' : 'spenta') + (x.id ? ' · ' + String(x.id).slice(0, 8) : '');
+      info.append(nm, sub);
+      const sw = document.createElement('span');
+      sw.className = 'switch';
+      const cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.checked = !!x.enabled;
+      cb.title = 'Attiva/disattiva';
+      const ic = document.createElement('i');
+      sw.append(cb, ic);
+      cb.addEventListener('change', async () => {
+        try {
+          if (window.browserAPI && window.browserAPI.extToggle) {
+            const r = await window.browserAPI.extToggle(x.id, cb.checked);
+            if (r && !r.ok && r.error) {
+              extStatus.textContent = r.error;
+              setTimeout(() => { extStatus.textContent = ''; }, 5000);
+            }
+          }
+        } catch (e) {}
+        refreshExtList();
+      });
+      const del = document.createElement('button');
+      del.className = 'ext-del';
+      del.textContent = '×';
+      del.title = 'Rimuovi estensione';
+      del.addEventListener('click', async () => {
+        if (!window.confirm('Rimuovere "' + (x.name || x.id) + '"?')) return;
+        try { if (window.browserAPI && window.browserAPI.extRemove) await window.browserAPI.extRemove(x.id); } catch (e) {}
+        refreshExtList();
+      });
+      row.append(info, sw, del);
+      extListEl.appendChild(row);
+    });
+  }
+
+  async function refreshExtList() {
+    try {
+      if (window.browserAPI && window.browserAPI.extList) renderExtList(await window.browserAPI.extList());
+    } catch (e) {}
+  }
+
+  extLoadBtn.addEventListener('click', async () => {
+    try {
+      if (window.browserAPI && window.browserAPI.extLoadFolder) {
+        const r = await window.browserAPI.extLoadFolder();
+        if (r && !r.ok && r.error) {
+          extStatus.textContent = r.error;
+          setTimeout(() => { extStatus.textContent = ''; }, 5000);
+        }
+      }
+    } catch (e) {}
+    refreshExtList();
+  });
+
+  try {
+    if (window.browserAPI && window.browserAPI.onExtList) window.browserAPI.onExtList(renderExtList);
+  } catch (e) {}
+  refreshExtList();
+
+  // Tab viste dalle estensioni (chrome.tabs create/select/remove).
+  try {
+    if (window.browserAPI && window.browserAPI.onExtCreateTab) {
+      window.browserAPI.onExtCreateTab(async ({ token, url }) => {
+        const id = createTab(url || HOME_URL);
+        const t = getTab(id);
+        let contentsId = null;
+        try { contentsId = t.webview.getWebContentsId(); } catch (e) {}
+        try { window.browserAPI.extTabCreated({ token, contentsId }); } catch (e) {}
+      });
+    }
+    if (window.browserAPI && window.browserAPI.onExtSelectTab) {
+      window.browserAPI.onExtSelectTab((cid) => {
+        const t = tabs.find(x => { try { return x.webview.getWebContentsId() === Number(cid); } catch (e) { return false; } });
+        if (t) activateTab(t.id);
+      });
+    }
+    if (window.browserAPI && window.browserAPI.onExtRemoveTab) {
+      window.browserAPI.onExtRemoveTab((cid) => {
+        const t = tabs.find(x => { try { return x.webview.getWebContentsId() === Number(cid); } catch (e) { return false; } });
+        if (t) closeTab(t.id);
+      });
+    }
+  } catch (e) {}
+
+  // ================= KOA Vault (sidebar) =================
+  const vaultStateEl = document.getElementById('vault-state');
+  const vaultLocked = document.getElementById('vault-locked');
+  const vaultOpen = document.getElementById('vault-open');
+  const vaultLockMsg = document.getElementById('vault-lock-msg');
+  const vaultPin = document.getElementById('vault-pin');
+  const vaultPin2 = document.getElementById('vault-pin2');
+  const vaultGo = document.getElementById('vault-go');
+  const vaultErr = document.getElementById('vault-err');
+  const vaultPendingEl = document.getElementById('vault-pending');
+  const vaultListEl = document.getElementById('vault-list');
+  const vaultAdd = document.getElementById('vault-add');
+  const vaultLockBtn = document.getElementById('vault-lock-btn');
+  const vaultForm = document.getElementById('vault-form');
+  const vaultFSite = document.getElementById('vault-f-site');
+  const vaultFUser = document.getElementById('vault-f-user');
+  const vaultFPass = document.getElementById('vault-f-pass');
+  const vaultSaveBtn = document.getElementById('vault-save');
+  const vaultCancelBtn = document.getElementById('vault-cancel');
+  let vaultMode = 'unknown';
+
+  async function vaultApi(fn, ...args) {
+    try {
+      if (window.browserAPI && window.browserAPI[fn]) return await window.browserAPI[fn](...args);
+    } catch (e) {}
+    return null;
+  }
+
+  function refreshVaultBadge() { refreshVaultPanel(false); }
+
+  function vaultNormOrigin(s) {
+    s = (s || '').trim();
+    if (!s) return '';
+    if (!/^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//.test(s)) s = 'https://' + s;
+    try {
+      const u = new URL(s);
+      if (u.protocol !== 'http:' && u.protocol !== 'https:') return '';
+      return u.origin;
+    } catch (e) { return ''; }
+  }
+
+  async function refreshVaultPanel(focusPin) {
+    const st = (await vaultApi('vaultStatus')) || {};
+    const has = !!st.exists, open = !!st.unlocked;
+    vaultLocked.hidden = open;
+    vaultOpen.hidden = !open;
+    vaultStateEl.textContent = !has ? 'NUOVO' : (open ? 'APERTO' : 'BLOCCATO');
+    vaultStateEl.classList.toggle('on', open);
+    if (!has) {
+      vaultMode = 'setup';
+      vaultLockMsg.textContent = 'Prima volta: scegli un PIN (ricordalo, non si recupera).';
+      vaultPin2.hidden = false;
+      vaultGo.textContent = 'Crea';
+      vaultErr.textContent = '';
+    } else if (!open) {
+      vaultMode = 'locked';
+      vaultLockMsg.textContent = 'Inserisci il PIN per aprire il vault.' + (st.pending ? ' (' + st.pending + ' da salvare)' : '');
+      vaultPin2.hidden = true;
+      vaultGo.textContent = 'Sblocca';
+      vaultErr.textContent = '';
+    } else {
+      vaultMode = 'open';
+      await renderVaultLists();
+    }
+    if (focusPin) setTimeout(() => vaultPin.focus(), 0);
+  }
+
+  vaultGo.addEventListener('click', async () => {
+    const pin = vaultPin.value || '';
+    vaultErr.textContent = '';
+    if (vaultMode === 'setup') {
+      if (pin.length < 4) { vaultErr.textContent = 'PIN troppo corto (min 4).'; return; }
+      if (pin !== (vaultPin2.value || '')) { vaultErr.textContent = 'I PIN non coincidono.'; return; }
+      const r = await vaultApi('vaultSetup', pin);
+      if (!r || !r.ok) { vaultErr.textContent = (r && r.error) || 'Creazione fallita.'; return; }
+      vaultPin.value = ''; vaultPin2.value = '';
+      try { koaTone(880, 0.09); } catch (e) {}
+      refreshVaultPanel(false);
+    } else {
+      const r = await vaultApi('vaultUnlock', pin);
+      if (!r || !r.ok) {
+        vaultErr.textContent = (r && r.error) || 'Sblocco fallito.';
+        try { koaTone(220, 0.12); } catch (e) {}
+        return;
+      }
+      vaultPin.value = '';
+      refreshVaultPanel(false);
+    }
+  });
+  vaultPin.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); vaultGo.click(); }
+    e.stopPropagation();
+  });
+  vaultPin2.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); vaultGo.click(); }
+    e.stopPropagation();
+  });
+
+  async function renderVaultLists() {
+    vaultPendingEl.innerHTML = '';
+    vaultListEl.innerHTML = '';
+    const pend = await vaultApi('vaultPending');
+    const pendItems = (pend && pend.ok && pend.items) || [];
+    pendItems.forEach(p => {
+      const row = document.createElement('div');
+      row.className = 'vault-pend';
+      const top = document.createElement('div');
+      top.className = 'vp-top';
+      let tstr = '';
+      try {
+        const d = new Date(p.t);
+        tstr = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+      } catch (e) {}
+      top.textContent = 'Nuovo login · ' + p.origin + ' · ' + (p.user || '(senza utente)') + ' · ' + tstr;
+      top.title = top.textContent;
+      const tools = document.createElement('div');
+      tools.className = 'row';
+      const save = document.createElement('button');
+      save.className = 'btn mini primary';
+      save.textContent = 'Salva';
+      save.addEventListener('click', async () => {
+        await vaultApi('vaultSavePending', p.idx);
+        renderVaultLists();
+      });
+      const no = document.createElement('button');
+      no.className = 'btn mini';
+      no.textContent = 'Scarta';
+      no.addEventListener('click', async () => {
+        await vaultApi('vaultDiscardPending', p.idx);
+        renderVaultLists();
+      });
+      tools.append(save, no);
+      row.append(top, tools);
+      vaultPendingEl.appendChild(row);
+    });
+    const lr = await vaultApi('vaultList');
+    const items = (lr && lr.ok && lr.items) || [];
+    if (!items.length && !pendItems.length) {
+      const d = document.createElement('div');
+      d.className = 'hist-empty';
+      d.textContent = 'Nessuna password salvata.';
+      vaultListEl.appendChild(d);
+      return;
+    }
+    items.forEach(x => {
+      const row = document.createElement('div');
+      row.className = 'vault-row';
+      const head = document.createElement('div');
+      head.className = 'vault-head';
+      const site = document.createElement('span');
+      site.className = 'vault-site';
+      let host = x.origin;
+      try { host = new URL(x.origin).hostname; } catch (e) {}
+      site.textContent = host;
+      site.title = x.origin;
+      head.appendChild(site);
+      const user = document.createElement('div');
+      user.className = 'vault-user';
+      user.textContent = x.user || '(senza utente)';
+      const pass = document.createElement('div');
+      pass.className = 'vault-pass';
+      pass.textContent = '••••••••';
+      const tools = document.createElement('div');
+      tools.className = 'vault-tools';
+      const mkMini = (label, title, fn) => {
+        const b = document.createElement('button');
+        b.className = 'btn mini';
+        b.textContent = label;
+        b.title = title;
+        b.addEventListener('click', fn);
+        tools.appendChild(b);
+      };
+      mkMini('Riempi', 'Riempi nel pannello attivo', () => vaultFillActive(x.origin));
+      let shownTimer = 0;
+      mkMini('Mostra', 'Mostra password', async () => {
+        const r = await vaultApi('vaultReveal', x.id);
+        if (r && r.ok) {
+          pass.textContent = r.pass;
+          clearTimeout(shownTimer);
+          shownTimer = setTimeout(() => { pass.textContent = '••••••••'; }, 15000);
+        }
+      });
+      mkMini('Copia', 'Copia password', async () => {
+        const r = await vaultApi('vaultReveal', x.id);
+        if (r && r.ok) {
+          try { await window.browserAPI.copyText(r.pass); } catch (e) {}
+        }
+      });
+      mkMini('×', 'Elimina', async () => {
+        if (!window.confirm('Eliminare la password di ' + host + '?')) return;
+        await vaultApi('vaultDelete', x.id);
+        renderVaultLists();
+      });
+      row.append(head, user, pass, tools);
+      vaultListEl.appendChild(row);
+    });
+  }
+
+  // Gira DENTRO il webview: riempie utente + password (anche nei form React).
+  function vaultFillFn(u, p) {
+    function setNative(el, v) {
+      try {
+        const proto = el.__proto__;
+        const desc = Object.getOwnPropertyDescriptor(proto, 'value');
+        if (desc && desc.set) desc.set.call(el, v);
+        else el.value = v;
+        el.dispatchEvent(new Event('input', { bubbles: true }));
+        el.dispatchEvent(new Event('change', { bubbles: true }));
+      } catch (e) { try { el.value = v; } catch (_) {} }
+    }
+    try {
+      var pw = document.querySelector('input[type="password"]');
+      if (!pw) return 'no-field';
+      var scope = pw.form || document;
+      var user = scope.querySelector('input[autocomplete="username"], input[type="email"]') ||
+        scope.querySelector('input[type="text"]') ||
+        document.querySelector('input[type="email"], input[type="text"]');
+      if (user) setNative(user, u);
+      setNative(pw, p);
+      return 'ok';
+    } catch (e) { return 'fail'; }
+  }
+
+  async function vaultFillActive(origin) {
+    const t = getFocusedTab();
+    if (!t) return;
+    const r = await vaultApi('vaultFill', origin);
+    if (!r || !r.ok) { try { koaTone(220, 0.1); } catch (e) {} return; }
+    try {
+      await t.webview.executeJavaScript(
+        '(' + vaultFillFn.toString() + ')(' + JSON.stringify(r.user) + ',' + JSON.stringify(r.pass) + ')', true);
+      try { koaTone(880, 0.07); } catch (e) {}
+    } catch (e) {}
+  }
+
+  vaultAdd.addEventListener('click', () => {
+    vaultForm.hidden = false;
+    vaultFSite.value = '';
+    vaultFUser.value = '';
+    vaultFPass.value = '';
+    setTimeout(() => vaultFSite.focus(), 0);
+  });
+  vaultCancelBtn.addEventListener('click', () => { vaultForm.hidden = true; });
+  vaultSaveBtn.addEventListener('click', async () => {
+    const origin = vaultNormOrigin(vaultFSite.value);
+    if (!origin) { vaultFSite.focus(); return; }
+    const r = await vaultApi('vaultSave', { origin, user: vaultFUser.value.trim(), pass: vaultFPass.value });
+    if (r && r.ok) {
+      vaultForm.hidden = true;
+      renderVaultLists();
+    }
+  });
+  vaultLockBtn.addEventListener('click', async () => {
+    await vaultApi('vaultLock');
+    refreshVaultPanel(true);
+  });
+
+  refreshVaultPanel(false);
+
   // ---- Controlli finestra custom (frame:false) ----
   const winMinBtn = document.getElementById('win-min');
   const winMaxBtn = document.getElementById('win-max');
@@ -2267,15 +3130,7 @@
     }
   } catch (e) {}
 
-  // ================= ZENdate MAX · impostazioni + aggiornamenti =================
-  const settingsBtn = document.getElementById('settings-btn');
-  const settingsModal = document.getElementById('settings-modal');
-  const settingsVersion = document.getElementById('settings-version');
-  const updateStatus = document.getElementById('update-status');
-  const updateFill = document.querySelector('#update-progress i');
-  const updateNotes = document.getElementById('update-notes');
-  const zendateCheck = document.getElementById('zendate-check');
-  const settingsClose = document.getElementById('settings-close');
+  // ================= Browser predefinito VERO =================
   const defStatus = document.getElementById('defbrowser-status');
   const defBtn = document.getElementById('defbrowser-btn');
 
@@ -2287,7 +3142,9 @@
         const ok = !!(s && s.http && s.https);
         defStatus.textContent = ok
           ? 'KOA è il browser predefinito.'
-          : 'KOA non è il browser predefinito.';
+          : ((s && s.registered)
+              ? 'Registrato in Windows: completa la scelta.'
+              : 'KOA non è registrato come browser.');
         defBtn.disabled = ok;
         return;
       }
@@ -2297,14 +3154,14 @@
 
   defBtn.addEventListener('click', async () => {
     defBtn.disabled = true;
-    defStatus.textContent = 'Impostazione…';
+    defStatus.textContent = 'Registrazione in Windows…';
     try {
       if (window.browserAPI && window.browserAPI.setDefaultBrowser) {
         const s = await window.browserAPI.setDefaultBrowser();
         const ok = !!(s && s.http && s.https);
         defStatus.textContent = ok
           ? 'KOA è il browser predefinito.'
-          : 'Completa la scelta nelle Impostazioni di Windows appena aperte.';
+          : 'Registrato: scegli KOA nelle Impostazioni di Windows appena aperte.';
         defBtn.disabled = ok;
         return;
       }
@@ -2312,6 +3169,174 @@
     defStatus.textContent = 'Non riuscito: riprova.';
     defBtn.disabled = false;
   });
+
+  // Link/file aperti con KOA predefinito finiscono in una nuova scheda.
+  try {
+    if (window.browserAPI && window.browserAPI.onOpenUrl) {
+      window.browserAPI.onOpenUrl((u) => { if (u) createTab(u); });
+    }
+  } catch (e) {}
+
+  // ================= Download manager (shelf stile Chrome) =================
+  const dlBtn = document.getElementById('dl-btn');
+  const dlBadge = document.getElementById('dl-badge');
+  const dlShelf = document.getElementById('dl-shelf');
+  const dlItemsEl = document.getElementById('dl-items');
+  const dlHide = document.getElementById('dl-hide');
+  const dlMap = new Map();
+  let dlDone = [];
+  try { dlDone = JSON.parse(localStorage.getItem('koa.downloads') || '[]'); } catch (e) { dlDone = []; }
+  if (!Array.isArray(dlDone)) dlDone = [];
+  let dlUserHidden = true;
+
+  function fmtSize(b) {
+    if (b == null || b < 0) return '';
+    if (b < 1024) return Math.round(b) + ' B';
+    if (b < 1048576) return (b / 1024).toFixed(1) + ' KB';
+    if (b < 1073741824) return (b / 1048576).toFixed(1) + ' MB';
+    return (b / 1073741824).toFixed(2) + ' GB';
+  }
+  function fmtSpeed(bps) {
+    if (!bps || bps <= 0) return '…';
+    if (bps < 1024) return Math.round(bps) + ' B/s';
+    if (bps < 1048576) return (bps / 1024).toFixed(1) + ' KB/s';
+    return (bps / 1048576).toFixed(1) + ' MB/s';
+  }
+  function fmtEta(received, total, speed) {
+    if (!total || !speed || speed <= 0 || received >= total) return '';
+    const s = Math.round((total - received) / speed);
+    if (s < 60) return ' · ' + s + 's rimasti';
+    const m = Math.floor(s / 60);
+    return m < 60 ? ' · ' + m + ' min rimasti' : ' · ' + Math.floor(m / 60) + 'h ' + (m % 60) + 'm rimasti';
+  }
+  function persistDlDone() {
+    try { localStorage.setItem('koa.downloads', JSON.stringify(dlDone.slice(0, 30))); } catch (e) {}
+  }
+  function dlAction(id, action, pth) {
+    try { if (window.browserAPI && window.browserAPI.dlAction) window.browserAPI.dlAction({ id, action, path: pth }); } catch (e) {}
+  }
+
+  const ICO_FOLDER = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>';
+  const ICO_OPEN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"><path d="M14 4h6v6M20 4L10 14M18 13v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h6"/></svg>';
+
+  function renderDl() {
+    dlItemsEl.innerHTML = '';
+    const rows = [];
+    dlMap.forEach(ev => rows.push({ ev, done: null }));
+    dlDone.forEach(d => rows.push({ ev: null, done: d }));
+    let active = 0;
+    rows.forEach(({ ev, done }) => {
+      const isDone = !ev || ev.state === 'done';
+      const name = ev ? ev.name : done.name;
+      const pth = ev ? (ev.path || '') : (done.path || '');
+      const item = document.createElement('div');
+      item.className = 'dl-item' + (isDone ? ' done' : '');
+      const top = document.createElement('div');
+      top.className = 'dl-top';
+      const nm = document.createElement('span');
+      nm.className = 'dl-name';
+      nm.textContent = name;
+      nm.title = name + (pth ? '\n' + pth : '');
+      top.appendChild(nm);
+      const mkBtn = (html, title, fn) => {
+        const b = document.createElement('button');
+        b.className = 'dl-act';
+        b.title = title;
+        b.innerHTML = html;
+        b.addEventListener('click', (e) => { e.stopPropagation(); fn(); });
+        top.appendChild(b);
+      };
+      if (ev && ev.state === 'active') {
+        active++;
+        mkBtn('×', 'Annulla download', () => dlAction(ev.id, 'cancel'));
+      } else {
+        mkBtn(ICO_FOLDER, 'Mostra nella cartella', () => dlAction(ev ? ev.id : null, 'folder', pth));
+        mkBtn(ICO_OPEN, 'Apri file', () => dlAction(ev ? ev.id : null, 'open', pth));
+        const x = document.createElement('button');
+        x.className = 'dl-act';
+        x.title = 'Rimuovi dalla lista';
+        x.textContent = '×';
+        x.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (ev) dlMap.delete(ev.id);
+          else dlDone = dlDone.filter(d => d !== done);
+          persistDlDone();
+          renderDl();
+        });
+        top.appendChild(x);
+      }
+      const bar = document.createElement('div');
+      bar.className = 'dl-bar';
+      const fill = document.createElement('i');
+      bar.appendChild(fill);
+      const meta = document.createElement('div');
+      meta.className = 'dl-meta';
+      if (ev && ev.state === 'active') {
+        const pct = ev.total > 0 ? Math.min(100, Math.round((ev.received / ev.total) * 100)) : 0;
+        fill.style.width = (ev.total > 0 ? pct : 100) + '%';
+        meta.textContent = (ev.total > 0 ? pct + '% · ' : '') + fmtSpeed(ev.speed) + (ev.total > 0 ? fmtEta(ev.received, ev.total, ev.speed) : ' · ' + fmtSize(ev.received));
+      } else if (ev && ev.state === 'done') {
+        fill.style.width = '100%';
+        meta.textContent = 'Completato · ' + fmtSize(ev.total || ev.received);
+      } else if (ev && ev.state === 'cancelled') {
+        meta.textContent = 'Annullato';
+      } else if (ev && ev.state === 'error') {
+        meta.textContent = 'Errore: ' + (ev.message || 'download fallito');
+      } else if (done) {
+        fill.style.width = '100%';
+        const d = new Date(done.t);
+        meta.textContent = 'Completato · ' + fmtSize(done.size) + ' · ' +
+          String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+      }
+      item.append(top, bar, meta);
+      dlItemsEl.appendChild(item);
+    });
+    if (rows.length > 0 && !dlUserHidden) dlShelf.hidden = false;
+    if (active > 0) {
+      dlBadge.hidden = false;
+      dlBadge.textContent = String(active);
+    } else {
+      dlBadge.hidden = true;
+    }
+  }
+
+  function onDlEvent(ev) {
+    if (!ev) return;
+    if (ev.state === 'active') {
+      dlMap.set(ev.id, ev);
+      dlUserHidden = false;
+      let dropped = 0;
+      for (const [k, v] of dlMap) {
+        if (dlMap.size - dropped <= 25) break;
+        if (!v || v.state !== 'active') { dlMap.delete(k); dropped++; }
+      }
+    } else if (ev.state === 'done') {
+      dlMap.delete(ev.id);
+      dlDone.unshift({ name: ev.name, path: ev.path || '', size: ev.total || ev.received || 0, t: Date.now() });
+      dlDone = dlDone.slice(0, 30);
+      persistDlDone();
+    } else {
+      dlMap.set(ev.id, ev);
+    }
+    renderDl();
+  }
+
+  try {
+    if (window.browserAPI && window.browserAPI.onDownloadEvent) window.browserAPI.onDownloadEvent(onDlEvent);
+  } catch (e) {}
+  dlHide.addEventListener('click', () => { dlUserHidden = true; dlShelf.hidden = true; });
+  dlBtn.addEventListener('click', () => { dlUserHidden = false; renderDl(); });
+  renderDl();
+
+  // ================= ZENdate MAX · impostazioni + aggiornamenti =================
+  const settingsBtn = document.getElementById('settings-btn');
+  const settingsModal = document.getElementById('settings-modal');
+  const settingsVersion = document.getElementById('settings-version');
+  const updateStatus = document.getElementById('update-status');
+  const updateFill = document.querySelector('#update-progress i');
+  const updateNotes = document.getElementById('update-notes');
+  const zendateCheck = document.getElementById('zendate-check');
+  const settingsClose = document.getElementById('settings-close');
 
   async function refreshVersion() {
     for (let i = 0; i < 4; i++) {

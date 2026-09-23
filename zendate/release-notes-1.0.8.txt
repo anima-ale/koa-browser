@@ -1,0 +1,11 @@
+### Aggiunto
+- Cronologia navigazione con ricerca e pulizia (sidebar, ultime 200 voci)
+- Preferiti: stella nella toolbar, bollicine favicon in barra sottile, rimozione al volo
+- Riflesso vetro sulla barra sopra (luce radente sul cromo)
+- Browser predefinito VERO: registrazione StartMenuInternet + Capabilities + protocolli + tipi file, apertura link/file in KOA
+- Download manager stile Chrome: shelf con progressi, velocità, ETA, apri/mostra cartella, turbo multi-connessione 8x
+- Estensioni Chrome: toolbar con bottoni e popup, pannello gestione (carica unpacked, attiva/disattiva, rimuovi), chrome.tabs collegato
+- KOA Vault: gestore password cifrato (AES-256-GCM) con PIN, cattura automatica dai login, autofill, in attesa solo con PIN
+
+### Corretto
+- Menu contestuale: chiusura automatica al clic fuori (catcher sopra i webview)

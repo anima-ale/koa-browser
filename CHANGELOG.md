@@ -14,6 +14,20 @@ di `zendate\make-zendate.ps1`, più il testo della Release GitHub.
 ### Corretto
 -
 
+## [1.0.8] - 2026-09-23
+
+### Aggiunto
+- Cronologia navigazione con ricerca e pulizia (sidebar, ultime 200 voci)
+- Preferiti: stella nella toolbar, bollicine favicon in barra sottile, rimozione al volo
+- Riflesso vetro sulla barra sopra (luce radente sul cromo)
+- Browser predefinito VERO: registrazione StartMenuInternet + Capabilities + protocolli + tipi file, apertura link/file in KOA
+- Download manager stile Chrome: shelf con progressi, velocità, ETA, apri/mostra cartella, turbo multi-connessione 8x
+- Estensioni Chrome: toolbar con bottoni e popup, pannello gestione (carica unpacked, attiva/disattiva, rimuovi), chrome.tabs collegato
+- KOA Vault: gestore password cifrato (AES-256-GCM) con PIN, cattura automatica dai login, autofill, in attesa solo con PIN
+
+### Corretto
+- Menu contestuale: chiusura automatica al clic fuori (catcher sopra i webview)
+
 ## [1.0.7] - 2026-09-23
 
 ### Aggiunto
@@ -22,7 +36,6 @@ di `zendate\make-zendate.ps1`, più il testo della Release GitHub.
 - Trova nella pagina (Ctrl+F) con contatore risultati, Invio/Maiusc+Invio, Esc
 - Riapertura schede chiuse con Ctrl+Shift+T (ultime 25)
 - Finestra senza bordi di Windows: Riduci, Massimizza/Ripristina e Chiudi integrati nella barra schede
-- Imposta come predefinito dalle Impostazioni (http/https, .html associati nel setup, fallback alle Impostazioni Windows)
 - Start page KOA locale e offline (logo, ricerca Google, scorciatoie)
 - Scorciatoie stile Chrome: Ctrl+Tab/Maiusc+Tab giro schede, Ctrl+1-9 salto diretto, Ctrl+P stampa, Ctrl+/-/0 zoom, Alt+←/→ avanti/indietro, Ctrl+Alt+←/→ fuoco tra pannelli split, F11 fullscreen, F12 DevTools, Esc chiude menu/trova/impostazioni
 

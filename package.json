@@ -1,15 +1,16 @@
 {
   "name": "koa-browser",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "KOA Browser — browser in stile giapponese, legno e arancione vermiglio",
   "author": "KOA",
+  "license": "GPL-3.0-only",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
     "dist": "electron-builder --win"
   },
   "devDependencies": {
-    "electron": "^31.0.0",
+    "electron": "^44.4.5",
     "electron-builder": "^25.0.0",
     "png-to-ico": "^3.0.2"
   },
@@ -21,7 +22,10 @@
     },
     "fileAssociations": [
       {
-        "ext": ["html", "htm"],
+        "ext": [
+          "html",
+          "htm"
+        ],
         "name": "Documento HTML KOA",
         "role": "Browser",
         "mimeType": "text/html"
@@ -32,6 +36,7 @@
       "start.html",
       "main.js",
       "preload.js",
+      "vault-preload.js",
       "assets/**/*",
       "package.json",
       "node_modules/**/*"
@@ -56,6 +61,7 @@
     }
   },
   "dependencies": {
-    "@ghostery/adblocker-electron": "^2.18.2"
+    "@ghostery/adblocker-electron": "^2.18.2",
+    "electron-chrome-extensions": "^4.9.0"
   }
 }
