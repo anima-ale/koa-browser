@@ -1,0 +1,2 @@
+### Cambiato
+- Impostazioni ZENdate più grande e leggibile, versione gigante mai troncata

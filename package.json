@@ -1,0 +1,52 @@
+{
+  "name": "koa-browser",
+  "version": "1.0.2",
+  "description": "KOA Browser — browser in stile giapponese, legno e arancione vermiglio",
+  "author": "KOA",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win"
+  },
+  "devDependencies": {
+    "electron": "^31.0.0",
+    "electron-builder": "^25.0.0",
+    "png-to-ico": "^3.0.2"
+  },
+  "build": {
+    "appId": "com.koabrowser.app",
+    "productName": "KOA Browser",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "index.html",
+      "main.js",
+      "preload.js",
+      "assets/**/*",
+      "package.json",
+      "node_modules/**/*"
+    ],
+    "win": {
+      "signAndEditExecutable": false,
+      "icon": "assets/icon.ico",
+      "target": [
+        "portable",
+        "nsis"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "shortcutName": "KOA Browser",
+      "uninstallDisplayName": "KOA Browser",
+      "installerIcon": "assets/icon.ico",
+      "uninstallerIcon": "assets/icon.ico",
+      "installerHeader": "assets/installer-header.bmp",
+      "installerSidebar": "assets/installer-sidebar.bmp"
+    }
+  },
+  "dependencies": {
+    "@ghostery/adblocker-electron": "^2.18.2"
+  }
+}

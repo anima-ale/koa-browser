@@ -1,0 +1,9 @@
+# Dipendenze e build: mai su GitHub
+node_modules/
+dist/
+dist-test/
+*.log
+.DS_Store
+Thumbs.db
+# Manifest generato in locale (quello vero si pubblica a mano o via bat)
+# zendate/zendate.json

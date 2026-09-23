@@ -1,0 +1,5 @@
+### Aggiunto
+- ZENdate MAX: aggiornamenti automatici del portable + Impostazioni con versione e CONTROLLA ZENDATE
+- Icona nel tray, chiusura in background, istanza singola
+- ZEN Supervisor: anti-tracker + anti-pubblicità con contatore live
+- Pulsante Chat ZEN nell'header, setup con grafica KOA dedicata
