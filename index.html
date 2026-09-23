@@ -618,7 +618,7 @@
   }
   #settings-modal[hidden] { display: none; }
   .settings-card {
-    width: 560px; max-width: 94vw;
+    width: 600px; max-width: 94vw;
     max-height: 92vh; overflow-y: auto;
     background: var(--panel-solid);
     border: 1px solid var(--line);
@@ -634,6 +634,11 @@
   .settings-sub {
     margin-top: -8px;
     font-size: 11px; font-weight: 700; letter-spacing: 0.24em; text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  .ver-label {
+    margin-bottom: -10px;
+    font-size: 10px; font-weight: 700; letter-spacing: 0.3em; text-transform: uppercase;
     color: var(--text-muted);
   }
   #settings-version {
@@ -661,6 +666,41 @@
     border-radius: 99px; overflow: hidden;
   }
   #update-progress i { display: block; height: 100%; width: 0; background: var(--grad); transition: width 200ms var(--ease); }
+  #update-progress.flow i {
+    background:
+      repeating-linear-gradient(115deg, rgba(255, 255, 255, 0.22) 0 10px, transparent 10px 20px),
+      var(--grad);
+    animation: barber-flow 0.9s linear infinite;
+  }
+  @keyframes barber-flow { to { background-position-x: 28px, 0; } }
+  /* Stepper del processo di aggiornamento */
+  .steps { display: flex; align-items: flex-start; width: 100%; margin: 2px 0 0 0; }
+  .step { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 7px; position: relative; }
+  .step::before {
+    content: "";
+    position: absolute; top: 7px; left: -50%;
+    width: 100%; height: 2px;
+    background: var(--line);
+  }
+  .step:first-child::before { display: none; }
+  .step.done::before { background: var(--highlight); box-shadow: 0 0 8px rgba(232, 168, 60, 0.5); }
+  .step i {
+    width: 16px; height: 16px; border-radius: 50%;
+    background: rgba(0, 0, 0, 0.45);
+    border: 2px solid var(--line);
+    position: relative; z-index: 1;
+    transition: background 160ms var(--ease), border-color 160ms var(--ease), box-shadow 160ms var(--ease);
+  }
+  .step span { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted); }
+  .step.active i { border-color: var(--accent); animation: step-pulse 1.1s ease-in-out infinite; }
+  .step.active span { color: var(--accent); }
+  .step.done i { background: var(--grad); border-color: transparent; box-shadow: var(--glow-soft); }
+  .step.done span { color: var(--text); }
+  @keyframes step-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(232, 106, 44, 0.45); }
+    50%      { box-shadow: 0 0 0 7px rgba(232, 106, 44, 0); }
+  }
+  .channel { font-size: 10.5px; letter-spacing: 0.06em; color: var(--text-muted); opacity: 0.85; }
   #update-notes {
     font-size: 12.5px; line-height: 1.6; color: var(--text-muted);
     background: rgba(0, 0, 0, 0.25);
@@ -767,10 +807,18 @@
       <img src="assets/logo.svg" alt="KOA" />
       <h1>KOA Browser</h1>
       <div class="settings-sub">ZENdate MAX · aggiornamento automatico</div>
+      <div class="ver-label">Versione installata</div>
       <div id="settings-version">…</div>
+      <div class="steps" id="update-steps">
+        <div class="step" data-step="checking"><i></i><span>Controllo</span></div>
+        <div class="step" data-step="downloading"><i></i><span>Download</span></div>
+        <div class="step" data-step="verify"><i></i><span>Verifica</span></div>
+        <div class="step" data-step="installing"><i></i><span>Installazione</span></div>
+      </div>
       <div id="update-status">Mai verificato in questa sessione.</div>
       <div id="update-progress"><i></i></div>
       <div id="update-notes"></div>
+      <div class="channel">Canale stabile · GitHub Releases · verifica SHA256</div>
       <div class="row">
         <button id="zendate-check" class="btn primary">Controlla ZENdate</button>
         <button id="settings-close" class="btn">Chiudi</button>
@@ -1830,12 +1878,28 @@
 
   let checkFallbackTimer = 0;
 
+  const stepOrder = ['checking', 'downloading', 'verify', 'installing'];
+  const stepEls = [...document.querySelectorAll('#update-steps .step')];
+  const updateBar = document.getElementById('update-progress');
+  function setSteps(state) {
+    const activeIdx = { checking: 0, found: 1, downloading: 1, ready: 2, installing: 3 }[state];
+    stepEls.forEach((el, i) => {
+      el.classList.remove('active', 'done');
+      if (state === 'up-to-date' || state === 'installed') { el.classList.add('done'); return; }
+      if (activeIdx == null) return;
+      if (i < activeIdx) el.classList.add('done');
+      if (i === activeIdx) el.classList.add('active');
+    });
+    updateBar.classList.toggle('flow', state === 'downloading');
+  }
+
   function handleUpdateStatus(s) {
     if (!s) return;
     clearTimeout(checkFallbackTimer);
     if (['up-to-date', 'no-channel', 'error', 'installed'].includes(s.state)) {
       zendateCheck.disabled = false;
     }
+    setSteps(s.state);
     try { localStorage.setItem('koa.zendate-last', JSON.stringify({ t: Date.now(), state: s.state, version: s.version || '' })); } catch (e) {}
     switch (s.state) {
       case 'checking':

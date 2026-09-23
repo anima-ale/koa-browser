@@ -1,0 +1,2 @@
+### Cambiato
+- Pannello ZENdate ridisegnato: stepper Controllo/Download/Verifica/Installazione, progress liquido animato, gerarchia testi premium
