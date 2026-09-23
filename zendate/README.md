@@ -23,7 +23,8 @@ che ogni exe KOA con ZENdate installerà da solo.
 3. **Pubblica l'exe**: crea una Release su GitHub, allega
    `dist\KOA Browser X.Y.Z.exe` (il **portable**, NON il Setup).
    L'URL sarà tipo:
-   `https://github.com/anima-ale/koa-browser/releases/download/v1.0.1/KOA%20Browser%201.0.1.exe`
+   `https://github.com/anima-ale/koa-browser/releases/download/v1.0.1/KOA.Browser.1.0.1.exe`
+   (nota: GitHub converte gli spazi in punti negli allegati)
 4. **Genera il manifest**:
    ```powershell
    powershell -ExecutionPolicy Bypass -File zendate\make-zendate.ps1 -User anima-ale -Repo koa-browser -Tag v1.0.1 -Notes "Cosa cambia"

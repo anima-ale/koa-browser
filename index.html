@@ -1939,7 +1939,7 @@
         updateStatus.textContent = 'Errore ZENdate: ' + (s.message || 'rete non disponibile');
         break;
     }
-    if (s.notes) updateNotes.textContent = s.notes;
+    if (s.notes) updateNotes.textContent = s.notes.replace(/^#{1,6}\s*/gm, '').trim();
   }
 
   try {

@@ -62,7 +62,8 @@ if ([string]::IsNullOrWhiteSpace($FinalUrl)) {
     Write-Output '[ERRORE] Servi -Url, oppure -User + -Repo + -Tag (es. -Tag v1.0.1)'
     exit 1
   }
-  $FinalUrl = 'https://github.com/' + $User + '/' + $Repo + '/releases/download/' + $Tag + '/' + [uri]::EscapeDataString($exe.Name)
+  # GitHub rinomina gli spazi in punti negli allegati: l'URL deve usare i punti.
+  $FinalUrl = 'https://github.com/' + $User + '/' + $Repo + '/releases/download/' + $Tag + '/' + ($exe.Name -replace '\s', '.')
 }
 
 # 4. SHA256 dell'exe
