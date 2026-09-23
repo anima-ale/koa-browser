@@ -1,6 +1,6 @@
 {
     "version":  "1.0.9",
-    "notes":  "### Corretto\n- Updater corazzato: backup pre-swap, verifica taglia, ripristino automatico, log diagnostico, conferma versione reale (mai più loop né falsi \"aggiornato\")",
+    "notes":  "### Corretto\n- Updater corazzato: backup pre-swap, verifica taglia, ripristino automatico, log diagnostico, conferma versione reale (mai più loop né falsi \"aggiornato\")\n- Chiamate webview blindate contro guest non pronti (niente più eccezioni su schede appena create)\n\n### Aggiunto\n- Modalità provvisoria `--safe` (solo finestra, niente extra) + log di boot per diagnosi freeze\n- Niente più scritture registry automatiche: solo dal pulsante, meno allarmi antivirus",
     "url":  "https://github.com/anima-ale/koa-browser/releases/download/v1.0.9/KOA.Browser.1.0.9.exe",
-    "sha256":  "fad209b316d5f724ee84a238f9cd9e3b15f6a782fdc4a6ce2fd341867385f69f"
+    "sha256":  "7780a93dd778204adb2721c487b1f46d899f3a5553a3583d16085f293981dcb1"
 }

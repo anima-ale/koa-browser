@@ -18,6 +18,11 @@ di `zendate\make-zendate.ps1`, più il testo della Release GitHub.
 
 ### Corretto
 - Updater corazzato: backup pre-swap, verifica taglia, ripristino automatico, log diagnostico, conferma versione reale (mai più loop né falsi "aggiornato")
+- Chiamate webview blindate contro guest non pronti (niente più eccezioni su schede appena create)
+
+### Aggiunto
+- Modalità provvisoria `--safe` (solo finestra, niente extra) + log di boot per diagnosi freeze
+- Niente più scritture registry automatiche: solo dal pulsante, meno allarmi antivirus
 
 ## [1.0.8] - 2026-09-23
 

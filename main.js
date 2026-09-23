@@ -20,12 +20,16 @@ app.commandLine.appendSwitch('disable-http-cache');
 app.disableHardwareAcceleration();
 
 // Log persistente: se il main inciampa, resta scritto qui (niente più misteri).
-function koaLogError(tag, err) {
+function koaLog(tag, msg) {
   try {
-    const f = path.join(app.getPath('userData'), 'koa-error.log');
-    const msg = '[' + new Date().toISOString() + '][' + tag + '] ' + String((err && err.stack) || err) + '\n';
-    fs.appendFileSync(f, msg);
+    const dir = app.getPath('userData');
+    try { fs.mkdirSync(dir, { recursive: true }); } catch (e) {}
+    const f = path.join(dir, 'koa-error.log');
+    fs.appendFileSync(f, '[' + new Date().toISOString() + '][' + tag + '] ' + String(msg) + '\n');
   } catch (e) {}
+}
+function koaLogError(tag, err) {
+  koaLog(tag, (err && err.stack) || err);
 }
 process.on('uncaughtException', (e) => koaLogError('uncaught', e));
 process.on('unhandledRejection', (e) => koaLogError('unhandled', e));
@@ -123,6 +127,8 @@ let willQuit = false;
 let tray = null;
 let updateChecking = false;
 let updateWatchdog = 0;
+// --safe: avvio minimo (niente estensioni, supervisor, update, registrazione).
+const SAFE_MODE = (process.argv || []).includes('--safe');
 
 function sendUpdate(payload) {
   BrowserWindow.getAllWindows().forEach(w => {
@@ -1240,23 +1246,28 @@ async function applyUiUpdate(ui) {
 }
 
 app.whenReady().then(() => {
+    koaLog('boot', 'ready safe=' + SAFE_MODE);
     setupTray();
-    setupChromeExtensions();
-    setupDownloads();
-    loadPersistedExtensions();
-    // Supervisor differito: la finestra nasce subito, le liste si caricano dopo.
-    setTimeout(setupSupervisor, 3000);
+    if (!SAFE_MODE) {
+      setupChromeExtensions();
+      setupDownloads();
+      loadPersistedExtensions();
+      // Supervisor differito: la finestra nasce subito, le liste si caricano dopo.
+      setTimeout(setupSupervisor, 3000);
+    } else {
+      koaLog('boot', 'safe mode: solo finestra');
+    }
     createWindow();
+    koaLog('boot', 'window created');
 
     app.on('activate', () => {
       if (BrowserWindow.getAllWindows().length === 0) createWindow();
     });
 
-    // Registrazione silenziosa come browser (idempotente): così Windows elenca KOA.
+    // Registrazione solo su azione utente (mai in automatico: meno allarmi antivirus).
     // Il pulsante nelle Impostazioni la forza + imposta il default.
-    setTimeout(() => { registerAsBrowser().catch(() => {}); }, 8000);
     // Controllo automatico all'entrata: se trova update, scarica e installa da solo.
-    setTimeout(() => checkForUpdates('auto'), 5000);
+    if (!SAFE_MODE) setTimeout(() => checkForUpdates('auto'), 5000);
     // Link/file aperti con KOA predefinito all'avvio.
     setTimeout(() => {
       const u = (process.argv || []).slice(1).map(externalUrlFromArg).find(Boolean);

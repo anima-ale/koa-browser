@@ -1715,12 +1715,22 @@
     updateStar();
   }
 
+  // Chiamate webview a prova di guest non pronto (metodi mancanti o non attached).
+  function wvBool(wv, fn) {
+    try { return typeof wv[fn] === 'function' ? !!wv[fn]() : false; }
+    catch (e) { return false; }
+  }
+  function wvDo(wv, fn, ...args) {
+    try { if (wv && typeof wv[fn] === 'function') return wv[fn](...args); }
+    catch (e) {}
+  }
+
   function updateNavButtons() {
     const tab = getFocusedTab();
     if (!tab) return;
     const wv = tab.webview;
-    backBtn.classList.toggle('disabled', !wv.canGoBack());
-    forwardBtn.classList.toggle('disabled', !wv.canGoForward());
+    backBtn.classList.toggle('disabled', !wvBool(wv, 'canGoBack'));
+    forwardBtn.classList.toggle('disabled', !wvBool(wv, 'canGoForward'));
   }
 
   function setLoading(isLoading) {
@@ -1968,13 +1978,13 @@
   urlForm.addEventListener('submit', (e) => {
     e.preventDefault();
     const tab = getFocusedTab();
-    if (tab) tab.webview.loadURL(normalizeUrl(urlBar.value));
+    if (tab) wvDo(tab.webview, 'loadURL', normalizeUrl(urlBar.value));
     urlBar.blur();
   });
 
-  backBtn.addEventListener('click', () => { const t = getFocusedTab(); if (t && t.webview.canGoBack()) t.webview.goBack(); });
-  forwardBtn.addEventListener('click', () => { const t = getFocusedTab(); if (t && t.webview.canGoForward()) t.webview.goForward(); });
-  reloadBtn.addEventListener('click', () => { const t = getFocusedTab(); if (t) t.webview.reload(); });
+  backBtn.addEventListener('click', () => { const t = getFocusedTab(); if (t && wvBool(t.webview, 'canGoBack')) wvDo(t.webview, 'goBack'); });
+  forwardBtn.addEventListener('click', () => { const t = getFocusedTab(); if (t && wvBool(t.webview, 'canGoForward')) wvDo(t.webview, 'goForward'); });
+  reloadBtn.addEventListener('click', () => { const t = getFocusedTab(); if (t) wvDo(t.webview, 'reload'); });
   talkBtn.addEventListener('click', () => createTab('https://zenaix.netlify.app/'));
 
   // ================= Menu contestuale (tasto destro nella pagina) =================
@@ -2224,8 +2234,8 @@
         // Alt+←/→: avanti/indietro come Chrome.
         e.preventDefault();
         try {
-          if (e.key === 'ArrowLeft' && t.webview.canGoBack()) t.webview.goBack();
-          if (e.key === 'ArrowRight' && t.webview.canGoForward()) t.webview.goForward();
+          if (e.key === 'ArrowLeft' && wvBool(t.webview, 'canGoBack')) wvDo(t.webview, 'goBack');
+          if (e.key === 'ArrowRight' && wvBool(t.webview, 'canGoForward')) wvDo(t.webview, 'goForward');
         } catch (err) {}
       }
     }
