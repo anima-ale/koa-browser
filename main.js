@@ -172,7 +172,9 @@ async function checkForUpdates(source) {
     const timer = setTimeout(() => ctrl.abort(), 25000);
     let man;
     try {
-      const res = await fetch(ZENDATE_URL, { signal: ctrl.signal, cache: 'no-store' });
+      // Cache-buster: salta anche la cache del CDN per vedere subito le nuove release.
+      const url = ZENDATE_URL + (ZENDATE_URL.includes('?') ? '&' : '?') + 't=' + Date.now();
+      const res = await fetch(url, { signal: ctrl.signal, cache: 'no-store' });
       if (!res.ok) throw new Error('canale HTTP ' + res.status);
       man = await res.json();
     } finally { clearTimeout(timer); }
