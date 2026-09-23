@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Menu, Tray, ipcMain, session } = require('electron');
+const { app, BrowserWindow, Menu, Tray, ipcMain, session, shell, webContents, clipboard } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const os = require('os');
@@ -19,20 +19,25 @@ app.commandLine.appendSwitch('disable-http-cache');
 app.disableHardwareAcceleration();
 
 function createWindow() {
+  // UI istantanea: se esiste un bundle UI verificato pari o più nuovo dell'exe, usalo.
+  const customUi = effectiveUiPath();
   const win = new BrowserWindow({
     width: 1400,
     height: 900,
     frame: false, // niente barra di Windows: controlli integrati nella UI
+    show: false, // paint solo a finestra pronta: avvio percepito istantaneo
     title: 'KOA Browser v' + app.getVersion(),
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
+      preload: customUi ? path.join(customUi, 'preload.js') : path.join(__dirname, 'preload.js'),
       webviewTag: true, // abilita il tag <webview> nell'interfaccia
       contextIsolation: true,
       nodeIntegration: false
     }
   });
 
-  win.loadFile('index.html');
+  win.loadFile(customUi ? path.join(customUi, 'index.html') : 'index.html');
+  win.once('ready-to-show', () => { try { win.show(); } catch (e) {} });
+  setTimeout(() => { try { if (!win.isVisible()) win.show(); } catch (e) {} }, 4000);
 
   // Stato massimizzata → renderer (per l'icona ripristina/massimizza).
   const sendMax = () => { try { win.webContents.send('zen:win-max-changed', win.isMaximized()); } catch (e) {} };
@@ -185,6 +190,21 @@ async function checkForUpdates(source) {
       man = await res.json();
     } finally { clearTimeout(timer); }
     const current = app.getVersion();
+    // Update istantaneo dell'interfaccia (senza riavvio) se il manifest lo prevede
+    // e l'exe corrente lo supporta (minExe). Non sostituisce l'update exe.
+    const ui = man && man.ui;
+    if (ui && ui.version && ui.files && (!ui.minExe || !zendateNewer(ui.minExe, current))) {
+      const local = localUiVersion();
+      if (!local || zendateNewer(ui.version, local)) {
+        sendUpdate({ state: 'ui-found', version: ui.version });
+        try {
+          await applyUiUpdate(ui);
+          sendUpdate({ state: 'ui-updated', version: ui.version });
+        } catch (e) {
+          sendUpdate({ state: 'ui-error', message: (e && e.message) || 'errore UI' });
+        }
+      }
+    }
     if (!man || !man.version || !man.url || !zendateNewer(man.version, current)) {
       sendUpdate({ state: 'up-to-date', version: current });
       return { state: 'up-to-date', version: current };
@@ -240,9 +260,77 @@ async function installUpdate(filePath) {
 
 ipcMain.handle('zen:get-version', () => app.getVersion());
 ipcMain.handle('zen:check-update', () => checkForUpdates('manual'));
+
+// ---- Browser predefinito (http/https). Su Windows 11 la scelta manuale
+// nelle Impostazioni è obbligatoria: se il set programmatico fallisce, le apriamo.
+function defaultBrowserStatus() {
+  try {
+    return { http: app.isDefaultProtocolClient('http'), https: app.isDefaultProtocolClient('https') };
+  } catch (e) { return { http: false, https: false }; }
+}
+
+ipcMain.handle('zen:get-default-browser', () => defaultBrowserStatus());
+ipcMain.handle('zen:set-default-browser', () => {
+  let status = defaultBrowserStatus();
+  try {
+    if (!status.http) app.setAsDefaultProtocolClient('http');
+    if (!status.https) app.setAsDefaultProtocolClient('https');
+  } catch (e) {}
+  status = defaultBrowserStatus();
+  if (!status.http || !status.https) {
+    try { shell.openExternal('ms-settings:defaultapps'); } catch (e) {}
+  }
+  return status;
+});
 ipcMain.handle('zen:toggle-devtools', () => {
   const w = BrowserWindow.getFocusedWindow();
   if (w) { try { w.webContents.toggleDevTools(); } catch (e) {} }
+});
+// Menu contestuale e scorciatoie: opera sul webview cliccato
+function guestContents(id) {
+  try {
+    const c = webContents.fromId(Number(id));
+    return (c && !c.isDestroyed()) ? c : null;
+  } catch (e) { return null; }
+}
+ipcMain.handle('zen:copy-text', (_e, text) => {
+  try { clipboard.writeText(String(text ?? '')); } catch (e) {}
+});
+ipcMain.handle('zen:edit-action', (_e, id, action) => {
+  const c = guestContents(id);
+  if (!c) return;
+  try {
+    if (action === 'cut') c.cut();
+    else if (action === 'copy') c.copy();
+    else if (action === 'paste') c.paste();
+    else if (action === 'selectAll') c.selectAll();
+  } catch (e) {}
+});
+ipcMain.handle('zen:inspect', (_e, id, x, y) => {
+  const c = guestContents(id);
+  if (!c) return;
+  try { c.inspectElement(Math.round(x || 0), Math.round(y || 0)); } catch (e) {}
+});
+ipcMain.handle('zen:print-tab', (_e, id) => {
+  const c = guestContents(id);
+  if (c) { try { c.print({ silent: false }); } catch (e) {} }
+});
+ipcMain.handle('zen:zoom-tab', (_e, id, mode) => {
+  const c = guestContents(id);
+  if (!c) return 1;
+  try {
+    let f = c.getZoomFactor() || 1;
+    if (mode === 'in') f = Math.min(3, +(f + 0.1).toFixed(2));
+    else if (mode === 'out') f = Math.max(0.3, +(f - 0.1).toFixed(2));
+    else f = 1;
+    c.setZoomFactor(f);
+    return f;
+  } catch (e) { return 1; }
+});
+ipcMain.handle('zen:fullscreen', () => {
+  const w = BrowserWindow.getAllWindows()[0];
+  if (!w) return false;
+  try { w.setFullScreen(!w.isFullScreen()); return w.isFullScreen(); } catch (e) { return false; }
 });
 // Controlli finestra custom (frame:false)
 ipcMain.handle('zen:win-min', (e) => { const w = BrowserWindow.fromWebContents(e.sender); if (w) w.minimize(); });
@@ -279,9 +367,78 @@ if (!app.requestSingleInstanceLock()) {
     if (w) { w.show(); w.focus(); }
   });
 
-  app.whenReady().then(() => {
+  // ================= ZENdate ISTANTANEO — interfaccia senza riavvio =================
+// Bundle UI verificato in userData: gli update solo-interfaccia si applicano
+// con un semplice reload, senza toccare l'exe né i percorsi.
+const UI_FILES = {
+  'index.html': 'index.html',
+  'preload.js': 'preload.js',
+  'logo.svg': 'assets/logo.svg',
+  'start.html': 'start.html'
+};
+
+function uiDir() {
+  return path.join(app.getPath('userData'), 'koa-ui');
+}
+
+function localUiVersion() {
+  try { return fs.readFileSync(path.join(uiDir(), 'ui-version.txt'), 'utf8').trim() || null; }
+  catch (e) { return null; }
+}
+
+function uiFilesPresent() {
+  try {
+    return Object.values(UI_FILES).every(rel => fs.existsSync(path.join(uiDir(), rel)));
+  } catch (e) { return false; }
+}
+
+// Usa la UI locale solo se pari o più nuova dell'exe; altrimenti quella integrata
+// (e pulisce bundle vecchi che ombreggiano release exe più nuove).
+function effectiveUiPath() {
+  try {
+    const local = localUiVersion();
+    if (!local || !uiFilesPresent()) return null;
+    const exe = app.getVersion();
+    if (zendateNewer(exe, local)) {
+      try { fs.rmSync(uiDir(), { recursive: true, force: true }); } catch (e) {}
+      return null;
+    }
+    return uiDir();
+  } catch (e) { return null; }
+}
+
+async function applyUiUpdate(ui) {
+  const files = (ui && ui.files) || {};
+  const base = String(ui.base || '');
+  const sep = base.endsWith('/') ? '' : '/';
+  const dir = uiDir();
+  const tmp = dir + '.tmp';
+  try { fs.rmSync(tmp, { recursive: true, force: true }); } catch (e) {}
+  for (const flat of Object.keys(files)) {
+    const rel = UI_FILES[flat];
+    if (!rel) continue;
+    const res = await fetch(base + sep + flat, { cache: 'no-store' });
+    if (!res.ok) throw new Error('UI HTTP ' + res.status);
+    const buf = Buffer.from(await res.arrayBuffer());
+    const digest = crypto.createHash('sha256').update(buf).digest('hex');
+    if (digest.toLowerCase() !== String(files[flat]).toLowerCase()) {
+      throw new Error('hash UI non corrispondente (' + flat + ')');
+    }
+    const dest = path.join(tmp, rel);
+    fs.mkdirSync(path.dirname(dest), { recursive: true });
+    fs.writeFileSync(dest, buf);
+  }
+  fs.rmSync(dir, { recursive: true, force: true });
+  fs.renameSync(tmp, dir);
+  fs.writeFileSync(path.join(dir, 'ui-version.txt'), String(ui.version));
+  const w = BrowserWindow.getAllWindows()[0];
+  if (w) { try { w.loadFile(path.join(dir, 'index.html')); } catch (e) {} }
+}
+
+app.whenReady().then(() => {
     setupTray();
-    setupSupervisor();
+    // Supervisor differito: la finestra nasce subito, le liste si caricano dopo.
+    setTimeout(setupSupervisor, 3000);
     createWindow();
 
     app.on('activate', () => {

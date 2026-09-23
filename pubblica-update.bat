@@ -33,8 +33,12 @@ if not exist "%EXE%" (
 )
 
 set TAG=v%VER%
+set UIVER=
+if not "%~1"=="" set UIVER=%~1
+set UIPARAM=
+if not "%UIVER%"=="" set UIPARAM=-UiVersion %UIVER%
 echo Genero manifest + note da CHANGELOG...
-powershell -NoProfile -ExecutionPolicy Bypass -File zendate\make-zendate.ps1 -Tag %TAG%
+powershell -NoProfile -ExecutionPolicy Bypass -File zendate\make-zendate.ps1 -Tag %TAG% %UIPARAM%
 if errorlevel 1 (
     echo [ERRORE] Generazione manifest fallita.
     pause
@@ -99,6 +103,14 @@ if not errorlevel 1 (
         echo [ERRORE] Creazione release fallita.
         pause
         exit /b 1
+    )
+)
+
+if not "%UIVER%"=="" (
+    echo Carico i file interfaccia v%UIVER% ^(update istantaneo, senza riavvio^)...
+    gh release upload %TAG% index.html preload.js assets\logo.svg start.html --clobber --repo %GH_REPO%
+    if errorlevel 1 (
+        echo [AVVISO] Upload file interfaccia fallito: l'update exe resta valido.
     )
 )
 

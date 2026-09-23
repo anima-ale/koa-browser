@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8" />
+<title>KOA</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: 'Inter', 'Segoe UI', sans-serif;
+    background: #1C130D radial-gradient(700px 380px at 50% 30%, rgba(232, 106, 44, 0.14), transparent 65%);
+    color: #F5EDE0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 18px; padding: 24px;
+  }
+  img { width: 84px; height: 84px; }
+  h1 { font-size: 30px; letter-spacing: 0.28em; font-weight: 700; }
+  form { width: min(560px, 92vw); display: flex; }
+  input {
+    flex: 1; height: 44px; border-radius: 99px;
+    border: 1px solid #6B4A2E; background: rgba(0, 0, 0, 0.45); color: #F5EDE0;
+    font-size: 15px; padding: 0 22px; outline: none;
+  }
+  input:focus { border-color: #E86A2C; box-shadow: 0 0 0 3px rgba(232, 106, 44, 0.16), 0 0 26px rgba(232, 106, 44, 0.2); }
+  .tiles { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+  .tiles a {
+    color: #B9A58C; text-decoration: none; font-size: 13px; font-weight: 600;
+    border: 1px solid #6B4A2E; border-radius: 8px; padding: 9px 16px;
+    background: rgba(62, 42, 26, 0.5);
+  }
+  .tiles a:hover { color: #E86A2C; border-color: #E86A2C; }
+</style>
+</head>
+<body>
+  <img src="assets/logo.svg" alt="KOA" />
+  <h1>KOA</h1>
+  <form action="https://www.google.com/search" method="GET">
+    <input name="q" placeholder="Cerca con Google" autocomplete="off" autofocus />
+  </form>
+  <div class="tiles">
+    <a href="https://www.google.com">Google</a>
+    <a href="https://www.youtube.com">YouTube</a>
+    <a href="https://github.com">GitHub</a>
+    <a href="https://www.wikipedia.org">Wikipedia</a>
+  </div>
+</body>
+</html>

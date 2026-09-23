@@ -1,7 +1,7 @@
 # ZENdate — genera il manifest per spedire un aggiornamento.
 # Uso:
-#   powershell -ExecutionPolicy Bypass -File zendate\make-zendate.ps1 -User TUO_UTENTE -Repo TUO_REPO -Tag v1.0.1 -Notes "Cosa cambia"
-#   powershell -ExecutionPolicy Bypass -File zendate\make-zendate.ps1 -Url "https://...exe" -Notes "Cosa cambia"
+#   powershell -ExecutionPolicy Bypass -File zendate\make-zendate.ps1 -Tag v1.0.7 -Notes "Cosa cambia"
+#   powershell -ExecutionPolicy Bypass -File zendate\make-zendate.ps1 -Tag v1.0.7 -UiVersion 1.0.7.1   (anche update interfaccia istantaneo)
 param(
   [string]$Url = "",
   [string]$User = "anima-ale",
@@ -9,6 +9,7 @@ param(
   [string]$Tag = "",
   [string]$Version = "",
   [string]$Notes = "",
+  [string]$UiVersion = "",
   [string]$Out = ""
 )
 
@@ -69,6 +70,33 @@ if ([string]::IsNullOrWhiteSpace($FinalUrl)) {
 # 4. SHA256 dell'exe
 $hash = (Get-FileHash $exe.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
 
+# 4b. Blocco UI istantanea: 4 file interfaccia con hash (niente restart per applicarli)
+$uiBlock = $null
+if (-not [string]::IsNullOrWhiteSpace($UiVersion)) {
+  $uiMap = [ordered]@{
+    'index.html' = 'index.html'
+    'preload.js' = 'preload.js'
+    'logo.svg'   = 'assets/logo.svg'
+    'start.html' = 'start.html'
+  }
+  $uiBase = 'https://github.com/' + $User + '/' + $Repo + '/releases/download/' + $Tag + '/'
+  $uiFiles = [ordered]@{}
+  foreach ($flat in $uiMap.Keys) {
+    $src = Join-Path $root $uiMap[$flat]
+    if (-not (Test-Path $src)) {
+      Write-Output ("[ERRORE] File UI mancante: {0}" -f $uiMap[$flat])
+      exit 1
+    }
+    $uiFiles[$flat] = (Get-FileHash $src -Algorithm SHA256).Hash.ToLowerInvariant()
+  }
+  $uiBlock = [ordered]@{
+    version = $UiVersion
+    minExe  = $Version
+    base    = $uiBase
+    files   = $uiFiles
+  }
+}
+
 # 5. Scrivi il manifest (UTF-8 senza BOM via .NET: PS 5.1 non ha utf8NoBOM)
 $manifest = [ordered]@{
   version = $Version
@@ -76,6 +104,7 @@ $manifest = [ordered]@{
   url     = $FinalUrl
   sha256  = $hash
 }
+if ($uiBlock) { $manifest['ui'] = $uiBlock }
 [IO.File]::WriteAllText($Out, ($manifest | ConvertTo-Json), (New-Object Text.UTF8Encoding $false))
 
 Write-Output ''
@@ -84,6 +113,7 @@ Write-Output ("  versione : {0}" -f $Version)
 Write-Output ("  exe      : {0} ({1} MB)" -f $exe.Name, [math]::Round($exe.Length / 1MB, 1))
 Write-Output ("  sha256   : {0}" -f $hash)
 Write-Output ("  url      : {0}" -f $FinalUrl)
+if ($uiBlock) { Write-Output ("  ui       : v{0} (istantanea, senza riavvio)" -f $UiVersion) }
 Write-Output ("  file     : {0}" -f $Out)
 Write-Output ''
 Write-Output 'Prossimi passi: allega l''exe alla Release GitHub e pubblica questo file dove punta ZENDATE_URL.'

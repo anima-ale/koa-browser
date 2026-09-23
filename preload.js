@@ -12,7 +12,16 @@ contextBridge.exposeInMainWorld('browserAPI', {
   // ZENdate MAX: versione, controllo aggiornamenti, stati live
   getVersion: () => ipcRenderer.invoke('zen:get-version'),
   checkUpdate: () => ipcRenderer.invoke('zen:check-update'),
+  getDefaultBrowser: () => ipcRenderer.invoke('zen:get-default-browser'),
+  setDefaultBrowser: () => ipcRenderer.invoke('zen:set-default-browser'),
   toggleDevTools: () => ipcRenderer.invoke('zen:toggle-devtools'),
+  // Menu contestuale + scorciatoie
+  copyText: (text) => ipcRenderer.invoke('zen:copy-text', text),
+  editAction: (id, action) => ipcRenderer.invoke('zen:edit-action', id, action),
+  inspectTab: (id, x, y) => ipcRenderer.invoke('zen:inspect', id, x, y),
+  printTab: (id) => ipcRenderer.invoke('zen:print-tab', id),
+  zoomTab: (id, mode) => ipcRenderer.invoke('zen:zoom-tab', id, mode),
+  toggleFullscreen: () => ipcRenderer.invoke('zen:fullscreen'),
   // Controlli finestra custom (frame:false)
   winMin: () => ipcRenderer.invoke('zen:win-min'),
   winMaxToggle: () => ipcRenderer.invoke('zen:win-max-toggle'),

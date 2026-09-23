@@ -2,6 +2,8 @@
 
 **Via veloce: lancia `pubblica-update.bat`** (controlla `gh`, crea la Release,
 genera il manifest dalle note del CHANGELOG e pusha tutto da solo).
+Per includere anche un update **istantaneo di interfaccia** (senza riavvio):
+`pubblica-update.bat 1.0.7.1` (versione UI numerica a parte).
 Sotto i dettagli manuali, se preferisci fare a mano.
 
 ## File

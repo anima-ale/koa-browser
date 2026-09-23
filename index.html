@@ -722,6 +722,12 @@
     50%      { box-shadow: 0 0 0 7px rgba(232, 106, 44, 0); }
   }
   .channel { font-size: 10.5px; letter-spacing: 0.06em; color: var(--text-muted); opacity: 0.85; }
+  .settings-sep { width: 100%; height: 1px; background: var(--line); opacity: 0.7; }
+  .defbrowser { display: flex; align-items: center; gap: 14px; width: 100%; text-align: left; }
+  .defbrowser-text { flex: 1; min-width: 0; }
+  .defbrowser-title { font-size: 13px; font-weight: 700; letter-spacing: 0.04em; }
+  #defbrowser-status { font-size: 12px; color: var(--text-muted); margin-top: 3px; }
+  #defbrowser-btn { flex-shrink: 0; white-space: nowrap; }
   #update-notes {
     font-size: 12.5px; line-height: 1.6; color: var(--text-muted);
     background: rgba(0, 0, 0, 0.25);
@@ -737,6 +743,69 @@
   .btn.primary { background: var(--grad); border: none; color: #2A1C12; }
   .btn.primary:hover { color: #2A1C12; border-color: transparent; filter: brightness(1.12); background: var(--grad); }
   .btn:disabled { opacity: 0.45; cursor: default; }
+
+  /* ---------- KOA · menu contestuale ---------- */
+  #ctx-menu {
+    position: fixed; z-index: 600;
+    min-width: 240px; max-width: 330px;
+    background: rgba(20, 13, 8, 0.96);
+    -webkit-backdrop-filter: var(--glass);
+    backdrop-filter: var(--glass);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: 0 20px 55px rgba(0, 0, 0, 0.65), 0 0 24px rgba(232, 106, 44, 0.08);
+    padding: 5px;
+    animation: tab-in 120ms var(--ease);
+  }
+  #ctx-menu[hidden] { display: none; }
+  .ctx-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 11px;
+    font-size: 12.5px;
+    color: var(--text);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 100ms var(--ease);
+  }
+  .ctx-item:hover { background: rgba(232, 106, 44, 0.14); }
+  .ctx-item.disabled { opacity: 0.35; pointer-events: none; }
+  .ctx-item .ctx-label { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ctx-item .ctx-kbd { font-size: 10.5px; color: var(--text-muted); flex-shrink: 0; }
+  .ctx-item.zen-item { color: var(--accent); font-weight: 600; }
+  .ctx-sep { height: 1px; background: var(--line-soft); margin: 5px 8px; }
+
+  /* ---------- KOA · trova nella pagina ---------- */
+  #find-bar {
+    position: fixed; z-index: 550;
+    top: 100px; right: 14px;
+    display: flex; align-items: center; gap: 6px;
+    background: rgba(20, 13, 8, 0.95);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.55);
+    padding: 7px 8px;
+    animation: tab-in 140ms var(--ease);
+  }
+  #find-bar[hidden] { display: none; }
+  #find-input {
+    width: 190px;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    color: var(--text);
+    font-family: var(--font); font-size: 12.5px;
+    padding: 6px 9px; outline: none;
+  }
+  #find-input:focus { border-color: var(--accent); }
+  #find-count { font-size: 11px; color: var(--text-muted); min-width: 58px; text-align: center; font-variant-numeric: tabular-nums; }
+  #find-bar button {
+    width: 26px; height: 26px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: transparent; border: 1px solid transparent; border-radius: 6px;
+    color: var(--text-muted); font-size: 14px; cursor: pointer;
+    transition: color 100ms var(--ease), border-color 100ms var(--ease);
+  }
+  #find-bar button:hover { color: var(--accent); border-color: var(--line); }
 </style>
 </head>
 <body>
@@ -852,11 +921,29 @@
       <div id="update-progress"><i></i></div>
       <div id="update-notes"></div>
       <div class="channel">Canale stabile · GitHub Releases · verifica SHA256</div>
+      <div class="settings-sep"></div>
+      <div class="defbrowser">
+        <div class="defbrowser-text">
+          <div class="defbrowser-title">Browser predefinito</div>
+          <div id="defbrowser-status">…</div>
+        </div>
+        <button id="defbrowser-btn" class="btn primary">Imposta predefinito</button>
+      </div>
       <div class="row">
         <button id="zendate-check" class="btn primary">Controlla ZENdate</button>
         <button id="settings-close" class="btn">Chiudi</button>
       </div>
     </div>
+  </div>
+
+  <div id="ctx-menu" hidden></div>
+
+  <div id="find-bar" hidden>
+    <input id="find-input" type="text" placeholder="Trova nella pagina" autocomplete="off" spellcheck="false" />
+    <span id="find-count"></span>
+    <button id="find-prev" title="Precedente (Maiusc+Invio)">↑</button>
+    <button id="find-next" title="Successivo (Invio)">↓</button>
+    <button id="find-close" title="Chiudi (Esc)">×</button>
   </div>
 
 <script>
@@ -875,7 +962,11 @@
   const dropOverlay = document.getElementById('drop-overlay');
   const dropCols = [...document.querySelectorAll('.drop-col')];
 
-  const HOME_URL = 'https://www.google.com';
+  // Home locale istantanea (funziona anche dal bundle UI in userData).
+  const HOME_URL = (() => {
+    try { return new URL('start.html', window.location.href).href; }
+    catch (e) { return 'https://www.google.com'; }
+  })();
   let tabs = [];              // { id, tabEl, paneEl, webview, title }
   let activeTabId = null;     // tab shown full-screen when not split
   let draggedTabId = null;
@@ -961,6 +1052,20 @@
     return tabs.find(t => isFocused(t.id));
   }
 
+  // Attiva una scheda: se è nello split lo mostra e la mette a fuoco,
+  // altrimenti la mostra singola (lo split resta legato in background).
+  function activateTab(id) {
+    if (!getTab(id)) return;
+    if (isInSplit(id)) {
+      showingSplit = true;
+      splitState.focus = id;
+    } else {
+      showingSplit = false;
+      activeTabId = id;
+    }
+    applyLayout();
+  }
+
   function createTab(url = HOME_URL) {
     const id = ++tabCounter;
 
@@ -976,17 +1081,8 @@
       </span>`;
     tabEl.addEventListener('click', (e) => {
       if (e.target.closest('.tab-close')) { closeTab(id); return; }
-      // Lo split non si rompe mai da solo: se la scheda è nello split
-      // lo mostra e la mette a fuoco, altrimenti mostra lei singola
-      // (lo split resta legato in background).
-      if (isInSplit(id)) {
-        showingSplit = true;
-        splitState.focus = id;
-      } else {
-        showingSplit = false;
-        activeTabId = id;
-      }
-      applyLayout();
+      // Lo split non si rompe mai da solo (vedi activateTab).
+      activateTab(id);
     });
     tabEl.addEventListener('dragstart', (e) => {
       draggedTabId = id;
@@ -1049,6 +1145,15 @@
     // Scrollbar liquida su ogni pagina (anche SPA / navigazioni interne)
     webview.addEventListener('did-finish-load', () => injectKoaScrollbar(webview));
     webview.addEventListener('did-navigate-in-page', () => injectKoaScrollbar(webview));
+    // Menu contestuale custom (tasto destro nella pagina).
+    webview.addEventListener('context-menu', (e) => openCtxMenu(id, e));
+    // Risultati del trova-nella-pagina (Ctrl+F).
+    webview.addEventListener('found-in-page', (e) => {
+      if (id !== findTabId) return;
+      const r = e.result || {};
+      if (r.requestId !== findReqId || !r.finalUpdate) return;
+      findCount.textContent = r.matches === 0 ? 'Nessun risultato' : (r.activeMatchOrdinal + '/' + r.matches);
+    });
 
     const tab = { id, tabEl, paneEl, webview, title: 'Nuova scheda' };
     tabs.push(tab);
@@ -1059,12 +1164,24 @@
     return id;
   }
 
+  // Cronologia schede chiuse per Ctrl+Shift+T (stile Chrome).
+  let closedStack = [];
+  function tabUrl(tab) {
+    try { return tab.webview.getURL() || tab.webview.src || HOME_URL; } catch (e) { return HOME_URL; }
+  }
+  function pushClosed(tab) {
+    if (!tab) return;
+    closedStack.push({ url: tabUrl(tab), title: tab.title || 'Scheda' });
+    if (closedStack.length > 25) closedStack.shift();
+  }
+
   // Chiude una singola scheda. Se era nello split, il pannello esce
   // (le proporzioni restano) e con un solo superstite lo split si scioglie.
   function closeTab(id) {
     const idx = tabs.findIndex(t => t.id === id);
     if (idx === -1) return;
     const [tab] = tabs.splice(idx, 1);
+    pushClosed(tab);
     tab.tabEl.remove();
     tab.paneEl.remove();
 
@@ -1104,6 +1221,7 @@
       const idx = tabs.findIndex(t => t.id === id);
       if (idx !== -1) {
         const [tab] = tabs.splice(idx, 1);
+        pushClosed(tab);
         tab.tabEl.remove();
         tab.paneEl.remove();
       }
@@ -1265,6 +1383,7 @@
       groupTabEl.classList.toggle('active', inSplitView || isInSplit(activeTabId));
     }
     refreshToolbarForFocusedTab();
+    closeCtxMenu();
   }
 
   function refreshToolbarForFocusedTab() {
@@ -1540,8 +1659,226 @@
   reloadBtn.addEventListener('click', () => { const t = getFocusedTab(); if (t) t.webview.reload(); });
   talkBtn.addEventListener('click', () => createTab('https://zenaix.netlify.app/'));
 
+  // ================= Menu contestuale (tasto destro nella pagina) =================
+  const ctxMenu = document.getElementById('ctx-menu');
+  let ctxTabId = null;
+
+  function apiCall(fn, ...args) {
+    try { if (window.browserAPI && window.browserAPI[fn]) return window.browserAPI[fn](...args); } catch (err) {}
+  }
+
+  function closeCtxMenu() {
+    if (!ctxMenu) return;
+    ctxMenu.hidden = true;
+    ctxMenu.innerHTML = '';
+    ctxTabId = null;
+  }
+
+  // Il webview gira l'evento in forme diverse: leggi con tolleranza.
+  function ctxParams(e) {
+    const p = (e && e.params) ? e.params : (e || {});
+    return {
+      x: (p.x != null ? p.x : (e && e.clientX) || 0),
+      y: (p.y != null ? p.y : (e && e.clientY) || 0),
+      link: p.linkURL || '',
+      src: p.srcURL || '',
+      sel: p.selectionText || '',
+      editable: !!(p.isEditable || (p.editFlags && (p.editFlags.canCut || p.editFlags.canPaste)))
+    };
+  }
+
+  function addCtxSep() {
+    const s = document.createElement('div');
+    s.className = 'ctx-sep';
+    ctxMenu.appendChild(s);
+  }
+
+  function addCtxItem(label, kbd, fn, opts = {}) {
+    const el = document.createElement('div');
+    el.className = 'ctx-item' + (opts.disabled ? ' disabled' : '') + (opts.zen ? ' zen-item' : '');
+    const lab = document.createElement('span');
+    lab.className = 'ctx-label';
+    lab.textContent = label;
+    lab.title = label;
+    el.appendChild(lab);
+    if (kbd) {
+      const k = document.createElement('span');
+      k.className = 'ctx-kbd';
+      k.textContent = kbd;
+      el.appendChild(k);
+    }
+    if (!opts.disabled && fn) el.addEventListener('click', () => { closeCtxMenu(); fn(); });
+    ctxMenu.appendChild(el);
+  }
+
+  function shortSel(s, max = 30) {
+    s = (s || '').trim().replace(/\s+/g, ' ');
+    return s.length > max ? s.slice(0, max - 1) + '…' : s;
+  }
+
+  // "Chiedi a ZEN": apre la sidebar e mette la selezione quotata nell'input.
+  function askZenAbout(sel) {
+    const clean = (sel || '').trim().replace(/\s+/g, ' ');
+    if (!clean) return;
+    const quote = clean.length > 500 ? clean.slice(0, 499) + '…' : clean;
+    try { document.getElementById('app').classList.remove('side-collapsed'); } catch (e) {}
+    try {
+      chatInput.value = '"' + quote + '"\n' + (chatInput.value || '');
+      chatInput.focus();
+      chatInput.setSelectionRange(chatInput.value.length, chatInput.value.length);
+    } catch (e) {}
+  }
+
+  function openCtxMenu(tabId, e) {
+    const t = getTab(tabId);
+    if (!t) return;
+    ctxTabId = tabId;
+    const wv = t.webview;
+    const p = ctxParams(e);
+    const r = wv.getBoundingClientRect();
+    const canBack = (() => { try { return wv.canGoBack(); } catch (err) { return false; } })();
+    const canFwd = (() => { try { return wv.canGoForward(); } catch (err) { return false; } })();
+    const wid = (() => { try { return wv.getWebContentsId(); } catch (err) { return 0; } })();
+    ctxMenu.innerHTML = '';
+    addCtxItem('Indietro', 'Alt+←', () => { try { if (wv.canGoBack()) wv.goBack(); } catch (err) {} }, { disabled: !canBack });
+    addCtxItem('Avanti', 'Alt+→', () => { try { if (wv.canGoForward()) wv.goForward(); } catch (err) {} }, { disabled: !canFwd });
+    addCtxItem('Ricarica', 'Ctrl+R', () => { try { wv.reload(); } catch (err) {} });
+    if (p.link) {
+      addCtxSep();
+      addCtxItem('Apri link in nuova scheda', '', () => createTab(p.link));
+      addCtxItem('Copia indirizzo link', '', () => apiCall('copyText', p.link));
+    }
+    if (p.src && p.src !== p.link) {
+      addCtxSep();
+      addCtxItem('Apri immagine in nuova scheda', '', () => createTab(p.src));
+      addCtxItem('Copia indirizzo immagine', '', () => apiCall('copyText', p.src));
+    }
+    if (p.sel) {
+      addCtxSep();
+      addCtxItem('Chiedi a ZEN', '', () => askZenAbout(p.sel), { zen: true });
+      addCtxItem('Cerca "' + shortSel(p.sel) + '"', '', () => createTab('https://www.google.com/search?q=' + encodeURIComponent(p.sel)));
+      addCtxItem('Copia', 'Ctrl+C', () => apiCall('copyText', p.sel));
+    }
+    if (p.editable) {
+      addCtxSep();
+      addCtxItem('Taglia', 'Ctrl+X', () => apiCall('editAction', wid, 'cut'));
+      addCtxItem('Copia', 'Ctrl+C', () => {
+        if (p.sel) apiCall('copyText', p.sel);
+        else apiCall('editAction', wid, 'copy');
+      });
+      addCtxItem('Incolla', 'Ctrl+V', () => apiCall('editAction', wid, 'paste'));
+      addCtxItem('Seleziona tutto', 'Ctrl+A', () => apiCall('editAction', wid, 'selectAll'));
+    }
+    addCtxSep();
+    addCtxItem('Stampa…', 'Ctrl+P', () => apiCall('printTab', wid));
+    addCtxItem('Trova nella pagina…', 'Ctrl+F', () => openFind(tabId));
+    addCtxItem('Ispeziona', 'Ctrl+Shift+I', () => apiCall('inspectTab', wid, p.x, p.y));
+    ctxMenu.hidden = false;
+    const mw = ctxMenu.offsetWidth, mh = ctxMenu.offsetHeight;
+    let x = r.left + p.x, y = r.top + p.y;
+    if (x + mw > window.innerWidth - 8) x = Math.max(8, window.innerWidth - mw - 8);
+    if (y + mh > window.innerHeight - 8) y = Math.max(8, window.innerHeight - mh - 8);
+    ctxMenu.style.left = Math.round(x) + 'px';
+    ctxMenu.style.top = Math.round(y) + 'px';
+  }
+
+  document.addEventListener('mousedown', (e) => {
+    if (!ctxMenu.hidden && !e.target.closest('#ctx-menu')) closeCtxMenu();
+  }, true);
+
+  // ================= Trova nella pagina (Ctrl+F) =================
+  const findBar = document.getElementById('find-bar');
+  const findInput = document.getElementById('find-input');
+  const findCount = document.getElementById('find-count');
+  let findTabId = null, findReqId = 0;
+
+  function openFind(tabId) {
+    const t = getTab(tabId != null ? tabId : ((getFocusedTab() || {}).id));
+    if (!t) return;
+    findTabId = t.id;
+    findBar.hidden = false;
+    findInput.value = '';
+    findCount.textContent = '';
+    setTimeout(() => { findInput.focus(); findInput.select(); }, 0);
+  }
+
+  function closeFind() {
+    const t = getTab(findTabId);
+    if (t) { try { t.webview.stopFind('clearSelection'); } catch (e) {} }
+    findTabId = null;
+    findBar.hidden = true;
+  }
+
+  function runFind(next, backward) {
+    const t = getTab(findTabId);
+    if (!t) return;
+    const q = findInput.value;
+    if (!q) { findCount.textContent = ''; return; }
+    try {
+      if (next) findReqId = t.webview.findInPage(q, { forward: !backward, findNext: true });
+      else findReqId = t.webview.findInPage(q);
+    } catch (e) {}
+  }
+
+  findInput.addEventListener('input', () => runFind(false));
+  findInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); runFind(true, e.shiftKey); }
+    else if (e.key === 'Escape') { e.preventDefault(); closeFind(); }
+    e.stopPropagation();
+  });
+  document.getElementById('find-next').addEventListener('click', () => runFind(true, false));
+  document.getElementById('find-prev').addEventListener('click', () => runFind(true, true));
+  document.getElementById('find-close').addEventListener('click', closeFind);
+
+  function zoomFocused(mode) {
+    const t = getFocusedTab();
+    if (!t) return;
+    try { apiCall('zoomTab', t.webview.getWebContentsId(), mode); } catch (e) {}
+  }
+
   window.addEventListener('keydown', (e) => {
     const ctrlOrCmd = e.ctrlKey || e.metaKey;
+    // Esc chiude menu, trova e impostazioni (come Chrome chiude i popup).
+    if (e.key === 'Escape') {
+      if (!ctxMenu.hidden) { closeCtxMenu(); return; }
+      if (!findBar.hidden) { closeFind(); return; }
+      if (settingsModal && !settingsModal.hidden) { settingsModal.hidden = true; return; }
+    }
+    if (ctrlOrCmd && e.shiftKey && (e.key === 'T' || e.key === 't')) {
+      e.preventDefault();
+      const c = closedStack.pop();
+      if (c) createTab(c.url || HOME_URL);
+      return;
+    }
+    if (ctrlOrCmd && !e.shiftKey && /^[1-9]$/.test(e.key)) {
+      e.preventDefault();
+      const i = e.key === '9' ? tabs.length - 1 : (Number(e.key) - 1);
+      if (tabs[i]) activateTab(tabs[i].id);
+      return;
+    }
+    if (ctrlOrCmd && (e.key === 'Tab' || e.keyCode === 9)) {
+      e.preventDefault();
+      if (tabs.length < 2) return;
+      const ids = tabs.map(t => t.id);
+      const cur = (getFocusedTab() || {}).id;
+      let i = ids.indexOf(cur);
+      if (i === -1) i = 0;
+      const d = e.shiftKey ? -1 : 1;
+      activateTab(ids[(i + d + ids.length) % ids.length]);
+      return;
+    }
+    if (ctrlOrCmd && (e.key === 'f' || e.key === 'F')) { e.preventDefault(); openFind(); return; }
+    if (ctrlOrCmd && (e.key === 'p' || e.key === 'P')) {
+      e.preventDefault();
+      const t = getFocusedTab();
+      if (t) { try { apiCall('printTab', t.webview.getWebContentsId()); } catch (err) {} }
+      return;
+    }
+    if (ctrlOrCmd && (e.key === '+' || e.key === '=')) { e.preventDefault(); zoomFocused('in'); return; }
+    if (ctrlOrCmd && (e.key === '-' || e.key === '_')) { e.preventDefault(); zoomFocused('out'); return; }
+    if (ctrlOrCmd && e.key === '0') { e.preventDefault(); zoomFocused('reset'); return; }
+    if (e.key === 'F11') { e.preventDefault(); apiCall('toggleFullscreen'); return; }
+    if (e.key === 'F12') { e.preventDefault(); apiCall('toggleDevTools'); return; }
     if (ctrlOrCmd && e.key === 't') { e.preventDefault(); createTab(); }
     if (ctrlOrCmd && e.key === 'w') { e.preventDefault(); const t = getFocusedTab(); if (t) closeTab(t.id); }
     if (ctrlOrCmd && e.key === 'l') { e.preventDefault(); urlBar.focus(); urlBar.select(); }
@@ -1550,12 +1887,23 @@
       e.preventDefault();
       try { if (window.browserAPI && window.browserAPI.toggleDevTools) window.browserAPI.toggleDevTools(); } catch (err) {}
     }
-    if (e.altKey && (e.key === 'ArrowLeft' || e.key === 'ArrowRight') && splitState && showingSplit) {
-      e.preventDefault();
-      const n = splitState.panes.length;
-      const i = splitState.panes.indexOf(splitState.focus);
-      splitState.focus = splitState.panes[(i + (e.key === 'ArrowLeft' ? -1 : 1) + n) % n];
-      applyLayout();
+    if (e.altKey && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
+      const t = getFocusedTab();
+      if (t && (e.ctrlKey || e.metaKey) && splitState && showingSplit) {
+        // Ctrl+Alt+←/→: fuoco tra i pannelli dello split.
+        e.preventDefault();
+        const n = splitState.panes.length;
+        const i = splitState.panes.indexOf(splitState.focus);
+        splitState.focus = splitState.panes[(i + (e.key === 'ArrowLeft' ? -1 : 1) + n) % n];
+        applyLayout();
+      } else if (t && !e.ctrlKey && !e.metaKey) {
+        // Alt+←/→: avanti/indietro come Chrome.
+        e.preventDefault();
+        try {
+          if (e.key === 'ArrowLeft' && t.webview.canGoBack()) t.webview.goBack();
+          if (e.key === 'ArrowRight' && t.webview.canGoForward()) t.webview.goForward();
+        } catch (err) {}
+      }
     }
   });
 
@@ -1928,6 +2276,42 @@
   const updateNotes = document.getElementById('update-notes');
   const zendateCheck = document.getElementById('zendate-check');
   const settingsClose = document.getElementById('settings-close');
+  const defStatus = document.getElementById('defbrowser-status');
+  const defBtn = document.getElementById('defbrowser-btn');
+
+  async function refreshDefaultBrowser() {
+    defStatus.textContent = '…';
+    try {
+      if (window.browserAPI && window.browserAPI.getDefaultBrowser) {
+        const s = await window.browserAPI.getDefaultBrowser();
+        const ok = !!(s && s.http && s.https);
+        defStatus.textContent = ok
+          ? 'KOA è il browser predefinito.'
+          : 'KOA non è il browser predefinito.';
+        defBtn.disabled = ok;
+        return;
+      }
+    } catch (e) {}
+    defStatus.textContent = 'Stato non disponibile.';
+  }
+
+  defBtn.addEventListener('click', async () => {
+    defBtn.disabled = true;
+    defStatus.textContent = 'Impostazione…';
+    try {
+      if (window.browserAPI && window.browserAPI.setDefaultBrowser) {
+        const s = await window.browserAPI.setDefaultBrowser();
+        const ok = !!(s && s.http && s.https);
+        defStatus.textContent = ok
+          ? 'KOA è il browser predefinito.'
+          : 'Completa la scelta nelle Impostazioni di Windows appena aperte.';
+        defBtn.disabled = ok;
+        return;
+      }
+    } catch (e) {}
+    defStatus.textContent = 'Non riuscito: riprova.';
+    defBtn.disabled = false;
+  });
 
   async function refreshVersion() {
     for (let i = 0; i < 4; i++) {
@@ -1943,7 +2327,7 @@
   }
   refreshVersion();
 
-  function openSettings() { settingsModal.hidden = false; refreshVersion(); }
+  function openSettings() { settingsModal.hidden = false; refreshVersion(); refreshDefaultBrowser(); }
   function closeSettings() { settingsModal.hidden = true; }
   settingsBtn.addEventListener('click', openSettings);
   settingsClose.addEventListener('click', closeSettings);
@@ -1998,6 +2382,18 @@
       case 'ready':
         updateStatus.textContent = 'Verificata v' + s.version + ' — installazione…';
         updateFill.style.width = '100%';
+        break;
+      case 'ui-found':
+        updateStatus.textContent = 'Nuova interfaccia v' + s.version + ' — installazione istantanea…';
+        break;
+      case 'ui-updated':
+        updateStatus.textContent = 'Interfaccia v' + s.version + ' attiva subito, senza riavvio!';
+        updateFill.style.width = '100%';
+        zendateCheck.disabled = false;
+        break;
+      case 'ui-error':
+        updateStatus.textContent = 'Update interfaccia saltato: ' + (s.message || 'errore');
+        zendateCheck.disabled = false;
         break;
       case 'installing':
         updateStatus.textContent = 'Installazione… KOA si riavvia da solo.';

@@ -1,6 +1,6 @@
 {
   "name": "koa-browser",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "KOA Browser — browser in stile giapponese, legno e arancione vermiglio",
   "author": "KOA",
   "main": "main.js",
@@ -19,8 +19,17 @@
     "directories": {
       "output": "dist"
     },
+    "fileAssociations": [
+      {
+        "ext": ["html", "htm"],
+        "name": "Documento HTML KOA",
+        "role": "Browser",
+        "mimeType": "text/html"
+      }
+    ],
     "files": [
       "index.html",
+      "start.html",
       "main.js",
       "preload.js",
       "assets/**/*",

@@ -1,0 +1,18 @@
+### Aggiunto
+- ZENdate istantaneo: update solo-interfaccia senza riavvio né cambio percorsi (bundle verificato in userData, reload diretto, fallback automatico, versione UI indipendente)
+- Menu tasto destro stile KOA: Indietro, Avanti, Ricarica, apri link e immagini in nuove schede, copia indirizzi, Chiedi a ZEN su testo selezionato, taglia/copia/incolla, stampa, trova nella pagina, ispeziona
+- Trova nella pagina (Ctrl+F) con contatore risultati, Invio/Maiusc+Invio, Esc
+- Riapertura schede chiuse con Ctrl+Shift+T (ultime 25)
+- Finestra senza bordi di Windows: Riduci, Massimizza/Ripristina e Chiudi integrati nella barra schede
+- Imposta come predefinito dalle Impostazioni (http/https, .html associati nel setup, fallback alle Impostazioni Windows)
+- Start page KOA locale e offline (logo, ricerca Google, scorciatoie)
+- Scorciatoie stile Chrome: Ctrl+Tab/Maiusc+Tab giro schede, Ctrl+1-9 salto diretto, Ctrl+P stampa, Ctrl+/-/0 zoom, Alt+←/→ avanti/indietro, Ctrl+Alt+←/→ fuoco tra pannelli split, F11 fullscreen, F12 DevTools, Esc chiude menu/trova/impostazioni
+
+### Cambiato
+- Avvio velocissimo: finestra mostrata solo a paint pronto, font con display=swap, Supervisor differito di 3s
+- Trascinamento finestra dall'header (schede, URL e bottoni restano cliccabili)
+- Deploy update istantanei: `pubblica-update.bat` accetta la versione UI, manifest con hash per file
+
+### Corretto
+- Blindatura navigazioni webview: solo http(s), mai view-source/file/data; popup in nuove schede
+- Controllo versione semver nel .bat prima della build (niente più build buttate dopo minuti d'attesa)
