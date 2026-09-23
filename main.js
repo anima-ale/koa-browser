@@ -801,7 +801,7 @@ async function turboDownload(url, destPath, name, id) {
   dlSend({ id, name, state: 'done', received: st.size, total: total || st.size, speed: 0, path: destPath });
 }
 
-session.defaultSession.on('will-download', (event, item) => {
+function onWillDownload(event, item) {
   try {
     const url = item.getURL() || '';
     const name = safeFileName(item.getFilename() || 'download');
@@ -823,7 +823,12 @@ session.defaultSession.on('will-download', (event, item) => {
       trackNativeDownload(item, dest, name);
     }
   } catch (e) {}
-});
+}
+
+function setupDownloads() {
+  try { session.defaultSession.on('will-download', onWillDownload); }
+  catch (e) { console.error('[dl]', e.message); }
+}
 
 ipcMain.handle('zen:dl-action', (_e, req = {}) => {
   const { id, action, path: p } = req;
@@ -1187,6 +1192,7 @@ async function applyUiUpdate(ui) {
 app.whenReady().then(() => {
     setupTray();
     setupChromeExtensions();
+    setupDownloads();
     loadPersistedExtensions();
     // Supervisor differito: la finestra nasce subito, le liste si caricano dopo.
     setTimeout(setupSupervisor, 3000);

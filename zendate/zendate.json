@@ -2,5 +2,5 @@
     "version":  "1.0.8",
     "notes":  "### Aggiunto\n- Cronologia navigazione con ricerca e pulizia (sidebar, ultime 200 voci)\n- Preferiti: stella nella toolbar, bollicine favicon in barra sottile, rimozione al volo\n- Riflesso vetro sulla barra sopra (luce radente sul cromo)\n- Browser predefinito VERO: registrazione StartMenuInternet + Capabilities + protocolli + tipi file, apertura link/file in KOA\n- Download manager stile Chrome: shelf con progressi, velocità, ETA, apri/mostra cartella, turbo multi-connessione 8x\n- Estensioni Chrome: toolbar con bottoni e popup, pannello gestione (carica unpacked, attiva/disattiva, rimuovi), chrome.tabs collegato\n- KOA Vault: gestore password cifrato (AES-256-GCM) con PIN, cattura automatica dai login, autofill, in attesa solo con PIN\n\n### Corretto\n- Menu contestuale: chiusura automatica al clic fuori (catcher sopra i webview)",
     "url":  "https://github.com/anima-ale/koa-browser/releases/download/v1.0.8/KOA.Browser.1.0.8.exe",
-    "sha256":  "494928b1f6f401888adc3a399d6d6ed84f18b5bffd3c2ce53f033d0bcd9bfef4"
+    "sha256":  "e79e3950b32172a4dfa44729bcf45c6aa80ed7aec1957ee27720093bc3bd589d"
 }
