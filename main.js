@@ -425,11 +425,6 @@ ipcMain.handle('zen:zoom-tab', (_e, id, mode) => {
     return f;
   } catch (e) { return 1; }
 });
-ipcMain.handle('zen:fullscreen', () => {
-  const w = BrowserWindow.getAllWindows()[0];
-  if (!w) return false;
-  try { w.setFullScreen(!w.isFullScreen()); return w.isFullScreen(); } catch (e) { return false; }
-});
 
 ipcMain.handle('zen:fullscreen', () => {
   const w = BrowserWindow.getAllWindows()[0];
