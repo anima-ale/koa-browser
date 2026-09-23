@@ -1,6 +1,6 @@
 {
-    "version":  "1.0.4",
-    "notes":  "### Cambiato\n- Pannello ZENdate ridisegnato: stepper Controllo/Download/Verifica/Installazione, progress liquido animato, gerarchia testi premium",
-    "url":  "https://github.com/anima-ale/koa-browser/releases/download/v1.0.4/KOA.Browser.1.0.4.exe",
-    "sha256":  "f30cf0da327270a4ce021dd2b61d2c3bf35566c4b491168d9afcd7ae000d9e0d"
+    "version":  "1.0.5",
+    "notes":  "### Corretto\n- Blindatura navigazioni webview: solo http(s), mai view-source/file/data; popup in nuove schede",
+    "url":  "https://github.com/anima-ale/koa-browser/releases/download/v1.0.5/KOA.Browser.1.0.5.exe",
+    "sha256":  "cf0087e3a5b211e344b2b9e5a7f9d89d9a93ccdeccbf14e082783be01eb6b5fb"
 }

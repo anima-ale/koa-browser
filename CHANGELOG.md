@@ -14,6 +14,11 @@ di `zendate\make-zendate.ps1`, più il testo della Release GitHub.
 ### Corretto
 -
 
+## [1.0.5] - 2026-09-23
+
+### Corretto
+- Blindatura navigazioni webview: solo http(s), mai view-source/file/data; popup in nuove schede
+
 ## [1.0.4] - 2026-09-23
 
 ### Cambiato

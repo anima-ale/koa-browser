@@ -30,7 +30,7 @@ if (-not $exe) {
   Write-Output '[ERRORE] Nessun portable in dist\. Lancia prima ricrea-exe.bat'
   exit 1
 }
-$m = [regex]::Match($exe.Name, '(\d+\.\d+\.\d+)')
+$m = [regex]::Match($exe.Name, '(\d+(?:\.\d+)+)')
 if ($m.Success -and $m.Groups[1].Value -ne $Version) {
   Write-Output ("[AVVISO] L'exe dice v{0} ma usi v{1}: controlla il version bump in package.json" -f $m.Groups[1].Value, $Version)
 }

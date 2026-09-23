@@ -1,0 +1,2 @@
+### Corretto
+- Blindatura navigazioni webview: solo http(s), mai view-source/file/data; popup in nuove schede

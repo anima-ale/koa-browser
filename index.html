@@ -1000,6 +1000,19 @@
       if (isFocused(id)) { urlBar.value = e.url; setProtocol(e.url); }
       updateNavButtons();
     });
+    // Guardia: il pannello mostra solo http(s). Niente view-source:/file:/data: —
+    // trascinare un file o scorciatoie strane non deve mai mostrare sorgenti.
+    webview.addEventListener('will-navigate', (e) => {
+      try {
+        const u = new URL(e.url);
+        if (u.protocol !== 'http:' && u.protocol !== 'https:') e.preventDefault();
+      } catch (err) { e.preventDefault(); }
+    });
+    // Popup e target=_blank in una nuova scheda, mai finestre fantasma.
+    webview.addEventListener('new-window', (e) => {
+      e.preventDefault();
+      if (e.url && /^https?:\/\//i.test(e.url)) createTab(e.url);
+    });
     // Scrollbar liquida su ogni pagina (anche SPA / navigazioni interne)
     webview.addEventListener('did-finish-load', () => injectKoaScrollbar(webview));
     webview.addEventListener('did-navigate-in-page', () => injectKoaScrollbar(webview));

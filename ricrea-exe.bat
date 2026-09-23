@@ -14,6 +14,15 @@ if errorlevel 1 (
     exit /b 1
 )
 
+for /f "delims=" %%V in ('powershell -NoProfile -Command "(Get-Content package.json -Raw | ConvertFrom-Json).version"') do set VER=%%V
+powershell -NoProfile -Command "if ('%VER%' -notmatch '^\d+\.\d+\.\d+$') { exit 1 }" >nul 2>&1
+if not errorlevel 1 goto ver_ok
+echo [ERRORE] Versione "%VER%" non valida per l'exe: usa X.Y.Z, es. 1.0.5.
+pause
+exit /b 1
+:ver_ok
+echo Versione: %VER%
+
 if not exist "node_modules" (
     echo Installo le dipendenze, potrebbe volerci qualche minuto...
     call npm install --no-audit --no-fund
