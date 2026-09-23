@@ -675,6 +675,7 @@
   .settings-card .row .btn { padding: 11px 10px; font-size: 13px; }
   .btn.primary { background: var(--grad); border: none; color: #2A1C12; }
   .btn.primary:hover { color: #2A1C12; border-color: transparent; filter: brightness(1.12); background: var(--grad); }
+  .btn:disabled { opacity: 0.45; cursor: default; }
 </style>
 </head>
 <body>
@@ -1818,8 +1819,14 @@
   settingsClose.addEventListener('click', closeSettings);
   settingsModal.addEventListener('click', (e) => { if (e.target === settingsModal) closeSettings(); });
 
+  let checkFallbackTimer = 0;
+
   function handleUpdateStatus(s) {
     if (!s) return;
+    clearTimeout(checkFallbackTimer);
+    if (['up-to-date', 'no-channel', 'error', 'installed'].includes(s.state)) {
+      zendateCheck.disabled = false;
+    }
     try { localStorage.setItem('koa.zendate-last', JSON.stringify({ t: Date.now(), state: s.state, version: s.version || '' })); } catch (e) {}
     switch (s.state) {
       case 'checking':
@@ -1870,9 +1877,17 @@
     updateStatus.textContent = 'Controllo aggiornamenti…';
     updateFill.style.width = '0%';
     updateNotes.textContent = '';
+    zendateCheck.disabled = true;
+    clearTimeout(checkFallbackTimer);
+    checkFallbackTimer = setTimeout(() => {
+      if (/Controllo|controllo automatico/.test(updateStatus.textContent)) {
+        updateStatus.textContent = 'Ancora in controllo… se resta bloccato, riavvia KOA e riprova.';
+        zendateCheck.disabled = false;
+      }
+    }, 45000);
     try {
       if (window.browserAPI && window.browserAPI.checkUpdate) window.browserAPI.checkUpdate();
-    } catch (e) {}
+    } catch (e) { zendateCheck.disabled = false; }
   });
 
   try {

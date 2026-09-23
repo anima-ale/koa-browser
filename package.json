@@ -1,6 +1,6 @@
 {
   "name": "koa-browser",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "KOA Browser — browser in stile giapponese, legno e arancione vermiglio",
   "author": "KOA",
   "main": "main.js",

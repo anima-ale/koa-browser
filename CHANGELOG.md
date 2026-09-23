@@ -14,6 +14,11 @@ di `zendate\make-zendate.ps1`, più il testo della Release GitHub.
 ### Corretto
 -
 
+## [1.0.3] - 2026-09-23
+
+### Corretto
+- ZENdate non resta più appeso su "Controllo aggiornamenti": watchdog 90s nel main, pulsante disabilitato durante il check, messaggio di fallback dopo 45s
+
 ## [1.0.2] - 2026-09-23
 
 ### Cambiato

@@ -1,6 +1,6 @@
 {
-    "version":  "1.0.2",
-    "notes":  "### Cambiato\n- Impostazioni ZENdate più grande e leggibile, versione gigante mai troncata",
-    "url":  "https://github.com/anima-ale/koa-browser/releases/download/v1.0.2/KOA%20Browser%201.0.2.exe",
-    "sha256":  "cc8515417df1156101fd9c0023dae7d84cd6c0cd96f1fb290c601d8f63707f57"
+    "version":  "1.0.3",
+    "notes":  "### Corretto\n- ZENdate non resta più appeso su \"Controllo aggiornamenti\": watchdog 90s nel main, pulsante disabilitato durante il check, messaggio di fallback dopo 45s",
+    "url":  "https://github.com/anima-ale/koa-browser/releases/download/v1.0.3/KOA%20Browser%201.0.3.exe",
+    "sha256":  "528a118feca6884b15c3185ec276208375bde955b71549f941850f8bec2d4fa3"
 }

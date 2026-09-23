@@ -97,6 +97,7 @@ const ZENDATE_URL = 'https://raw.githubusercontent.com/anima-ale/koa-browser/mai
 let willQuit = false;
 let tray = null;
 let updateChecking = false;
+let updateWatchdog = 0;
 
 function sendUpdate(payload) {
   BrowserWindow.getAllWindows().forEach(w => {
@@ -148,8 +149,19 @@ function sha256File(file) {
 }
 
 async function checkForUpdates(source) {
-  if (updateChecking) return { state: 'busy' };
+  if (updateChecking) {
+    sendUpdate({ state: 'checking', source: source || 'manual' });
+    return { state: 'busy' };
+  }
   updateChecking = true;
+  // Watchdog: mai bloccato oltre 90s, in nessun caso di rete.
+  clearTimeout(updateWatchdog);
+  updateWatchdog = setTimeout(() => {
+    if (updateChecking) {
+      updateChecking = false;
+      sendUpdate({ state: 'error', message: 'timeout di sicurezza (90s): riavvia e riprova' });
+    }
+  }, 90000);
   sendUpdate({ state: 'checking', source: source || 'manual' });
   try {
     if (!ZENDATE_URL || ZENDATE_URL.includes('<UTENTE>')) {
@@ -186,7 +198,7 @@ async function checkForUpdates(source) {
   } catch (e) {
     sendUpdate({ state: 'error', message: (e && e.message) || 'errore di rete' });
     return { state: 'error' };
-  } finally { updateChecking = false; }
+  } finally { clearTimeout(updateWatchdog); updateChecking = false; }
 }
 
 // Swap atomico: un helper .bat attende l'uscita, sostituisce l'exe e rilancia.
