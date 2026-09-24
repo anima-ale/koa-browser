@@ -199,7 +199,7 @@ async function checkForUpdates(source) {
   }, 90000);
   sendUpdate({ state: 'checking', source: source || 'manual' });
   try {
-    if (!ZENDATE_URL || ZENDATE_URL.includes('<UTENTE>')) {
+    if (!ZENDATE_BASE || ZENDATE_BASE.includes('<UTENTE>')) {
       sendUpdate({ state: 'no-channel' });
       return { state: 'no-channel' };
     }
