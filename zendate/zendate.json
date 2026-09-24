@@ -1,6 +1,6 @@
 {
-    "version":  "1.0.9",
-    "notes":  "### Corretto\n- Updater corazzato: backup pre-swap, verifica taglia, ripristino automatico, log diagnostico, conferma versione reale (mai più loop né falsi \"aggiornato\")\n- Chiamate webview blindate contro guest non pronti (niente più eccezioni su schede appena create)\n\n### Aggiunto\n- Modalità provvisoria `--safe` (solo finestra, niente extra) + log di boot per diagnosi freeze\n- Niente più scritture registry automatiche: solo dal pulsante, meno allarmi antivirus",
-    "url":  "https://github.com/anima-ale/koa-browser/releases/download/v1.0.9/KOA.Browser.1.0.9.exe",
-    "sha256":  "7780a93dd778204adb2721c487b1f46d899f3a5553a3583d16085f293981dcb1"
+    "version":  "1.0.10",
+    "notes":  "### Aggiunto\n- Download in tendina di vetro dal soffitto (apre da sola, risale a fine, pallino sul bottone, storico completo con apri-cartella ed elimina-file-vero)\n- Divider split con Pointer Capture: trascinamento fluido sopra i siti e rilascio sempre bloccato\n- Vie di fuga anti-freeze: flag `--new-instance`, voce Riavvia nel tray\n\n### Cambiato\n- Riflesso vetro più marcato sulla barra sopra, toolbar sempre cliccabile, UI KOA garantita in primo piano\n\n### Corretto\n- Toolbar che trascinava la finestra ovunque: rimossa la frameless, tornata la barra nativa di Windows",
+    "url":  "https://github.com/anima-ale/koa-browser/releases/download/v1.0.10/KOA.Browser.1.0.10.exe",
+    "sha256":  "b5184b6c91f1c60374effcba9faeb81cfe87904713d4d3b659df830f5608bc54"
 }

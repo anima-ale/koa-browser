@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Menu, Tray, ipcMain, session, shell, webContents, clipboard, dialog } = require('electron');
+const { app, BrowserWindow, Menu, Tray, ipcMain, session, shell, webContents, clipboard } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const os = require('os');
@@ -9,7 +9,6 @@ const { spawn } = require('child_process');
 Menu.setApplicationMenu(null);
 
 const { ElectronBlocker } = require('@ghostery/adblocker-electron');
-const { ElectronChromeExtensions } = require('electron-chrome-extensions');
 
 // Evita gli errori "Unable to move the cache: Accesso negato" che compaiono
 // su Windows quando Chromium non riesce a scrivere la cache disco/GPU
@@ -40,7 +39,6 @@ function createWindow() {
   const win = new BrowserWindow({
     width: 1400,
     height: 900,
-    frame: false, // niente barra di Windows: controlli integrati nella UI
     show: false, // paint solo a finestra pronta: avvio percepito istantaneo
     title: 'KOA Browser v' + app.getVersion(),
     webPreferences: {
@@ -55,10 +53,6 @@ function createWindow() {
   win.once('ready-to-show', () => { try { win.show(); } catch (e) {} });
   setTimeout(() => { try { if (!win.isVisible()) win.show(); } catch (e) {} }, 4000);
 
-  // Stato massimizzata → renderer (per l'icona ripristina/massimizza).
-  const sendMax = () => { try { win.webContents.send('zen:win-max-changed', win.isMaximized()); } catch (e) {} };
-  win.on('maximize', sendMax);
-  win.on('unmaximize', sendMax);
   // Se la finestra smette di rispondere, resta traccia nel log.
   win.on('unresponsive', () => koaLogError('unresponsive', 'window non risponde'));
 
@@ -488,203 +482,6 @@ ipcMain.handle('zen:fullscreen', () => {
   try { w.setFullScreen(!w.isFullScreen()); return w.isFullScreen(); } catch (e) { return false; }
 });
 
-// ================= Estensioni Chrome (motore GPL-3.0, vedi LICENSE) =================
-let chromeExts = null;
-const EXT_DIR = path.join(app.getPath('userData'), 'koa-extensions');
-const EXT_STATE_FILE = path.join(app.getPath('userData'), 'koa-extensions.json');
-const extKnownTabs = new Set();
-
-function loadExtState() {
-  try {
-    const v = JSON.parse(fs.readFileSync(EXT_STATE_FILE, 'utf8'));
-    return Array.isArray(v) ? v : [];
-  } catch (e) { return []; }
-}
-
-function saveExtState(s) {
-  try { fs.writeFileSync(EXT_STATE_FILE, JSON.stringify(s, null, 2)); } catch (e) {}
-}
-
-function extListPayload() {
-  let loaded = [];
-  try { loaded = session.defaultSession.getAllExtensions(); } catch (e) {}
-  const st = loadExtState();
-  const rows = loaded.map(x => {
-    const rec = st.find(r => r.id === x.id);
-    return { id: x.id, name: x.name, version: x.version, path: (rec && rec.path) || x.path || '', enabled: true };
-  });
-  st.filter(r => !loaded.some(x => x.id === r.id)).forEach(r => {
-    rows.push({ id: r.id || null, name: r.name || path.basename(r.path || ''), version: '', path: r.path || '', enabled: false });
-  });
-  return rows;
-}
-
-function sendExtList() {
-  let overrides = {};
-  try { if (chromeExts) overrides = chromeExts.getURLOverrides() || {}; } catch (e) {}
-  const payload = { extensions: extListPayload(), newtab: overrides.newtab || null };
-  BrowserWindow.getAllWindows().forEach(w => {
-    try { w.webContents.send('zen:ext-list', payload); } catch (e) {}
-  });
-}
-
-function extEnsureTab(contentsId) {
-  try {
-    if (!contentsId || !chromeExts) return null;
-    if (!extKnownTabs.has(contentsId)) {
-      const c0 = webContents.fromId(Number(contentsId));
-      if (!c0 || c0.isDestroyed()) return null;
-      const w = BrowserWindow.getAllWindows()[0];
-      if (w) chromeExts.addTab(c0, w);
-      extKnownTabs.add(contentsId);
-    }
-    const c = webContents.fromId(Number(contentsId));
-    return (c && !c.isDestroyed()) ? c : null;
-  } catch (e) { return null; }
-}
-
-function setupChromeExtensions() {
-  try {
-    ElectronChromeExtensions.handleCRXProtocol(session.defaultSession);
-    chromeExts = new ElectronChromeExtensions({
-      license: 'GPL-3.0',
-      session: session.defaultSession,
-      createTab: async (details) => {
-        const w = BrowserWindow.getAllWindows()[0];
-        if (!w) return [null, null];
-        const url = (details && details.url) || '';
-        const res = await new Promise((resolve) => {
-          const token = 'et' + Date.now() + Math.floor(Math.random() * 1e6);
-          const to = setTimeout(() => { ipcMain.removeListener('zen:ext-tab-created', h); resolve(null); }, 10000);
-          const h = (_e, r) => {
-            if (r && r.token === token) { clearTimeout(to); ipcMain.removeListener('zen:ext-tab-created', h); resolve(r); }
-          };
-          ipcMain.on('zen:ext-tab-created', h);
-          try { w.webContents.send('zen:ext-create-tab', { token, url }); }
-          catch (e) { clearTimeout(to); ipcMain.removeListener('zen:ext-tab-created', h); resolve(null); }
-        });
-        if (!res || !res.contentsId) return [null, null];
-        return [extEnsureTab(Number(res.contentsId)), w];
-      },
-      selectTab: (contents) => {
-        try {
-          const w = BrowserWindow.getAllWindows()[0];
-          if (w && contents) w.webContents.send('zen:ext-select-tab', contents.id);
-        } catch (e) {}
-      },
-      removeTab: (contents) => {
-        try {
-          const w = BrowserWindow.getAllWindows()[0];
-          if (w && contents) w.webContents.send('zen:ext-remove-tab', contents.id);
-        } catch (e) {}
-      }
-    });
-    chromeExts.on('browser-action-popup-created', (popup) => {
-      try {
-        popup.whenReady().then(() => {
-          const bw = popup.browserWindow;
-          if (bw && !bw.isDestroyed()) {
-            try { bw.setAlwaysOnTop(true, 'pop-up-menu'); } catch (e) {}
-            bw.on('blur', () => { try { popup.destroy(); } catch (e) {} });
-          }
-        }).catch(() => {});
-      } catch (e) {}
-    });
-  } catch (e) { console.error('[ext]', e.message); }
-}
-
-async function loadPersistedExtensions() {
-  const st = loadExtState();
-  let changed = false;
-  for (const rec of st) {
-    if (!rec || rec.enabled === false) continue;
-    try {
-      if (rec.path && fs.existsSync(rec.path)) {
-        const ext = await session.defaultSession.loadExtension(rec.path, { allowFileAccess: true });
-        if (ext && ext.id && rec.id !== ext.id) { rec.id = ext.id; rec.name = ext.name; changed = true; }
-      }
-    } catch (e) { console.error('[ext] load fail:', rec.path, '-', e.message); }
-  }
-  if (changed) saveExtState(st);
-  sendExtList();
-}
-
-ipcMain.on('zen:ext-tab', (_e, msg = {}) => {
-  try {
-    if (!chromeExts) return;
-    const cid = Number((msg && msg.contentsId) || 0) || 0;
-    if (msg.type === 'created' || msg.type === 'selected') {
-      const c = extEnsureTab(cid);
-      if (c && msg.type === 'selected') chromeExts.selectTab(c);
-    } else if (msg.type === 'removed') {
-      extKnownTabs.delete(cid);
-      try {
-        const c = webContents.fromId(cid);
-        if (c) chromeExts.removeTab(c);
-      } catch (e) {}
-    }
-  } catch (e) {}
-});
-
-ipcMain.handle('zen:ext-list', () => {
-  let overrides = {};
-  try { if (chromeExts) overrides = chromeExts.getURLOverrides() || {}; } catch (e) {}
-  return { extensions: extListPayload(), newtab: overrides.newtab || null };
-});
-
-ipcMain.handle('zen:ext-load-folder', async () => {
-  const w = BrowserWindow.getAllWindows()[0];
-  const r = await dialog.showOpenDialog(w, {
-    title: 'Seleziona cartella estensione (unpacked)',
-    properties: ['openDirectory']
-  });
-  if (r.canceled || !r.filePaths[0]) return { ok: false };
-  const src = r.filePaths[0];
-  if (!fs.existsSync(path.join(src, 'manifest.json'))) {
-    return { ok: false, error: 'manifest.json non trovato: serve una cartella unpacked (MV2 consigliato).' };
-  }
-  try { fs.mkdirSync(EXT_DIR, { recursive: true }); } catch (e) {}
-  const dest = path.join(EXT_DIR, path.basename(src));
-  try {
-    fs.rmSync(dest, { recursive: true, force: true });
-    fs.cpSync(src, dest, { recursive: true });
-    const ext = await session.defaultSession.loadExtension(dest, { allowFileAccess: true });
-    const st = loadExtState().filter(x => x.id !== ext.id);
-    st.push({ id: ext.id, name: ext.name, path: dest, enabled: true });
-    saveExtState(st);
-    sendExtList();
-    return { ok: true, id: ext.id, name: ext.name };
-  } catch (e) { return { ok: false, error: e.message }; }
-});
-
-ipcMain.handle('zen:ext-toggle', async (_e, id, on) => {
-  const st = loadExtState();
-  const rec = st.find(x => x.id === id);
-  if (!rec) return { ok: false, error: 'estensione non trovata' };
-  rec.enabled = !!on;
-  try {
-    if (on) {
-      if (rec.path && fs.existsSync(rec.path)) {
-        const ext = await session.defaultSession.loadExtension(rec.path, { allowFileAccess: true });
-        if (ext && ext.id) { rec.id = ext.id; rec.name = ext.name; }
-      }
-    } else {
-      extKnownTabs.clear();
-      session.defaultSession.removeExtension(id);
-    }
-  } catch (e) { saveExtState(st); sendExtList(); return { ok: false, error: e.message }; }
-  saveExtState(st);
-  sendExtList();
-  return { ok: true };
-});
-
-ipcMain.handle('zen:ext-remove', async (_e, id) => {
-  try { session.defaultSession.removeExtension(id); } catch (e) {}
-  extKnownTabs.clear();
-  saveExtState(loadExtState().filter(x => x.id !== id));
-  sendExtList();
-  return { ok: true };
-});
 
 // ================= Gestore download stile Chrome + turbo multi-connessione =================
 // Intercetta will-download: niente dialog, salva in ~/KOA Downloads, traccia tutto.
@@ -907,17 +704,15 @@ ipcMain.handle('zen:dl-action', (_e, req = {}) => {
       else shell.openPath(DL_DIR);
       return true;
     }
+    if (action === 'deleteFile') {
+      const target = (rec && rec.path) || p;
+      try { if (target && fs.existsSync(target)) fs.unlinkSync(target); } catch (e) {}
+      if (id) dlActive.delete(id);
+      return true;
+    }
   } catch (e) {}
   return false;
 });
-// Controlli finestra custom (frame:false)
-ipcMain.handle('zen:win-min', (e) => { const w = BrowserWindow.fromWebContents(e.sender); if (w) w.minimize(); });
-ipcMain.handle('zen:win-max-toggle', (e) => {
-  const w = BrowserWindow.fromWebContents(e.sender);
-  if (w) { if (w.isMaximized()) w.unmaximize(); else w.maximize(); }
-});
-ipcMain.handle('zen:win-close', (e) => { const w = BrowserWindow.fromWebContents(e.sender); if (w) w.close(); });
-ipcMain.handle('zen:win-is-max', (e) => { const w = BrowserWindow.fromWebContents(e.sender); return !!(w && w.isMaximized()); });
 
 function setupTray() {
   try {
@@ -926,6 +721,7 @@ function setupTray() {
     tray.setContextMenu(Menu.buildFromTemplate([
       { label: 'Mostra KOA Browser', click: () => { const w = BrowserWindow.getAllWindows()[0]; if (w) { w.show(); w.focus(); } } },
       { label: 'Controlla ZENdate', click: () => checkForUpdates('tray') },
+      { label: 'Riavvia KOA', click: () => { try { willQuit = true; app.relaunch(); app.exit(0); } catch (e) {} } },
       { type: 'separator' },
       { label: 'Esci', click: () => { willQuit = true; app.quit(); } }
     ]));
@@ -1164,7 +960,7 @@ ipcMain.handle('zen:vault-capture', (_e, rec = {}) => {
   } catch (e) { return { ok: false }; }
 });
 
-if (!app.requestSingleInstanceLock()) {
+if (!app.requestSingleInstanceLock() && !(process.argv || []).includes('--new-instance')) {
   app.quit();
 } else {
   app.on('second-instance', (_event, argv) => {
@@ -1247,11 +1043,13 @@ async function applyUiUpdate(ui) {
 
 app.whenReady().then(() => {
     koaLog('boot', 'ready safe=' + SAFE_MODE);
+    // Heartbeat ogni 10s: se l'app freeza, l'ora del file dice se il main gira ancora.
+    setInterval(() => {
+      try { fs.writeFileSync(path.join(app.getPath('userData'), 'koa-alive.txt'), new Date().toISOString()); } catch (e) {}
+    }, 10000);
     setupTray();
     if (!SAFE_MODE) {
-      setupChromeExtensions();
       setupDownloads();
-      loadPersistedExtensions();
       // Supervisor differito: la finestra nasce subito, le liste si caricano dopo.
       setTimeout(setupSupervisor, 3000);
     } else {

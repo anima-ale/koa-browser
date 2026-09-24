@@ -14,11 +14,25 @@ di `zendate\make-zendate.ps1`, più il testo della Release GitHub.
 ### Corretto
 -
 
+## [1.0.10] - 2026-09-24
+
+### Aggiunto
+- Download in tendina di vetro dal soffitto (apre da sola, risale a fine, pallino sul bottone, storico completo con apri-cartella ed elimina-file-vero)
+- Divider split con Pointer Capture: trascinamento fluido sopra i siti e rilascio sempre bloccato
+- Vie di fuga anti-freeze: flag `--new-instance`, voce Riavvia nel tray
+
+### Cambiato
+- Riflesso vetro più marcato sulla barra sopra, toolbar sempre cliccabile, UI KOA garantita in primo piano
+
+### Corretto
+- Toolbar che trascinava la finestra ovunque: rimossa la frameless, tornata la barra nativa di Windows
+
 ## [1.0.9] - 2026-09-23
 
 ### Corretto
 - Updater corazzato: backup pre-swap, verifica taglia, ripristino automatico, log diagnostico, conferma versione reale (mai più loop né falsi "aggiornato")
 - Chiamate webview blindate contro guest non pronti (niente più eccezioni su schede appena create)
+- Heartbeat su file ogni 10s per distinguere main vivo da main morto nei freeze
 
 ### Aggiunto
 - Modalità provvisoria `--safe` (solo finestra, niente extra) + log di boot per diagnosi freeze
@@ -32,11 +46,16 @@ di `zendate\make-zendate.ps1`, più il testo della Release GitHub.
 - Riflesso vetro sulla barra sopra (luce radente sul cromo)
 - Browser predefinito VERO: registrazione StartMenuInternet + Capabilities + protocolli + tipi file, apertura link/file in KOA
 - Download manager stile Chrome: shelf con progressi, velocità, ETA, apri/mostra cartella, turbo multi-connessione 8x
-- Estensioni Chrome: toolbar con bottoni e popup, pannello gestione (carica unpacked, attiva/disattiva, rimuovi), chrome.tabs collegato
 - KOA Vault: gestore password cifrato (AES-256-GCM) con PIN, cattura automatica dai login, autofill, in attesa solo con PIN
+
+### Rimosso
+- Preferiti con bollicine (su richiesta)
 
 ### Corretto
 - Menu contestuale: chiusura automatica al clic fuori (catcher sopra i webview)
+
+### Rimosso
+- Estensioni Chrome (motore rimosso: fonte di instabilità)
 
 ## [1.0.7] - 2026-09-23
 

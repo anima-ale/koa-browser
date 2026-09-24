@@ -7,7 +7,6 @@ Un browser in stile giapponese — legno scuro e arancione vermiglio — con:
 - sidebar con chat KOA (AI via Pollinations), azioni rapide e riassunti pagina
 - ZEN Supervisor: vero anti-tracker + anti-pubblicità (EasyList + EasyPrivacy) con contatore live
 - KOA Vault: password cifrate con PIN, cattura login, autofill (sidebar)
-- Estensioni Chrome: bottoni toolbar con popup, gestione unpacked, chrome.tabs collegato (GPL-3.0, vedi LICENSE)
 - scrollbar liquida iniettata in ogni sito
 - scorciatoie: `Ctrl/Cmd+T` nuova scheda, `Ctrl/Cmd+W` chiudi scheda, `Ctrl/Cmd+L` focus sulla barra, `Ctrl/Cmd+R` ricarica, `Alt+←/→` fuoco tra pannelli
 

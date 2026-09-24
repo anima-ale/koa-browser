@@ -1,0 +1,10 @@
+### Aggiunto
+- Download in tendina di vetro dal soffitto (apre da sola, risale a fine, pallino sul bottone, storico completo con apri-cartella ed elimina-file-vero)
+- Divider split con Pointer Capture: trascinamento fluido sopra i siti e rilascio sempre bloccato
+- Vie di fuga anti-freeze: flag `--new-instance`, voce Riavvia nel tray
+
+### Cambiato
+- Riflesso vetro più marcato sulla barra sopra, toolbar sempre cliccabile, UI KOA garantita in primo piano
+
+### Corretto
+- Toolbar che trascinava la finestra ovunque: rimossa la frameless, tornata la barra nativa di Windows

@@ -172,85 +172,18 @@
   }
   #new-tab-btn:hover { color: var(--orange); background: rgba(232, 106, 44, 0.09); text-shadow: var(--glow); }
   #new-tab-btn svg { width: 16px; height: 16px; }
-
-  /* Controlli finestra integrati nella barra schede */
-  #win-controls {
-    margin-left: auto;
-    display: flex; align-items: stretch; flex-shrink: 0;
-    -webkit-app-region: no-drag;
-  }
-  .win-btn {
-    width: 48px;
-    display: flex; align-items: center; justify-content: center;
-    color: var(--text-muted);
-    cursor: pointer;
-    transition: background 120ms var(--ease), color 120ms var(--ease);
-  }
-  .win-btn:hover { background: rgba(255, 255, 255, 0.07); color: var(--text); }
-  .win-btn.close:hover { background: #C63F1B; color: #fff; }
-  .win-btn svg { width: 12px; height: 12px; }
-
-  /* Trascinamento finestra dall'header (i controlli restano cliccabili) */
-  #toolbar { -webkit-app-region: drag; }
-  #toolbar .nav-btn, #toolbar #brand, #toolbar #url-form { -webkit-app-region: no-drag; }
   /* Riflesso vetro sulla barra sopra: luce radente che scivola sul cromo */
   #toolbar::after {
     content: "";
     position: absolute; inset: 0;
     pointer-events: none;
     background: linear-gradient(105deg,
-      transparent 30%,
-      rgba(255, 255, 255, 0.025) 42%,
-      rgba(255, 255, 255, 0.075) 50%,
-      rgba(255, 255, 255, 0.025) 58%,
-      transparent 70%);
+      transparent 25%,
+      rgba(255, 255, 255, 0.045) 38%,
+      rgba(255, 255, 255, 0.13) 50%,
+      rgba(255, 255, 255, 0.045) 62%,
+      transparent 75%);
   }
-  #star-btn.on { color: var(--highlight); }
-  #star-btn.on svg { fill: currentColor; filter: drop-shadow(0 0 6px rgba(232, 168, 60, 0.7)); }
-
-  /* ---------- KOA · barra preferiti a bollicine ---------- */
-  #fav-bar {
-    display: flex;
-    align-items: center;
-    padding: 5px 12px;
-    background: rgba(8, 5, 3, 0.55);
-    border-bottom: 1px solid var(--line-soft);
-    min-height: 34px;
-  }
-  #fav-bar[hidden] { display: none; }
-  #fav-scroll {
-    display: flex; align-items: center; gap: 8px;
-    overflow-x: auto;
-    scrollbar-width: none;
-    width: 100%;
-  }
-  #fav-scroll::-webkit-scrollbar { display: none; }
-  .fav-bubble {
-    position: relative;
-    width: 24px; height: 24px; flex-shrink: 0;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid var(--line);
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer;
-    overflow: hidden;
-    transition: border-color 120ms var(--ease), box-shadow 120ms var(--ease), transform 100ms var(--ease);
-  }
-  .fav-bubble:hover { border-color: var(--accent); box-shadow: var(--glow-soft); transform: translateY(-1px); }
-  .fav-bubble img { width: 15px; height: 15px; }
-  .fav-bubble .fav-letter {
-    font-size: 11px; font-weight: 700; color: var(--text);
-    background: var(--grad);
-    -webkit-background-clip: text; background-clip: text; color: transparent;
-  }
-  .fav-bubble .fav-x {
-    position: absolute; inset: 0;
-    display: none; align-items: center; justify-content: center;
-    background: rgba(10, 6, 3, 0.85);
-    color: #bf616a; font-size: 14px; line-height: 1;
-  }
-  .fav-bubble:hover .fav-x { display: flex; }
-
   /* ---------- KOA · cronologia ---------- */
   #hist-count { margin-left: auto; font-size: 10px; color: var(--text-muted); }
   #hist-search { margin-bottom: 2px; }
@@ -449,6 +382,7 @@
     background: linear-gradient(90deg, rgba(232, 106, 44, 0.55), rgba(232, 168, 60, 0.35), rgba(217, 179, 106, 0.4));
   }
   .split-divider.h:hover, .split-divider.h.dragging { background: var(--grad); }
+  .split-divider { touch-action: none; user-select: none; -webkit-user-select: none; }
 
   /* ---------- Split animations ---------- */
   @keyframes pane-in-left {
@@ -681,39 +615,6 @@
   .btn.mini { flex: 0 1 auto; font-size: 11px; padding: 5px 9px; }
   #vault-form { display: flex; flex-direction: column; gap: 6px; }
   #vault-form[hidden] { display: none; }
-
-  /* Estensioni: bottoni toolbar + lista gestione */
-  browser-action-list {
-    display: flex; align-items: center; gap: 2px;
-    padding: 0 6px;
-    border-right: 1px solid var(--line-soft);
-    -webkit-app-region: no-drag;
-    flex-shrink: 0;
-  }
-  browser-action-list:empty { display: none; }
-  browser-action-list::part(action) { width: 28px; height: 28px; border-radius: 6px; }
-  browser-action-list::part(action):hover { background: rgba(232, 106, 44, 0.12); }
-  #ext-count { margin-left: auto; font-size: 10px; color: var(--text-muted); }
-  #ext-list { display: flex; flex-direction: column; gap: 6px; }
-  .ext-row {
-    display: flex; align-items: center; gap: 8px;
-    background: rgba(0, 0, 0, 0.25);
-    border: 1px solid var(--line-soft);
-    border-radius: var(--radius);
-    padding: 7px 9px;
-  }
-  .ext-info { flex: 1; min-width: 0; }
-  .ext-name { font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .ext-sub { font-size: 10px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .ext-row .switch { transform: scale(0.85); }
-  .ext-del {
-    border: none; background: none; color: var(--text-muted);
-    font-size: 14px; cursor: pointer; padding: 0 2px; flex-shrink: 0;
-  }
-  .ext-del:hover { color: #bf616a; }
-  #ext-status { font-size: 11px; color: var(--text-muted); min-height: 0; }
-  #ext-status:empty { display: none; }
-  .ext-empty { font-size: 12px; color: var(--text-muted); padding: 6px 2px; }
 
   /* Chat */
   #chat-msgs { display: flex; flex-direction: column; gap: 8px; max-height: 260px; overflow-y: auto; scrollbar-width: thin; }
@@ -959,28 +860,42 @@
     border-radius: 99px;
   }
   #dl-badge[hidden] { display: none; }
-  #dl-shelf {
-    position: fixed; left: 0; right: 0; bottom: 0; z-index: 550;
-    display: flex; align-items: center; gap: 8px;
-    padding: 8px 12px;
-    background: rgba(20, 13, 8, 0.95);
+  /* ---------- KOA · download: tendina di vetro liquido dal soffitto ---------- */
+  #dl-dropdown {
+    position: fixed;
+    top: 0; right: 12px;
+    width: 370px; max-width: 92vw;
+    max-height: 56vh;
+    z-index: 540;
+    display: flex; flex-direction: column; gap: 8px;
+    padding: 12px 12px 10px 12px;
+    background: linear-gradient(180deg, rgba(46, 30, 18, 0.96), rgba(20, 13, 8, 0.92));
     -webkit-backdrop-filter: var(--glass);
     backdrop-filter: var(--glass);
-    border-top: 1px solid var(--line);
-    box-shadow: 0 -14px 40px rgba(0, 0, 0, 0.55);
-    animation: tab-in 160ms var(--ease);
+    border: 1px solid var(--line);
+    border-top: 2px solid transparent;
+    border-image: linear-gradient(90deg, transparent, var(--orange) 30%, var(--amber) 70%, transparent) 1;
+    border-radius: 0 0 var(--radius) var(--radius);
+    box-shadow: 0 26px 60px rgba(0, 0, 0, 0.6), 0 0 34px rgba(232, 106, 44, 0.10);
+    transform: translateY(-112%);
+    transition: transform 260ms var(--ease);
+    overflow: hidden;
   }
-  #dl-shelf[hidden] { display: none; }
+  #dl-dropdown.open { transform: translateY(0); }
+  #dl-dropdown[hidden] { display: none; }
+  #dl-dropdown header {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.12em;
+    color: var(--text);
+  }
+  #dl-count { margin-left: auto; font-size: 10px; color: var(--text-muted); }
   #dl-items {
-    flex: 1; min-width: 0;
-    display: flex; gap: 8px;
-    overflow-x: auto;
-    scrollbar-width: none;
+    display: flex; flex-direction: column; gap: 8px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    min-height: 0;
   }
-  #dl-items::-webkit-scrollbar { display: none; }
   .dl-item {
-    flex: 0 0 300px;
-    max-width: 300px;
     background: rgba(0, 0, 0, 0.35);
     border: 1px solid var(--line);
     border-radius: var(--radius);
@@ -997,18 +912,13 @@
     transition: color 100ms var(--ease), border-color 100ms var(--ease);
   }
   .dl-act:hover { color: var(--accent); border-color: var(--line); }
+  .dl-act.danger:hover { color: #bf616a; border-color: rgba(191, 97, 106, 0.5); }
   .dl-act svg { width: 13px; height: 13px; }
   .dl-bar { height: 5px; background: rgba(255, 255, 255, 0.07); border-radius: 99px; overflow: hidden; }
   .dl-bar i { display: block; height: 100%; width: 0; background: var(--grad); transition: width 250ms linear; }
   .dl-item.done .dl-bar i { background: var(--highlight); }
   .dl-meta { font-size: 10.5px; color: var(--text-muted); font-variant-numeric: tabular-nums; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  #dl-hide {
-    width: 28px; height: 28px; flex-shrink: 0;
-    display: flex; align-items: center; justify-content: center;
-    background: transparent; border: 1px solid var(--line); border-radius: 6px;
-    color: var(--text-muted); font-size: 15px; cursor: pointer;
-  }
-  #dl-hide:hover { color: var(--text); border-color: var(--accent); }
+  .dl-empty { font-size: 12px; color: var(--text-muted); padding: 6px 2px; }
 
   /* ---------- KOA · predefinito (ripristinato, registrazione reale) ---------- */
   .settings-sep { width: 100%; height: 1px; background: var(--line); opacity: 0.7; }
@@ -1049,14 +959,10 @@
       </div>
     </form>
 
-    <div class="nav-btn" id="star-btn" title="Aggiungi ai preferiti">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="miter"><path d="M12 2.8l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.6l-5.8 3.1 1.1-6.5L2.6 9.6l6.5-.9z"/></svg>
-    </div>
     <div class="nav-btn" id="dl-btn" title="Download">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter"><path d="M12 3v12m0 0l-5-5m5 5l5-5M4 21h16"/></svg>
       <span id="dl-badge" hidden></span>
     </div>
-    <browser-action-list id="ext-actions" title="Estensioni"></browser-action-list>
     <div class="nav-btn" id="talk-btn" title="Chat ZEN">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter"><path d="M4 5h16v11H8l-4 4z"/></svg>
       <span class="talk-label">Chat ZEN</span>
@@ -1070,22 +976,6 @@
     <div id="new-tab-btn" title="Nuova scheda">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"><path d="M12 5v14M5 12h14"/></svg>
     </div>
-    <div id="win-controls" title="">
-      <div class="win-btn" id="win-min" title="Riduci a icona">
-        <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square"><path d="M2 6h8"/></svg>
-      </div>
-      <div class="win-btn" id="win-max" title="Massimizza / Ripristina">
-        <svg id="win-ico-max" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="2" width="8" height="8"/></svg>
-        <svg id="win-ico-restore" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.3" style="display:none"><path d="M4 1h7v7M8 4H1v7h7z"/></svg>
-      </div>
-      <div class="win-btn close" id="win-close" title="Chiudi">
-        <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square"><path d="M3 3l6 6M9 3l-6 6"/></svg>
-      </div>
-    </div>
-  </div>
-
-  <div id="fav-bar" hidden>
-    <div id="fav-scroll"></div>
   </div>
 
   <div id="content">
@@ -1153,15 +1043,6 @@
           </div>
           <div class="sup-note">AES-256-GCM · PIN mai salvato · autoblocco 5 min</div>
         </section>
-        <section class="card" id="card-ext">
-          <header><span class="card-dot"></span>ESTENSIONI<span id="ext-count"></span></header>
-          <div id="ext-list"></div>
-          <div id="ext-status"></div>
-          <div class="row">
-            <button id="ext-load" class="btn">Carica unpacked</button>
-          </div>
-          <div class="sup-note">Cartelle unpacked · MV2 al meglio · niente Web Store diretto</div>
-        </section>
       </div>
     </aside>
 
@@ -1217,9 +1098,9 @@
     <button id="find-close" title="Chiudi (Esc)">×</button>
   </div>
 
-  <div id="dl-shelf" hidden>
+  <div id="dl-dropdown" hidden>
+    <header><span class="card-dot"></span>DOWNLOAD<span id="dl-count"></span></header>
     <div id="dl-items"></div>
-    <button id="dl-hide" title="Nascondi">×</button>
   </div>
 
 <script>
@@ -1342,10 +1223,7 @@
     applyLayout();
   }
 
-  let extNewtabUrl = null; // override newtab dalle estensioni (chrome_url_overrides)
-
   function createTab(url = HOME_URL) {
-    if (url === HOME_URL && extNewtabUrl) url = extNewtabUrl;
     const id = ++tabCounter;
 
     // ---- tab strip entry ----
@@ -1458,11 +1336,6 @@
 
     const tab = { id, tabEl, paneEl, webview, title: 'Nuova scheda' };
     tabs.push(tab);
-    try {
-      if (window.browserAPI && window.browserAPI.extTabEvent) {
-        window.browserAPI.extTabEvent({ type: 'created', contentsId: webview.getWebContentsId() });
-      }
-    } catch (e) {}
     // Una nuova scheda si mostra singola, ma lo split resta legato in background.
     showingSplit = false;
     activeTabId = id;
@@ -1488,11 +1361,6 @@
     if (idx === -1) return;
     const [tab] = tabs.splice(idx, 1);
     pushClosed(tab);
-    try {
-      if (window.browserAPI && window.browserAPI.extTabEvent) {
-        window.browserAPI.extTabEvent({ type: 'removed', contentsId: tab.webview.getWebContentsId() });
-      }
-    } catch (e) {}
     tab.tabEl.remove();
     tab.paneEl.remove();
 
@@ -1533,11 +1401,6 @@
       if (idx !== -1) {
         const [tab] = tabs.splice(idx, 1);
         pushClosed(tab);
-        try {
-          if (window.browserAPI && window.browserAPI.extTabEvent) {
-            window.browserAPI.extTabEvent({ type: 'removed', contentsId: tab.webview.getWebContentsId() });
-          }
-        } catch (e) {}
         tab.tabEl.remove();
         tab.paneEl.remove();
       }
@@ -1582,7 +1445,9 @@
     d.className = 'split-divider' + (horizontal ? ' h' : '');
     d.dataset.h = horizontal ? '1' : '0';
     d.dataset.gap = String(gap);
-    d.addEventListener('mousedown', (e) => {
+    // Pointer Events + capture: il trascinamento resta fluido anche sopra i
+    // webview e il rilascio chiude sempre (niente divider incastrati).
+    d.addEventListener('pointerdown', (e) => {
       if (!splitState || !showingSplit) return;
       e.preventDefault();
       cancelAnimationFrame(ratioAnimId);
@@ -1594,7 +1459,30 @@
       const rect = viewContainer.getBoundingClientRect();
       resizeWidth = (isH ? rect.height : rect.width) || 1;
       d.classList.add('dragging');
+      try { d.setPointerCapture(e.pointerId); } catch (err) {}
     });
+    const endResize = () => {
+      if (resizing) {
+        resizing = null;
+        dividerEls.forEach(x => x.classList.remove('dragging'));
+      }
+    };
+    d.addEventListener('pointermove', (e) => {
+      if (!resizing || !splitState) return;
+      const arr = resizing.type === 'h' ? splitState.rows : splitState.cols;
+      const start = resizeStartSizes;
+      const total = start[resizing.gap] + start[resizing.gap + 1];
+      const cur = resizing.type === 'h' ? e.clientY : e.clientX;
+      const origin = resizing.type === 'h' ? resizeStartY : resizeStartX;
+      let a = start[resizing.gap] + ((cur - origin) / resizeWidth) * 100;
+      a = Math.max(12, Math.min(total - 12, a));
+      arr[resizing.gap] = a;
+      arr[resizing.gap + 1] = total - a;
+      applySplitGrid();
+    });
+    d.addEventListener('pointerup', endResize);
+    d.addEventListener('pointercancel', endResize);
+    d.addEventListener('lostpointercapture', endResize);
     viewContainer.appendChild(d);
     return d;
   }
@@ -1700,7 +1588,6 @@
     }
     refreshToolbarForFocusedTab();
     closeCtxMenu();
-    notifyExtSelected();
   }
 
   function refreshToolbarForFocusedTab() {
@@ -1712,7 +1599,6 @@
     setProtocol(url);
     setLoading(wv.isLoading ? wv.isLoading() : false);
     updateNavButtons();
-    updateStar();
   }
 
   // Chiamate webview a prova di guest non pronto (metodi mancanti o non attached).
@@ -1952,21 +1838,15 @@
     doSplitDrop(zone, e.clientY);
   });
 
-  // ---- divider drag-to-resize (ogni giunto ridimensiona le due tracce vicine) ----
-  window.addEventListener('mousemove', (e) => {
-    if (!resizing || !splitState) return;
-    const arr = resizing.type === 'h' ? splitState.rows : splitState.cols;
-    const start = resizeStartSizes;
-    const total = start[resizing.gap] + start[resizing.gap + 1];
-    const cur = resizing.type === 'h' ? e.clientY : e.clientX;
-    const origin = resizing.type === 'h' ? resizeStartY : resizeStartX;
-    let a = start[resizing.gap] + ((cur - origin) / resizeWidth) * 100;
-    a = Math.max(12, Math.min(total - 12, a));
-    arr[resizing.gap] = a;
-    arr[resizing.gap + 1] = total - a;
-    applySplitGrid();
-  });
+  // ---- divider drag-to-resize: gestito dai Pointer Events con capture (vedi makeDivider).
+  // Fallback di sicurezza: se il puntatore si perde, sblocca comunque tutto.
   window.addEventListener('mouseup', () => {
+    if (resizing) {
+      resizing = null;
+      dividerEls.forEach(d => d.classList.remove('dragging'));
+    }
+  });
+  window.addEventListener('blur', () => {
     if (resizing) {
       resizing = null;
       dividerEls.forEach(d => d.classList.remove('dragging'));
@@ -2574,10 +2454,7 @@
 
   addMsg('koa', 'Ciao, sono KOA con AI. Scrivimi pure — conosco anche la pagina che hai aperta. Comandi: /calc, /cerca, /riassumi, /aiuto', false);
 
-  // ================= Cronologia + preferiti =================
-  const starBtn = document.getElementById('star-btn');
-  const favBar = document.getElementById('fav-bar');
-  const favScroll = document.getElementById('fav-scroll');
+  // ================= Cronologia =================
   const histSearch = document.getElementById('hist-search');
   const histList = document.getElementById('hist-list');
   const histCount = document.getElementById('hist-count');
@@ -2591,8 +2468,6 @@
 
   let historyItems = loadJSON('koa.history', []);
   if (!Array.isArray(historyItems)) historyItems = [];
-  let bookmarks = loadJSON('koa.bookmarks', []);
-  if (!Array.isArray(bookmarks)) bookmarks = [];
 
   function histTime(t) {
     const d = new Date(t);
@@ -2657,209 +2532,7 @@
     renderHistory();
   });
 
-  function favHost(url) {
-    try { return new URL(url).hostname; } catch (e) { return ''; }
-  }
-  function isBookmarked(url) { return bookmarks.some(b => b.url === url); }
-
-  function renderFavs() {
-    favScroll.innerHTML = '';
-    favBar.hidden = bookmarks.length === 0;
-    bookmarks.forEach((b, i) => {
-      const el = document.createElement('div');
-      el.className = 'fav-bubble';
-      el.title = (b.title || b.url) + '\n' + b.url;
-      const host = favHost(b.url);
-      const img = document.createElement('img');
-      img.alt = '';
-      img.src = 'https://www.google.com/s2/favicons?domain=' + encodeURIComponent(host) + '&sz=64';
-      img.addEventListener('error', () => {
-        img.remove();
-        const s = document.createElement('span');
-        s.className = 'fav-letter';
-        s.textContent = ((b.title || host || '?').trim()[0] || '?').toUpperCase();
-        el.prepend(s);
-      });
-      const x = document.createElement('span');
-      x.className = 'fav-x';
-      x.textContent = '×';
-      x.title = 'Rimuovi dai preferiti';
-      x.addEventListener('click', (e) => {
-        e.stopPropagation();
-        bookmarks.splice(i, 1);
-        saveJSON('koa.bookmarks', bookmarks);
-        renderFavs();
-        updateStar();
-      });
-      el.append(img, x);
-      el.addEventListener('click', () => createTab(b.url));
-      favScroll.appendChild(el);
-    });
-  }
-
-  function updateStar() {
-    const t = getFocusedTab();
-    let url = '';
-    try { url = t ? (t.webview.getURL() || '') : ''; } catch (e) {}
-    const on = !!url && isBookmarked(url);
-    starBtn.classList.toggle('on', on);
-    starBtn.title = on ? 'Rimuovi dai preferiti' : 'Aggiungi ai preferiti';
-  }
-
-  starBtn.addEventListener('click', () => {
-    const t = getFocusedTab();
-    if (!t) return;
-    let url = '';
-    try { url = t.webview.getURL() || ''; } catch (e) {}
-    if (!url || (!url.startsWith('http://') && !url.startsWith('https://'))) return;
-    const i = bookmarks.findIndex(b => b.url === url);
-    if (i === -1) {
-      let title = t.title || url;
-      try { title = t.webview.getTitle() || title; } catch (e) {}
-      bookmarks.push({ url, title, t: Date.now() });
-      try { koaTone(660, 0.06); } catch (e) {}
-    } else {
-      bookmarks.splice(i, 1);
-    }
-    saveJSON('koa.bookmarks', bookmarks);
-    renderFavs();
-    updateStar();
-  });
-
   renderHistory();
-  renderFavs();
-
-  let lastExtSelected = 0;
-  function notifyExtSelected() {
-    try {
-      const t = getFocusedTab();
-      if (!t) return;
-      const cid = t.webview.getWebContentsId();
-      if (cid && cid !== lastExtSelected) {
-        lastExtSelected = cid;
-        if (window.browserAPI && window.browserAPI.extTabEvent) {
-          window.browserAPI.extTabEvent({ type: 'selected', contentsId: cid });
-        }
-        const actions = document.getElementById('ext-actions');
-        if (actions) { try { actions.setAttribute('tab', String(cid)); } catch (e) {} }
-      }
-    } catch (e) {}
-  }
-
-  // ================= Estensioni Chrome =================
-  const extListEl = document.getElementById('ext-list');
-  const extLoadBtn = document.getElementById('ext-load');
-  const extCount = document.getElementById('ext-count');
-  const extStatus = document.getElementById('ext-status');
-
-  function renderExtList(payload) {
-    const items = (payload && payload.extensions) || [];
-    extNewtabUrl = (payload && payload.newtab) || null;
-    const on = items.filter(x => x.enabled).length;
-    extCount.textContent = items.length ? on + '/' + items.length + ' attive' : '';
-    extListEl.innerHTML = '';
-    if (!items.length) {
-      const d = document.createElement('div');
-      d.className = 'ext-empty';
-      d.textContent = 'Nessuna estensione. Carica una cartella unpacked.';
-      extListEl.appendChild(d);
-      return;
-    }
-    items.forEach(x => {
-      const row = document.createElement('div');
-      row.className = 'ext-row';
-      const info = document.createElement('div');
-      info.className = 'ext-info';
-      const nm = document.createElement('div');
-      nm.className = 'ext-name';
-      nm.textContent = x.name || '(senza nome)';
-      nm.title = (x.name || '') + '\n' + (x.id || '');
-      const sub = document.createElement('div');
-      sub.className = 'ext-sub';
-      sub.textContent = (x.version ? 'v' + x.version + ' · ' : '') + (x.enabled ? 'attiva' : 'spenta') + (x.id ? ' · ' + String(x.id).slice(0, 8) : '');
-      info.append(nm, sub);
-      const sw = document.createElement('span');
-      sw.className = 'switch';
-      const cb = document.createElement('input');
-      cb.type = 'checkbox';
-      cb.checked = !!x.enabled;
-      cb.title = 'Attiva/disattiva';
-      const ic = document.createElement('i');
-      sw.append(cb, ic);
-      cb.addEventListener('change', async () => {
-        try {
-          if (window.browserAPI && window.browserAPI.extToggle) {
-            const r = await window.browserAPI.extToggle(x.id, cb.checked);
-            if (r && !r.ok && r.error) {
-              extStatus.textContent = r.error;
-              setTimeout(() => { extStatus.textContent = ''; }, 5000);
-            }
-          }
-        } catch (e) {}
-        refreshExtList();
-      });
-      const del = document.createElement('button');
-      del.className = 'ext-del';
-      del.textContent = '×';
-      del.title = 'Rimuovi estensione';
-      del.addEventListener('click', async () => {
-        if (!window.confirm('Rimuovere "' + (x.name || x.id) + '"?')) return;
-        try { if (window.browserAPI && window.browserAPI.extRemove) await window.browserAPI.extRemove(x.id); } catch (e) {}
-        refreshExtList();
-      });
-      row.append(info, sw, del);
-      extListEl.appendChild(row);
-    });
-  }
-
-  async function refreshExtList() {
-    try {
-      if (window.browserAPI && window.browserAPI.extList) renderExtList(await window.browserAPI.extList());
-    } catch (e) {}
-  }
-
-  extLoadBtn.addEventListener('click', async () => {
-    try {
-      if (window.browserAPI && window.browserAPI.extLoadFolder) {
-        const r = await window.browserAPI.extLoadFolder();
-        if (r && !r.ok && r.error) {
-          extStatus.textContent = r.error;
-          setTimeout(() => { extStatus.textContent = ''; }, 5000);
-        }
-      }
-    } catch (e) {}
-    refreshExtList();
-  });
-
-  try {
-    if (window.browserAPI && window.browserAPI.onExtList) window.browserAPI.onExtList(renderExtList);
-  } catch (e) {}
-  refreshExtList();
-
-  // Tab viste dalle estensioni (chrome.tabs create/select/remove).
-  try {
-    if (window.browserAPI && window.browserAPI.onExtCreateTab) {
-      window.browserAPI.onExtCreateTab(async ({ token, url }) => {
-        const id = createTab(url || HOME_URL);
-        const t = getTab(id);
-        let contentsId = null;
-        try { contentsId = t.webview.getWebContentsId(); } catch (e) {}
-        try { window.browserAPI.extTabCreated({ token, contentsId }); } catch (e) {}
-      });
-    }
-    if (window.browserAPI && window.browserAPI.onExtSelectTab) {
-      window.browserAPI.onExtSelectTab((cid) => {
-        const t = tabs.find(x => { try { return x.webview.getWebContentsId() === Number(cid); } catch (e) { return false; } });
-        if (t) activateTab(t.id);
-      });
-    }
-    if (window.browserAPI && window.browserAPI.onExtRemoveTab) {
-      window.browserAPI.onExtRemoveTab((cid) => {
-        const t = tabs.find(x => { try { return x.webview.getWebContentsId() === Number(cid); } catch (e) { return false; } });
-        if (t) closeTab(t.id);
-      });
-    }
-  } catch (e) {}
 
   // ================= KOA Vault (sidebar) =================
   const vaultStateEl = document.getElementById('vault-state');
@@ -3120,33 +2793,6 @@
 
   refreshVaultPanel(false);
 
-  // ---- Controlli finestra custom (frame:false) ----
-  const winMinBtn = document.getElementById('win-min');
-  const winMaxBtn = document.getElementById('win-max');
-  const winCloseBtn = document.getElementById('win-close');
-  const winIcoMax = document.getElementById('win-ico-max');
-  const winIcoRestore = document.getElementById('win-ico-restore');
-
-  function refreshMaxIcon(max) {
-    winIcoMax.style.display = max ? 'none' : '';
-    winIcoRestore.style.display = max ? '' : 'none';
-    winMaxBtn.title = max ? 'Ripristina' : 'Massimizza';
-  }
-
-  function winApi(fn) {
-    try { if (window.browserAPI && window.browserAPI[fn]) return window.browserAPI[fn](); } catch (e) {}
-  }
-  winMinBtn.addEventListener('click', () => winApi('winMin'));
-  winMaxBtn.addEventListener('click', () => winApi('winMaxToggle'));
-  winCloseBtn.addEventListener('click', () => winApi('winClose'));
-  try {
-    if (window.browserAPI && window.browserAPI.onWinMaxChanged) window.browserAPI.onWinMaxChanged(refreshMaxIcon);
-    if (window.browserAPI && window.browserAPI.winIsMax) {
-      const r = window.browserAPI.winIsMax();
-      if (r && typeof r.then === 'function') r.then(refreshMaxIcon).catch(() => {});
-    }
-  } catch (e) {}
-
   // ================= Browser predefinito VERO =================
   const defStatus = document.getElementById('defbrowser-status');
   const defBtn = document.getElementById('defbrowser-btn');
@@ -3194,17 +2840,19 @@
     }
   } catch (e) {}
 
-  // ================= Download manager (shelf stile Chrome) =================
+  // ================= Download manager (tendina di vetro dal soffitto) =================
   const dlBtn = document.getElementById('dl-btn');
   const dlBadge = document.getElementById('dl-badge');
-  const dlShelf = document.getElementById('dl-shelf');
+  const dlDropdown = document.getElementById('dl-dropdown');
   const dlItemsEl = document.getElementById('dl-items');
-  const dlHide = document.getElementById('dl-hide');
+  const dlCount = document.getElementById('dl-count');
   const dlMap = new Map();
   let dlDone = [];
   try { dlDone = JSON.parse(localStorage.getItem('koa.downloads') || '[]'); } catch (e) { dlDone = []; }
   if (!Array.isArray(dlDone)) dlDone = [];
-  let dlUserHidden = true;
+  let dlPinned = false;   // aperta a mano dall'utente: non si richiude da sola
+  let dlUnseen = 0;       // completati mentre la tendina era chiusa
+  let dlHideTimer = 0;
 
   function fmtSize(b) {
     if (b == null || b < 0) return '';
@@ -3235,6 +2883,18 @@
 
   const ICO_FOLDER = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>';
   const ICO_OPEN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"><path d="M14 4h6v6M20 4L10 14M18 13v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h6"/></svg>';
+  const ICO_TRASH = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"><path d="M4 7h16M9 7V4h6v3M6 7l1 14h10l1-14M10 11v6M14 11v6"/></svg>';
+
+  function dlShow() {
+    dlDropdown.hidden = false;
+    requestAnimationFrame(() => requestAnimationFrame(() => dlDropdown.classList.add('open')));
+  }
+  function dlHide() {
+    dlDropdown.classList.remove('open');
+    clearTimeout(dlHideTimer);
+    dlHideTimer = setTimeout(() => { dlDropdown.hidden = true; }, 280);
+  }
+  function dlIsOpen() { return !dlDropdown.hidden && dlDropdown.classList.contains('open'); }
 
   function renderDl() {
     dlItemsEl.innerHTML = '';
@@ -3281,6 +2941,19 @@
           renderDl();
         });
         top.appendChild(x);
+        const del = document.createElement('button');
+        del.className = 'dl-act danger';
+        del.title = 'Elimina il file e la voce';
+        del.innerHTML = ICO_TRASH;
+        del.addEventListener('click', (e) => {
+          e.stopPropagation();
+          dlAction(ev ? ev.id : null, 'deleteFile', pth);
+          if (ev) dlMap.delete(ev.id);
+          else dlDone = dlDone.filter(d => d !== done);
+          persistDlDone();
+          renderDl();
+        });
+        top.appendChild(del);
       }
       const bar = document.createElement('div');
       bar.className = 'dl-bar';
@@ -3308,10 +2981,20 @@
       item.append(top, bar, meta);
       dlItemsEl.appendChild(item);
     });
-    if (rows.length > 0 && !dlUserHidden) dlShelf.hidden = false;
+    const total = rows.length;
+    dlCount.textContent = total === 0 ? '' : (total === 1 ? '1 file' : total + ' file');
+    if (total === 0) {
+      const d = document.createElement('div');
+      d.className = 'dl-empty';
+      d.textContent = 'Nessun download.';
+      dlItemsEl.appendChild(d);
+    }
     if (active > 0) {
       dlBadge.hidden = false;
       dlBadge.textContent = String(active);
+    } else if (dlUnseen > 0) {
+      dlBadge.hidden = false;
+      dlBadge.textContent = '•';
     } else {
       dlBadge.hidden = true;
     }
@@ -3321,7 +3004,7 @@
     if (!ev) return;
     if (ev.state === 'active') {
       dlMap.set(ev.id, ev);
-      dlUserHidden = false;
+      dlShow();
       let dropped = 0;
       for (const [k, v] of dlMap) {
         if (dlMap.size - dropped <= 25) break;
@@ -3332,8 +3015,17 @@
       dlDone.unshift({ name: ev.name, path: ev.path || '', size: ev.total || ev.received || 0, t: Date.now() });
       dlDone = dlDone.slice(0, 30);
       persistDlDone();
+      if (!dlIsOpen()) dlUnseen++;
+      // Finito tutto e nessuno la tiene aperta: risale da sola.
+      clearTimeout(dlHideTimer);
+      dlHideTimer = setTimeout(() => {
+        let stillActive = false;
+        dlMap.forEach(v => { if (v && v.state === 'active') stillActive = true; });
+        if (!stillActive && !dlPinned) dlHide();
+      }, 2500);
     } else {
       dlMap.set(ev.id, ev);
+      dlShow();
     }
     renderDl();
   }
@@ -3341,8 +3033,10 @@
   try {
     if (window.browserAPI && window.browserAPI.onDownloadEvent) window.browserAPI.onDownloadEvent(onDlEvent);
   } catch (e) {}
-  dlHide.addEventListener('click', () => { dlUserHidden = true; dlShelf.hidden = true; });
-  dlBtn.addEventListener('click', () => { dlUserHidden = false; renderDl(); });
+  dlBtn.addEventListener('click', () => {
+    if (dlIsOpen()) { dlPinned = false; dlHide(); }
+    else { dlPinned = true; dlUnseen = 0; dlShow(); renderDl(); }
+  });
   renderDl();
 
   // ================= ZENdate MAX · impostazioni + aggiornamenti =================

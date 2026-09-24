@@ -4,12 +4,6 @@
 
 const { contextBridge, ipcRenderer } = require('electron');
 
-// Bottoni e popup delle estensioni Chrome nella nostra toolbar.
-try {
-  const { injectBrowserAction } = require('electron-chrome-extensions/browser-action');
-  injectBrowserAction();
-} catch (e) { console.error('[ext-action]', e.message); }
-
 contextBridge.exposeInMainWorld('browserAPI', {
   // ZEN Supervisor: attiva/disattiva anti-tracker + anti-pubblicità
   setSupervisor: (on) => ipcRenderer.invoke('zen:supervisor', !!on),
@@ -33,12 +27,6 @@ contextBridge.exposeInMainWorld('browserAPI', {
   printTab: (id) => ipcRenderer.invoke('zen:print-tab', id),
   zoomTab: (id, mode) => ipcRenderer.invoke('zen:zoom-tab', id, mode),
   toggleFullscreen: () => ipcRenderer.invoke('zen:fullscreen'),
-  // Controlli finestra custom (frame:false)
-  winMin: () => ipcRenderer.invoke('zen:win-min'),
-  winMaxToggle: () => ipcRenderer.invoke('zen:win-max-toggle'),
-  winClose: () => ipcRenderer.invoke('zen:win-close'),
-  winIsMax: () => ipcRenderer.invoke('zen:win-is-max'),
-  onWinMaxChanged: (cb) => ipcRenderer.on('zen:win-max-changed', (_e, m) => { try { cb(m); } catch (e) {} }),
   onUpdateStatus: (cb) => ipcRenderer.on('zen:update-status', (_e, s) => { try { cb(s); } catch (e) {} }),
   // KOA Vault: password cifrate, solo con PIN (chiave mai nel renderer)
   vaultStatus: () => ipcRenderer.invoke('zen:vault-status'),
@@ -53,16 +41,5 @@ contextBridge.exposeInMainWorld('browserAPI', {
   vaultPending: () => ipcRenderer.invoke('zen:vault-pending'),
   vaultSavePending: (idx) => ipcRenderer.invoke('zen:vault-save-pending', idx),
   vaultDiscardPending: (idx) => ipcRenderer.invoke('zen:vault-discard-pending', idx),
-  vaultCapture: (rec) => ipcRenderer.invoke('zen:vault-capture', rec),
-  // Estensioni Chrome: gestione, toolbar e tab
-  extList: () => ipcRenderer.invoke('zen:ext-list'),
-  extLoadFolder: () => ipcRenderer.invoke('zen:ext-load-folder'),
-  extToggle: (id, on) => ipcRenderer.invoke('zen:ext-toggle', id, on),
-  extRemove: (id) => ipcRenderer.invoke('zen:ext-remove', id),
-  onExtList: (cb) => ipcRenderer.on('zen:ext-list', (_e, s) => { try { cb(s); } catch (e) {} }),
-  extTabEvent: (msg) => { try { ipcRenderer.send('zen:ext-tab', msg); } catch (e) {} },
-  extTabCreated: (res) => { try { ipcRenderer.send('zen:ext-tab-created', res); } catch (e) {} },
-  onExtCreateTab: (cb) => ipcRenderer.on('zen:ext-create-tab', (_e, s) => { try { cb(s); } catch (e) {} }),
-  onExtSelectTab: (cb) => ipcRenderer.on('zen:ext-select-tab', (_e, id) => { try { cb(id); } catch (e) {} }),
-  onExtRemoveTab: (cb) => ipcRenderer.on('zen:ext-remove-tab', (_e, id) => { try { cb(id); } catch (e) {} })
+  vaultCapture: (rec) => ipcRenderer.invoke('zen:vault-capture', rec)
 });
