@@ -115,7 +115,17 @@ ipcMain.handle('zen:supervisor', (_e, on) => {
 // Canale di distribuzione: pubblica ogni release (exe + note) e punta qui il file
 // zendate.json. Formato: { "version": "1.0.1", "notes": "...", "url": "https://...exe", "sha256": "..." }
 // Esempio gratis: GitHub Releases + https://raw.githubusercontent.com/<UTENTE>/<REPO>/main/zendate.json
-const ZENDATE_URL = 'https://raw.githubusercontent.com/anima-ale/koa-browser/main/zendate/zendate.json';
+const ZENDATE_BASE = 'https://raw.githubusercontent.com/anima-ale/koa-browser/main/zendate/';
+let updateChannel = 'stable';
+let pendingUpdate = null;
+function zendateUrl() {
+  const ch = ['stable', 'beta', 'alpha'].includes(updateChannel) ? updateChannel : 'stable';
+  return ZENDATE_BASE + ch + '/zendate.json';
+}
+ipcMain.handle('zen:set-channel', (_e, ch) => {
+  if (['stable', 'beta', 'alpha'].includes(ch)) updateChannel = ch;
+  return { channel: updateChannel };
+});
 
 let willQuit = false;
 let tray = null;
@@ -198,7 +208,8 @@ async function checkForUpdates(source) {
     let man;
     try {
       // Cache-buster: salta anche la cache del CDN per vedere subito le nuove release.
-      const url = ZENDATE_URL + (ZENDATE_URL.includes('?') ? '&' : '?') + 't=' + Date.now();
+      const base = zendateUrl();
+      const url = base + (base.includes('?') ? '&' : '?') + 't=' + Date.now();
       const res = await fetch(url, { signal: ctrl.signal, cache: 'no-store' });
       if (!res.ok) throw new Error('canale HTTP ' + res.status);
       man = await res.json();
@@ -224,10 +235,33 @@ async function checkForUpdates(source) {
       return { state: 'up-to-date', version: current };
     }
     sendUpdate({ state: 'found', version: man.version, notes: man.notes || '' });
+    pendingUpdate = { man, version: man.version };
+    return { state: 'found', version: man.version };
+  } catch (e) {
+    sendUpdate({ state: 'error', message: (e && e.message) || 'errore di rete' });
+    return { state: 'error' };
+  } finally { clearTimeout(updateWatchdog); updateChecking = false; }
+}
+
+ipcMain.handle('zen:update-accept', async () => {
+  const p = pendingUpdate;
+  if (!p || !p.man) return { state: 'none' };
+  if (updateChecking) return { state: 'busy' };
+  updateChecking = true;
+  clearTimeout(updateWatchdog);
+  updateWatchdog = setTimeout(() => {
+    if (updateChecking) {
+      updateChecking = false;
+      pendingUpdate = null;
+      sendUpdate({ state: 'error', message: 'download troppo lento: riprova' });
+    }
+  }, 15 * 60 * 1000);
+  try {
     if (process.execPath.toLowerCase().includes('win-unpacked')) {
       sendUpdate({ state: 'error', message: 'Stai girando da win-unpacked: avvia il portable per auto-aggiornarti.' });
       return { state: 'error' };
     }
+    const man = p.man;
     const tmpFile = path.join(os.tmpdir(), 'koa-zendate', 'KOA-Browser-' + man.version + '.exe');
     await downloadFile(man.url, tmpFile, (pct) => sendUpdate({ state: 'downloading', version: man.version, percent: pct }));
     if (man.sha256) {
@@ -238,10 +272,47 @@ async function checkForUpdates(source) {
     await installUpdate(tmpFile, man.version);
     return { state: 'ready', version: man.version };
   } catch (e) {
+    pendingUpdate = null;
     sendUpdate({ state: 'error', message: (e && e.message) || 'errore di rete' });
     return { state: 'error' };
   } finally { clearTimeout(updateWatchdog); updateChecking = false; }
-}
+});
+
+ipcMain.handle('zen:uninstall', async () => {
+  try {
+    if (process.execPath.toLowerCase().includes('program files')) {
+      return { ok: false, error: 'installed' };
+    }
+    const cur = process.execPath;
+    const ud = app.getPath('userData');
+    const bat = path.join(os.tmpdir(), 'koa-uninstall-' + Date.now() + '.bat');
+    const lines = [
+      '@echo off',
+      'set "ZPID=%~1"',
+      'set "ZEXE=%~2"',
+      'set "ZDATA=%~3"',
+      ':u_wait',
+      'tasklist /FI "PID eq %ZPID%" 2>nul | find /I "%ZPID%" >nul',
+      'if not errorlevel 1 (',
+      '  timeout /t 1 /nobreak >nul',
+      '  goto u_wait',
+      ')',
+      'del /f "%ZEXE%" 2>nul',
+      'rmdir /s /q "%ZDATA%" 2>nul',
+      'reg delete "HKCU\\Software\\Clients\\StartMenuInternet\\KOA Browser" /f 2>nul',
+      'reg delete "HKCU\\Software\\Classes\\KOABrowserURL" /f 2>nul',
+      'reg delete "HKCU\\Software\\Classes\\KOABrowserHTML" /f 2>nul',
+      'reg delete "HKCU\\Software\\RegisteredApplications" /v "KOA Browser" /f 2>nul',
+      '(goto) 2>nul & del "%~f0"'
+    ];
+    fs.writeFileSync(bat, lines.join('\r\n'));
+    willQuit = true;
+    spawn('cmd.exe', ['/c', 'start', '/min', '', bat, String(process.pid), cur, ud],
+      { detached: true, stdio: 'ignore', windowsHide: true }).unref();
+    setTimeout(() => { try { app.quit(); } catch (e) {} }, 900);
+    return { ok: true };
+  } catch (e) { return { ok: false }; }
+});
 
 // Swap verificato: backup, attesa uscita, sostituzione, controllo taglia,
 // ripristino se corrotto, log diagnostico, rilancio con versione attesa.

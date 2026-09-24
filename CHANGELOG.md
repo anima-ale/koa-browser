@@ -14,12 +14,23 @@ di `zendate\make-zendate.ps1`, più il testo della Release GitHub.
 ### Corretto
 -
 
+## [1.0.11] - 2026-09-24
+
+### Aggiunto
+- Tinta adattiva: la barra prende il colore del sito (theme-color) su indicatore, URL e divider
+- Dettagli hanko: sigilli quadrati, kanji 木 nel brand, texture washi, timbro sulla scheda attiva
+- Update con conferma: chiede prima di scaricare, pronto-subito alla fine, rifiuto senza conseguenze
+- Canali stabile/beta/alpha con cartelle manifest separate e selettore nelle Impostazioni
+- Disinstallazione completa da Impostazioni (exe, profilo, password, chiavi registry)
+- Browser predefinito che funziona: polling di conferma dopo la scelta in Impostazioni Windows
+
 ## [1.0.10] - 2026-09-24
 
 ### Aggiunto
 - Download in tendina di vetro dal soffitto (apre da sola, risale a fine, pallino sul bottone, storico completo con apri-cartella ed elimina-file-vero)
 - Divider split con Pointer Capture: trascinamento fluido sopra i siti e rilascio sempre bloccato
 - Vie di fuga anti-freeze: flag `--new-instance`, voce Riavvia nel tray
+- Preferiti ripristinati: stella + bollicine come prima
 
 ### Cambiato
 - Riflesso vetro più marcato sulla barra sopra, toolbar sempre cliccabile, UI KOA garantita in primo piano
@@ -47,9 +58,6 @@ di `zendate\make-zendate.ps1`, più il testo della Release GitHub.
 - Browser predefinito VERO: registrazione StartMenuInternet + Capabilities + protocolli + tipi file, apertura link/file in KOA
 - Download manager stile Chrome: shelf con progressi, velocità, ETA, apri/mostra cartella, turbo multi-connessione 8x
 - KOA Vault: gestore password cifrato (AES-256-GCM) con PIN, cattura automatica dai login, autofill, in attesa solo con PIN
-
-### Rimosso
-- Preferiti con bollicine (su richiesta)
 
 ### Corretto
 - Menu contestuale: chiusura automatica al clic fuori (catcher sopra i webview)

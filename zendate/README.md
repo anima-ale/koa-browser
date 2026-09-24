@@ -2,9 +2,21 @@
 
 **Via veloce: lancia `pubblica-update.bat`** (controlla `gh`, crea la Release,
 genera il manifest dalle note del CHANGELOG e pusha tutto da solo).
-Per includere anche un update **istantaneo di interfaccia** (senza riavvio):
-`pubblica-update.bat 1.0.7.1` (versione UI numerica a parte).
+- Solo stabile: `pubblica-update.bat`
+- Beta/alpha: `pubblica-update.bat beta` (release marcata prerelease)
+- Con interfaccia istantanea: `pubblica-update.bat beta 1.0.7.1`
 Sotto i dettagli manuali, se preferisci fare a mano.
+
+## Canali: stable, beta, alpha
+
+Ogni canale ha la sua cartella con manifest indipendente:
+- `zendate/stable/zendate.json` ← default, quello che leggono tutti
+- `zendate/beta/zendate.json` ← build in prova
+- `zendate/alpha/zendate.json` ← esperimenti
+
+Nell'app si cambia da Impostazioni → Canale aggiornamenti (salvato in locale).
+Promuovere una build = rigenerare il manifest del canale superiore con
+gli stessi file (`make-zendate.ps1 -Tag vX -Channel stable`).
 
 ## File
 

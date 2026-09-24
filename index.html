@@ -184,6 +184,83 @@
       rgba(255, 255, 255, 0.045) 62%,
       transparent 75%);
   }
+  #star-btn.on { color: var(--highlight); }
+  #star-btn.on svg { fill: currentColor; filter: drop-shadow(0 0 6px rgba(232, 168, 60, 0.7)); }
+
+  /* ---------- KOA · barra preferiti a bollicine ---------- */
+  #fav-bar {
+    display: flex;
+    align-items: center;
+    padding: 5px 12px;
+    background: rgba(8, 5, 3, 0.55);
+    border-bottom: 1px solid var(--line-soft);
+    min-height: 34px;
+  }
+  #fav-bar[hidden] { display: none; }
+  #fav-scroll {
+    display: flex; align-items: center; gap: 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    width: 100%;
+  }
+  #fav-scroll::-webkit-scrollbar { display: none; }
+  .fav-bubble {
+    position: relative;
+    width: 24px; height: 24px; flex-shrink: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--line);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    overflow: hidden;
+    transition: border-color 120ms var(--ease), box-shadow 120ms var(--ease), transform 100ms var(--ease);
+  }
+  .fav-bubble:hover { border-color: var(--accent); box-shadow: var(--glow-soft); transform: translateY(-1px); }
+  .fav-bubble img { width: 15px; height: 15px; }
+  .fav-bubble .fav-letter {
+    font-size: 11px; font-weight: 700; color: var(--text);
+    background: var(--grad);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .fav-bubble .fav-x {
+    position: absolute; inset: 0;
+    display: none; align-items: center; justify-content: center;
+    background: rgba(10, 6, 3, 0.85);
+    color: #bf616a; font-size: 14px; line-height: 1;
+  }
+  .fav-bubble:hover .fav-x { display: flex; }
+
+  /* ---------- KOA · dettagli hanko + tinta adattiva ---------- */
+  .card-dot { border-radius: 2px; }
+  .side-scroll {
+    background-image:
+      repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.014) 0 2px, transparent 2px 5px),
+      repeating-linear-gradient(-45deg, rgba(0, 0, 0, 0.06) 0 1px, transparent 1px 4px);
+  }
+  #brand::after {
+    content: "木";
+    writing-mode: vertical-rl;
+    font-size: 10px;
+    color: var(--amber);
+    font-family: "Yu Gothic", "MS Gothic", sans-serif;
+    opacity: 0.9;
+    margin-left: 2px;
+  }
+  .tab.active .tab-title::before {
+    content: "";
+    display: inline-block;
+    width: 8px; height: 8px;
+    margin-right: 8px;
+    background: var(--grad);
+    border-radius: 2px;
+    box-shadow: var(--glow-soft);
+    vertical-align: 1px;
+  }
+  /* La tinta del sito colora indicatore scheda, URL focus e divider */
+  .tab.active::before { background: linear-gradient(100deg, var(--site, #E86A2C), var(--amber)); box-shadow: var(--site-glow, var(--glow)); }
+  #url-bar-wrap:focus-within { border-color: var(--site, #E86A2C); }
+  #split-divider:hover, #split-divider.dragging { background: linear-gradient(180deg, var(--site, #E86A2C), var(--amber)); }
+
   /* ---------- KOA · cronologia ---------- */
   #hist-count { margin-left: auto; font-size: 10px; color: var(--text-muted); }
   #hist-search { margin-bottom: 2px; }
@@ -764,6 +841,44 @@
     50%      { box-shadow: 0 0 0 7px rgba(232, 106, 44, 0); }
   }
   .channel { font-size: 10.5px; letter-spacing: 0.06em; color: var(--text-muted); opacity: 0.85; }
+  /* Conferma update + canali + uninstall */
+  #update-confirm {
+    width: 100%;
+    background: rgba(232, 106, 44, 0.07);
+    border: 1px solid rgba(232, 106, 44, 0.45);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    display: flex; flex-direction: column; gap: 10px;
+    box-shadow: var(--glow-soft);
+  }
+  #update-confirm[hidden] { display: none; }
+  #update-confirm-text { font-size: 13px; font-weight: 600; }
+  .chan-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; font-size: 12.5px; font-weight: 600; }
+  .chan-seg { display: flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  .chan-seg button {
+    background: transparent; border: none;
+    color: var(--text-muted);
+    font-family: var(--font); font-size: 11.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+    padding: 8px 14px; cursor: pointer;
+    transition: background 120ms var(--ease), color 120ms var(--ease);
+  }
+  .chan-seg button + button { border-left: 1px solid var(--line-soft); }
+  .chan-seg button:hover { color: var(--text); }
+  .chan-seg button.on { background: var(--grad); color: #2A1C12; }
+  #app-uninstall {
+    width: 100%;
+    background: transparent;
+    border: 1px solid rgba(191, 97, 106, 0.55);
+    color: #bf616a;
+  }
+  #app-uninstall:hover { background: rgba(191, 97, 106, 0.12); color: #bf616a; border-color: #bf616a; }
+  .settings-card .row .btn {
+    border-radius: 12px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+    transition: transform 100ms var(--ease), filter 120ms var(--ease), background 120ms var(--ease);
+  }
+  .settings-card .row .btn:hover { transform: translateY(-1px); filter: brightness(1.1); }
+  .settings-card .row .btn:active { transform: translateY(0); }
   #update-notes {
     font-size: 12.5px; line-height: 1.6; color: var(--text-muted);
     background: rgba(0, 0, 0, 0.25);
@@ -959,6 +1074,9 @@
       </div>
     </form>
 
+    <div class="nav-btn" id="star-btn" title="Aggiungi ai preferiti">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="miter"><path d="M12 2.8l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.6l-5.8 3.1 1.1-6.5L2.6 9.6l6.5-.9z"/></svg>
+    </div>
     <div class="nav-btn" id="dl-btn" title="Download">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter"><path d="M12 3v12m0 0l-5-5m5 5l5-5M4 21h16"/></svg>
       <span id="dl-badge" hidden></span>
@@ -976,6 +1094,10 @@
     <div id="new-tab-btn" title="Nuova scheda">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"><path d="M12 5v14M5 12h14"/></svg>
     </div>
+  </div>
+
+  <div id="fav-bar" hidden>
+    <div id="fav-scroll"></div>
   </div>
 
   <div id="content">
@@ -1071,7 +1193,20 @@
       <div id="update-status">Mai verificato in questa sessione.</div>
       <div id="update-progress"><i></i></div>
       <div id="update-notes"></div>
-      <div class="channel">Canale stabile · GitHub Releases · verifica SHA256</div>
+      <div id="update-confirm" hidden>
+        <div id="update-confirm-text"></div>
+        <div class="row">
+          <button id="update-accept" class="btn primary">Scarica e installa</button>
+          <button id="update-refuse" class="btn">Rifiuta</button>
+        </div>
+      </div>
+      <div class="chan-row">
+        <span>Canale aggiornamenti</span>
+        <div class="chan-seg">
+          <button data-chan="stable" class="on">Stabile</button><button data-chan="beta">Beta</button><button data-chan="alpha">Alpha</button>
+        </div>
+      </div>
+      <div class="channel">GitHub Releases · verifica SHA256 · hash manifest</div>
       <div class="settings-sep"></div>
       <div class="defbrowser">
         <div class="defbrowser-text">
@@ -1084,6 +1219,7 @@
         <button id="zendate-check" class="btn primary">Controlla ZENdate</button>
         <button id="settings-close" class="btn">Chiudi</button>
       </div>
+      <button id="app-uninstall" class="btn">Disinstalla completamente KOA</button>
     </div>
   </div>
 
@@ -1322,7 +1458,11 @@
       } catch (e) {}
     });
     // Scrollbar liquida su ogni pagina (anche SPA / navigazioni interne)
-    webview.addEventListener('did-finish-load', () => { tab.crashCount = 0; injectKoaScrollbar(webview); });
+    webview.addEventListener('did-finish-load', () => {
+      tab.crashCount = 0;
+      injectKoaScrollbar(webview);
+      if (isFocused(id)) updateSiteTint();
+    });
     webview.addEventListener('did-navigate-in-page', () => injectKoaScrollbar(webview));
     // Menu contestuale custom (tasto destro nella pagina).
     webview.addEventListener('context-menu', (e) => openCtxMenu(id, e));
@@ -1599,6 +1739,8 @@
     setProtocol(url);
     setLoading(wv.isLoading ? wv.isLoading() : false);
     updateNavButtons();
+    updateStar();
+    updateSiteTint();
   }
 
   // Chiamate webview a prova di guest non pronto (metodi mancanti o non attached).
@@ -2454,7 +2596,10 @@
 
   addMsg('koa', 'Ciao, sono KOA con AI. Scrivimi pure — conosco anche la pagina che hai aperta. Comandi: /calc, /cerca, /riassumi, /aiuto', false);
 
-  // ================= Cronologia =================
+  // ================= Cronologia + preferiti =================
+  const starBtn = document.getElementById('star-btn');
+  const favBar = document.getElementById('fav-bar');
+  const favScroll = document.getElementById('fav-scroll');
   const histSearch = document.getElementById('hist-search');
   const histList = document.getElementById('hist-list');
   const histCount = document.getElementById('hist-count');
@@ -2468,6 +2613,8 @@
 
   let historyItems = loadJSON('koa.history', []);
   if (!Array.isArray(historyItems)) historyItems = [];
+  let bookmarks = loadJSON('koa.bookmarks', []);
+  if (!Array.isArray(bookmarks)) bookmarks = [];
 
   function histTime(t) {
     const d = new Date(t);
@@ -2532,7 +2679,77 @@
     renderHistory();
   });
 
+  function favHost(url) {
+    try { return new URL(url).hostname; } catch (e) { return ''; }
+  }
+  function isBookmarked(url) { return bookmarks.some(b => b.url === url); }
+
+  function renderFavs() {
+    favScroll.innerHTML = '';
+    favBar.hidden = bookmarks.length === 0;
+    bookmarks.forEach((b, i) => {
+      const el = document.createElement('div');
+      el.className = 'fav-bubble';
+      el.title = (b.title || b.url) + '\n' + b.url;
+      const host = favHost(b.url);
+      const img = document.createElement('img');
+      img.alt = '';
+      img.src = 'https://www.google.com/s2/favicons?domain=' + encodeURIComponent(host) + '&sz=64';
+      img.addEventListener('error', () => {
+        img.remove();
+        const s = document.createElement('span');
+        s.className = 'fav-letter';
+        s.textContent = ((b.title || host || '?').trim()[0] || '?').toUpperCase();
+        el.prepend(s);
+      });
+      const x = document.createElement('span');
+      x.className = 'fav-x';
+      x.textContent = '×';
+      x.title = 'Rimuovi dai preferiti';
+      x.addEventListener('click', (e) => {
+        e.stopPropagation();
+        bookmarks.splice(i, 1);
+        saveJSON('koa.bookmarks', bookmarks);
+        renderFavs();
+        updateStar();
+      });
+      el.append(img, x);
+      el.addEventListener('click', () => createTab(b.url));
+      favScroll.appendChild(el);
+    });
+  }
+
+  function updateStar() {
+    const t = getFocusedTab();
+    let url = '';
+    try { url = t ? (t.webview.getURL() || '') : ''; } catch (e) {}
+    const on = !!url && isBookmarked(url);
+    starBtn.classList.toggle('on', on);
+    starBtn.title = on ? 'Rimuovi dai preferiti' : 'Aggiungi ai preferiti';
+  }
+
+  starBtn.addEventListener('click', () => {
+    const t = getFocusedTab();
+    if (!t) return;
+    let url = '';
+    try { url = t.webview.getURL() || ''; } catch (e) {}
+    if (!url || (!url.startsWith('http://') && !url.startsWith('https://'))) return;
+    const i = bookmarks.findIndex(b => b.url === url);
+    if (i === -1) {
+      let title = t.title || url;
+      try { title = t.webview.getTitle() || title; } catch (e) {}
+      bookmarks.push({ url, title, t: Date.now() });
+      try { koaTone(660, 0.06); } catch (e) {}
+    } else {
+      bookmarks.splice(i, 1);
+    }
+    saveJSON('koa.bookmarks', bookmarks);
+    renderFavs();
+    updateStar();
+  });
+
   renderHistory();
+  renderFavs();
 
   // ================= KOA Vault (sidebar) =================
   const vaultStateEl = document.getElementById('vault-state');
@@ -2809,10 +3026,26 @@
               ? 'Registrato in Windows: completa la scelta.'
               : 'KOA non è registrato come browser.');
         defBtn.disabled = ok;
-        return;
+        return ok;
       }
     } catch (e) {}
     defStatus.textContent = 'Stato non disponibile.';
+    return false;
+  }
+
+  let defPollTimer = 0;
+  function pollDefaultBrowser() {
+    clearTimeout(defPollTimer);
+    let n = 0;
+    const tick = async () => {
+      if (n++ >= 6) return;
+      const ok = await refreshDefaultBrowser();
+      if (ok) return;
+      if (defStatus.textContent.indexOf('Impostazioni di Windows') !== -1) {
+        defPollTimer = setTimeout(tick, 2500);
+      }
+    };
+    tick();
   }
 
   defBtn.addEventListener('click', async () => {
@@ -2826,6 +3059,7 @@
           ? 'KOA è il browser predefinito.'
           : 'Registrato: scegli KOA nelle Impostazioni di Windows appena aperte.';
         defBtn.disabled = ok;
+        if (!ok) pollDefaultBrowser();
         return;
       }
     } catch (e) {}
@@ -3039,6 +3273,42 @@
   });
   renderDl();
 
+  // ================= Tinta adattiva: la barra prende il colore del sito =================
+  let siteTintToken = 0;
+  function hexToRgb(hex) {
+    let h = hex.replace('#', '');
+    if (h.length === 3) h = h.split('').map(c => c + c).join('');
+    const n = parseInt(h, 16);
+    return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+  }
+  function luminance([r, g, b]) {
+    const f = (c) => { c /= 255; return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); };
+    return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
+  }
+  function applySiteTint(hex) {
+    const root = document.documentElement.style;
+    if (!hex) { root.removeProperty('--site'); root.removeProperty('--site-glow'); return; }
+    const [r, g, b] = hexToRgb(hex);
+    root.setProperty('--site', hex);
+    root.setProperty('--site-glow', '0 0 18px rgba(' + r + ', ' + g + ', ' + b + ', 0.35)');
+  }
+  async function updateSiteTint() {
+    const t = getFocusedTab();
+    const my = ++siteTintToken;
+    if (!t) { applySiteTint(null); return; }
+    try {
+      const c = await t.webview.executeJavaScript(
+        '(function(){var m=document.querySelector(\'meta[name="theme-color"]\');return m?(m.getAttribute("content")||""):null;})()', true);
+      if (my !== siteTintToken) return;
+      const hex = String(c || '').trim();
+      if (!/^#([0-9a-f]{6}|[0-9a-f]{3})$/i.test(hex)) { applySiteTint(null); return; }
+      const full = hex.length === 4 ? '#' + hex.slice(1).split('').map(x => x + x).join('') : hex;
+      const lum = luminance(hexToRgb(full));
+      if (lum < 0.12 || lum > 0.92) { applySiteTint(null); return; }
+      applySiteTint(full);
+    } catch (e) { if (my === siteTintToken) applySiteTint(null); }
+  }
+
   // ================= ZENdate MAX · impostazioni + aggiornamenti =================
   const settingsBtn = document.getElementById('settings-btn');
   const settingsModal = document.getElementById('settings-modal');
@@ -3086,10 +3356,21 @@
     updateBar.classList.toggle('flow', state === 'downloading');
   }
 
+  const updateConfirm = document.getElementById('update-confirm');
+  const updateConfirmText = document.getElementById('update-confirm-text');
+  const updateAccept = document.getElementById('update-accept');
+  const updateRefuse = document.getElementById('update-refuse');
+  const appUninstall = document.getElementById('app-uninstall');
+  const chanSeg = document.querySelector('.chan-seg');
+  let pendingVersion = null;
+  let zendateSkipped = null;
+
+  function hideConfirm() { updateConfirm.hidden = true; }
+
   function handleUpdateStatus(s) {
     if (!s) return;
     clearTimeout(checkFallbackTimer);
-    if (['up-to-date', 'no-channel', 'error', 'installed'].includes(s.state)) {
+    if (['up-to-date', 'no-channel', 'error', 'installed', 'ui-updated', 'ui-error'].includes(s.state)) {
       zendateCheck.disabled = false;
     }
     setSteps(s.state);
@@ -3099,20 +3380,29 @@
         updateStatus.textContent = s.source === 'auto' ? 'ZENdate: controllo automatico…' : 'Controllo aggiornamenti…';
         break;
       case 'no-channel':
-        updateStatus.textContent = 'Canale ZENdate non configurato (vedi ZENDATE_URL in main.js).';
+        updateStatus.textContent = 'Canale ZENdate non configurato.';
         break;
       case 'up-to-date':
         updateStatus.textContent = 'KOA è aggiornato (v' + (s.version || '?') + ').';
         updateFill.style.width = '0%';
+        hideConfirm();
         break;
       case 'found':
-        updateStatus.textContent = 'Trovata v' + s.version + ' — download…';
+        pendingVersion = s.version;
+        if (zendateSkipped === s.version) {
+          updateStatus.textContent = 'v' + s.version + ' ignorata: premi CONTROLLA per rivederla.';
+          break;
+        }
+        updateStatus.textContent = 'Nuova versione disponibile.';
         updateFill.style.width = '0%';
+        updateConfirmText.textContent = 'Installare la v' + s.version + ' adesso?';
+        updateConfirm.hidden = false;
         openSettings();
         break;
       case 'downloading':
         updateStatus.textContent = 'Download v' + s.version + '… ' + (s.percent || 0) + '%';
         updateFill.style.width = (s.percent || 0) + '%';
+        hideConfirm();
         openSettings();
         break;
       case 'ready':
@@ -3136,12 +3426,13 @@
         updateFill.style.width = '100%';
         break;
       case 'installed':
-        updateStatus.textContent = 'Aggiornato alla v' + s.version + '!';
+        updateStatus.textContent = 'Aggiornato alla v' + s.version + ' — pronto da usare!';
         updateFill.style.width = '100%';
         openSettings();
         break;
       case 'error':
         updateStatus.textContent = 'Errore ZENdate: ' + (s.message || 'rete non disponibile');
+        hideConfirm();
         break;
     }
     if (s.notes) updateNotes.textContent = s.notes.replace(/^#{1,6}\s*/gm, '').trim();
@@ -3152,6 +3443,8 @@
   } catch (e) {}
 
   zendateCheck.addEventListener('click', () => {
+    zendateSkipped = null;
+    hideConfirm();
     updateStatus.textContent = 'Controllo aggiornamenti…';
     updateFill.style.width = '0%';
     updateNotes.textContent = '';
@@ -3166,6 +3459,56 @@
     try {
       if (window.browserAPI && window.browserAPI.checkUpdate) window.browserAPI.checkUpdate();
     } catch (e) { zendateCheck.disabled = false; }
+  });
+
+  updateAccept.addEventListener('click', () => {
+    hideConfirm();
+    updateStatus.textContent = 'Avvio download…';
+    zendateCheck.disabled = true;
+    try {
+      if (window.browserAPI && window.browserAPI.updateAccept) window.browserAPI.updateAccept();
+      else zendateCheck.disabled = false;
+    } catch (e) { zendateCheck.disabled = false; }
+  });
+
+  updateRefuse.addEventListener('click', () => {
+    zendateSkipped = pendingVersion;
+    hideConfirm();
+    updateStatus.textContent = 'Ok, resti alla versione attuale. La ritrovi premendo CONTROLLA.';
+    updateFill.style.width = '0%';
+    zendateCheck.disabled = false;
+  });
+
+  // Canali: stabile / beta / alpha (manifest separati).
+  function paintChannel(ch) {
+    chanSeg.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.chan === ch));
+  }
+  let updateChannel = 'stable';
+  try { updateChannel = localStorage.getItem('koa.channel') || 'stable'; } catch (e) {}
+  if (!['stable', 'beta', 'alpha'].includes(updateChannel)) updateChannel = 'stable';
+  paintChannel(updateChannel);
+  chanSeg.addEventListener('click', (e) => {
+    const btn = e.target.closest('button[data-chan]');
+    if (!btn) return;
+    updateChannel = btn.dataset.chan;
+    paintChannel(updateChannel);
+    try { localStorage.setItem('koa.channel', updateChannel); } catch (err) {}
+    try {
+      if (window.browserAPI && window.browserAPI.setChannel) window.browserAPI.setChannel(updateChannel);
+      if (window.browserAPI && window.browserAPI.checkUpdate) window.browserAPI.checkUpdate();
+    } catch (err) {}
+  });
+  try {
+    if (window.browserAPI && window.browserAPI.setChannel) window.browserAPI.setChannel(updateChannel);
+  } catch (e) {}
+
+  appUninstall.addEventListener('click', async () => {
+    if (!window.confirm('Disinstallare completamente KOA?')) return;
+    if (!window.confirm('ULTIMO AVVISO: verranno eliminati exe, profilo, password e impostazioni. Continuare?')) return;
+    updateStatus.textContent = 'Disinstallazione… chiusura.';
+    try {
+      if (window.browserAPI && window.browserAPI.uninstallApp) await window.browserAPI.uninstallApp();
+    } catch (e) {}
   });
 
   try {

@@ -1,5 +1,5 @@
 @echo off
-setlocal
+setlocal enabledelayedexpansion
 
 echo ============================================
 echo   Pubblico aggiornamento KOA (Release + ZENdate)
@@ -33,12 +33,28 @@ if not exist "%EXE%" (
 )
 
 set TAG=v%VER%
+set CHANNEL=
 set UIVER=
-if not "%~1"=="" set UIVER=%~1
+if /i "%~1"=="stable" (set CHANNEL=stable) else if /i "%~1"=="beta" (set CHANNEL=beta) else if /i "%~1"=="alpha" (set CHANNEL=alpha) else if not "%~1"=="" (set UIVER=%~1)
+if not "%~2"=="" set UIVER=%~2
+if not defined CHANNEL (
+    echo.
+    echo In quale canale pubblichi la v%VER%?
+    echo   1. stabile  ^(tutti gli utenti^)
+    echo   2. beta     ^(tester^)
+    echo   3. alpha    ^(esperimenti^)
+    set /p CH="Scegli [1/2/3, Invio=1]: "
+    set CH=!CH: =!
+    if "!CH!"=="2" (set CHANNEL=beta) else if "!CH!"=="3" (set CHANNEL=alpha) else (set CHANNEL=stable)
+)
 set UIPARAM=
 if not "%UIVER%"=="" set UIPARAM=-UiVersion %UIVER%
+set NOTESFILE=zendate\%CHANNEL%\release-notes-%VER%.txt
+set PREFLAG=
+if not "%CHANNEL%"=="stable" set PREFLAG=--prerelease
+echo Canale: %CHANNEL%
 echo Genero manifest + note da CHANGELOG...
-powershell -NoProfile -ExecutionPolicy Bypass -File zendate\make-zendate.ps1 -Tag %TAG% %UIPARAM%
+powershell -NoProfile -ExecutionPolicy Bypass -File zendate\make-zendate.ps1 -Tag %TAG% -Channel %CHANNEL% %UIPARAM%
 if errorlevel 1 (
     echo [ERRORE] Generazione manifest fallita.
     pause
@@ -97,8 +113,8 @@ if not errorlevel 1 (
         exit /b 1
     )
 ) else (
-    echo Creo la release %TAG%...
-    gh release create %TAG% "%EXE%" --title "%TAG%" --notes-file "zendate\release-notes-%VER%.txt" --repo %GH_REPO%
+    echo Creo la release %TAG% sul canale %CHANNEL%...
+    gh release create %TAG% "%EXE%" --title "%TAG%" --notes-file "%NOTESFILE%" --repo %GH_REPO% %PREFLAG%
     if errorlevel 1 (
         echo [ERRORE] Creazione release fallita.
         pause
@@ -116,7 +132,7 @@ if not "%UIVER%"=="" (
 
 if "%NOPUSH%"=="1" (
     echo.
-    echo [DA FARE A MANO] Pusha zendate/zendate.json nel repo, cosi' l'URL raw diventa raggiungibile.
+    echo [DA FARE A MANO] Pusha zendate\%CHANNEL%\zendate.json nel repo, cosi' l'URL raw diventa raggiungibile.
 )
 
 echo.

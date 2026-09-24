@@ -12,6 +12,9 @@ contextBridge.exposeInMainWorld('browserAPI', {
   // ZENdate MAX: versione, controllo aggiornamenti, stati live
   getVersion: () => ipcRenderer.invoke('zen:get-version'),
   checkUpdate: () => ipcRenderer.invoke('zen:check-update'),
+  updateAccept: () => ipcRenderer.invoke('zen:update-accept'),
+  setChannel: (ch) => ipcRenderer.invoke('zen:set-channel', ch),
+  uninstallApp: () => ipcRenderer.invoke('zen:uninstall'),
   toggleDevTools: () => ipcRenderer.invoke('zen:toggle-devtools'),
   // Browser predefinito reale
   getDefaultBrowser: () => ipcRenderer.invoke('zen:get-default-browser'),

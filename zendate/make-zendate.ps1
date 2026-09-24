@@ -10,12 +10,16 @@ param(
   [string]$Version = "",
   [string]$Notes = "",
   [string]$UiVersion = "",
+  [string]$Channel = "stable",
   [string]$Out = ""
 )
 
 $kitDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $root = Split-Path -Parent $kitDir
-if ([string]::IsNullOrWhiteSpace($Out)) { $Out = Join-Path $kitDir 'zendate.json' }
+if ($Channel -notin @('stable', 'beta', 'alpha')) { $Channel = 'stable' }
+if ([string]::IsNullOrWhiteSpace($Out)) { $Out = Join-Path (Join-Path $kitDir $Channel) 'zendate.json' }
+$chanDir = Split-Path -Parent $Out
+if (-not (Test-Path $chanDir)) { New-Item -ItemType Directory -Force $chanDir | Out-Null }
 
 # 1. Versione da package.json (l'exe la legge da lì: bumpala PRIMA della build)
 $pkg = Get-Content (Join-Path $root 'package.json') -Raw | ConvertFrom-Json
@@ -53,7 +57,7 @@ if ([string]::IsNullOrWhiteSpace($Notes)) {
     $Notes = ($buf -join "`n").Trim("`n", ' ', "`r")
   }
 }
-$notesFile = Join-Path $kitDir ('release-notes-' + $Version + '.txt')
+$notesFile = Join-Path (Join-Path $kitDir $Channel) ('release-notes-' + $Version + '.txt')
 [IO.File]::WriteAllText($notesFile, $Notes, (New-Object Text.UTF8Encoding $false))
 
 # 3. URL pubblico dell'exe
