@@ -14,6 +14,19 @@ di `zendate\make-zendate.ps1`, più il testo della Release GitHub.
 ### Corretto
 -
 
+## [1.0.14] - 2026-09-24
+
+### Aggiunto
+- Riavvio chiesto all'utente: dopo il download scegli "Riavvia ora" o "Tra 5 minuti" (mai più chiusure a sorpresa)
+- ZEN Turbo nella sidebar: app leggera (niente animazioni/blur/ombre), pagine snelle e GPU piena dal riavvio
+
+### Cambiato
+- Download con percorso allungato: fino a 60 minuti e riprova se fermo oltre 10 minuti
+- Barra indirizzi senza riflesso animato: tinta unita, resta solo il bordo acceso in caricamento
+
+### Corretto
+- Riapertura garantita sul nuovo exe: controllo taglia attesa nello swap + marcatore versione al boot (se riparte il vecchio, lo dice invece di fingere l'update)
+
 ## [1.0.13] - 2026-09-24
 
 ### Corretto

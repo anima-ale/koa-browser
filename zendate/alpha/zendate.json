@@ -1,0 +1,6 @@
+{
+    "version":  "1.0.14",
+    "notes":  "### Aggiunto\n- Riavvio chiesto all\u0027utente: dopo il download scegli \"Riavvia ora\" o \"Tra 5 minuti\" (mai più chiusure a sorpresa)\n- ZEN Turbo nella sidebar: app leggera (niente animazioni/blur/ombre), pagine snelle e GPU piena dal riavvio\n\n### Cambiato\n- Download con percorso allungato: fino a 60 minuti e riprova se fermo oltre 10 minuti\n- Barra indirizzi senza riflesso animato: tinta unita, resta solo il bordo acceso in caricamento\n\n### Corretto\n- Riapertura garantita sul nuovo exe: controllo taglia attesa nello swap + marcatore versione al boot (se riparte il vecchio, lo dice invece di fingere l\u0027update)",
+    "url":  "https://github.com/anima-ale/koa-browser/releases/download/v1.0.14/KOA.Browser.1.0.14.exe",
+    "sha256":  "b279e74a90ae60b8c4fb0520be53cdf44319d3ba4d3cb9b2c0e388e77c7588a8"
+}

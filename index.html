@@ -337,51 +337,13 @@
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.10), inset 0 -4px 8px rgba(0, 0, 0, 0.55);
     transition: border-color 160ms var(--ease), box-shadow 160ms var(--ease), background 160ms var(--ease);
   }
-  #url-bar-wrap::before {
-    content: "";
-    position: absolute; inset: 0;
-    z-index: 0;
-    background: repeating-linear-gradient(115deg,
-      transparent 0 14px,
-      rgba(232, 106, 44, 0.13) 14px 26px,
-      rgba(232, 168, 60, 0.10) 26px 30px,
-      transparent 30px 44px);
-    opacity: 0.65;
-    animation: tube-flow 3.2s linear infinite;
-    transition: opacity 160ms var(--ease);
-  }
-  #url-bar-wrap::after {
-    content: "";
-    position: absolute; top: 50%; left: -6%;
-    z-index: 0;
-    width: 9px; height: 9px; margin-top: -4px;
-    border-radius: 50%;
-    background: radial-gradient(circle at 35% 35%, rgba(245, 237, 224, 0.9), rgba(232, 106, 44, 0.25));
-    box-shadow:
-      46px -5px 0 -3px rgba(232, 168, 60, 0.55),
-      92px 5px 0 -2px rgba(217, 179, 106, 0.5),
-      150px -3px 0 -4px rgba(245, 237, 224, 0.5),
-      218px 4px 0 -2px rgba(232, 106, 44, 0.5);
-    opacity: 0;
-    animation: tube-bubbles 7s linear infinite;
-  }
-  @keyframes tube-flow { to { background-position-x: 88px; } }
-  @keyframes tube-bubbles {
-    0%   { left: -6%; opacity: 0; }
-    8%   { opacity: 0.9; }
-    88%  { opacity: 0.9; }
-    100% { left: 104%; opacity: 0; }
-  }
   #url-bar-wrap:focus-within {
     border-color: rgba(232, 106, 44, 0.75);
     background: rgba(0, 0, 0, 0.6);
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), inset 0 -4px 8px rgba(0, 0, 0, 0.55),
       0 0 0 3px var(--orange-dim), 0 0 26px rgba(232, 106, 44, 0.28);
   }
-  #url-bar-wrap:focus-within::before { opacity: 1; }
-  /* In caricamento il fluido accelera */
-  #url-bar-wrap.loading::before { animation-duration: 0.9s; opacity: 1; }
-  #url-bar-wrap.loading::after { animation-duration: 2.4s; }
+  /* In caricamento si accende solo il bordo */
   #url-bar-wrap.loading { border-color: rgba(232, 168, 60, 0.7); }
   #url-bar-wrap svg { flex-shrink: 0; opacity: 0.55; width: 12px; height: 12px; transition: opacity 140ms var(--ease); position: relative; z-index: 1; }
   #url-bar-wrap:focus-within svg { opacity: 1; color: var(--orange); filter: drop-shadow(0 0 5px rgba(232, 106, 44, 0.8)); }
@@ -400,10 +362,6 @@
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
   }
   #url-bar::placeholder { color: var(--text-muted); text-shadow: none; }
-  @media (prefers-reduced-motion: reduce) {
-    #url-bar-wrap::before, #url-bar-wrap::after { animation: none; }
-    #url-bar-wrap::after { display: none; }
-  }
 
   /* ---------- KOA · View area / split screen ---------- */
   #main-row { flex: 1; min-height: 0; overflow: hidden; position: relative; }
@@ -841,8 +799,8 @@
     50%      { box-shadow: 0 0 0 7px rgba(232, 106, 44, 0); }
   }
   .channel { font-size: 10.5px; letter-spacing: 0.06em; color: var(--text-muted); opacity: 0.85; }
-  /* Conferma update + canali + uninstall */
-  #update-confirm {
+  /* Conferma update + riavvio + canali + uninstall */
+  #update-confirm, #update-restart {
     width: 100%;
     background: rgba(232, 106, 44, 0.07);
     border: 1px solid rgba(232, 106, 44, 0.45);
@@ -851,8 +809,20 @@
     display: flex; flex-direction: column; gap: 10px;
     box-shadow: var(--glow-soft);
   }
-  #update-confirm[hidden] { display: none; }
-  #update-confirm-text { font-size: 13px; font-weight: 600; }
+  #update-confirm[hidden], #update-restart[hidden] { display: none; }
+  #update-confirm-text, #update-restart-text { font-size: 13px; font-weight: 600; }
+  /* ZEN Turbo: modalità prestazione (niente animazioni/blur/ombre: più FPS) */
+  body.turbo *, body.turbo *::before, body.turbo *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+  body.turbo .card, body.turbo #sidebar .card, body.turbo #url-bar-wrap,
+  body.turbo .settings-card, body.turbo #dl-dropdown, body.turbo #ctx-menu {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    box-shadow: none !important;
+  }
+  #turbo-state { margin-left: auto; font-size: 10px; letter-spacing: 0.08em; color: var(--text-muted); }
   .chan-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; font-size: 12.5px; font-weight: 600; }
   .chan-seg { display: flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
   .chan-seg button {
@@ -998,6 +968,11 @@
   }
   #dl-dropdown.open { transform: translateY(0); }
   #dl-dropdown[hidden] { display: none; }
+  #dl-catcher {
+    position: fixed; inset: 0; z-index: 530;
+    background: transparent;
+  }
+  #dl-catcher[hidden] { display: none; }
   #dl-dropdown header {
     display: flex; align-items: center; gap: 8px;
     font-size: 11px; font-weight: 700; letter-spacing: 0.12em;
@@ -1110,6 +1085,11 @@
           <label class="sup-row"><span>Protezione attiva</span><span class="switch"><input type="checkbox" id="sup-toggle" checked /><i></i></span></label>
           <div class="sup-note">EasyList + EasyPrivacy · filtri cosmetici attivi</div>
         </section>
+        <section class="card" id="card-turbo">
+          <header><span class="card-dot"></span>ZEN TURBO<span id="turbo-state">…</span></header>
+          <label class="sup-row"><span>Velocità massima</span><span class="switch"><input type="checkbox" id="turbo-toggle" /><i></i></span></label>
+          <div class="sup-note">App leggera + pagine snelle · GPU piena dal prossimo riavvio</div>
+        </section>
         <section class="card" id="card-chat">
           <header><span class="card-dot"></span>CHAT KOA<button id="chat-summarize" class="mini-btn" title="Riassumi la pagina aperta">Riassumi</button></header>
           <div id="chat-msgs"></div>
@@ -1200,6 +1180,13 @@
           <button id="update-refuse" class="btn">Rifiuta</button>
         </div>
       </div>
+      <div id="update-restart" hidden>
+        <div id="update-restart-text"></div>
+        <div class="row">
+          <button id="restart-now" class="btn primary">Riavvia ora</button>
+          <button id="restart-later" class="btn">Tra 5 minuti</button>
+        </div>
+      </div>
       <div class="chan-row">
         <span>Canale aggiornamenti</span>
         <div class="chan-seg">
@@ -1234,6 +1221,7 @@
     <button id="find-close" title="Chiudi (Esc)">×</button>
   </div>
 
+  <div id="dl-catcher" hidden></div>
   <div id="dl-dropdown" hidden>
     <header><span class="card-dot"></span>DOWNLOAD<span id="dl-count"></span></header>
     <div id="dl-items"></div>
@@ -1261,6 +1249,41 @@
     catch (e) { return 'https://www.google.com'; }
   })();
   let tabs = [];              // { id, tabEl, paneEl, webview, title }
+
+  // ================= ZEN Turbo =================
+  // App: niente animazioni/blur/ombre (più FPS). Web: CSS leggero iniettato
+  // in ogni pagina (animazioni quasi azzerate). GPU piena dal riavvio (main).
+  let turboOn = false;
+  try { turboOn = localStorage.getItem('koa.turbo') === '1'; } catch (e) {}
+  const TURBO_CSS = '*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}';
+  function applyTurboToWebview(wv, tab) {
+    try {
+      if (!wv || !wv.insertCSS) return;
+      if (turboOn) {
+        const p = wv.insertCSS(TURBO_CSS);
+        if (p && p.then) p.then((k) => { try { if (tab) tab._turboKey = k; } catch (e) {} }).catch(() => {});
+      } else if (tab && tab._turboKey != null) {
+        try { const r = wv.removeCSS(tab._turboKey); if (r && r.catch) r.catch(() => {}); } catch (e) {}
+        tab._turboKey = null;
+      }
+    } catch (e) {}
+  }
+  function paintTurbo() {
+    try {
+      document.body.classList.toggle('turbo', turboOn);
+      const t = document.getElementById('turbo-toggle');
+      const s = document.getElementById('turbo-state');
+      if (t) t.checked = turboOn;
+      if (s) s.textContent = turboOn ? 'TURBO attivo' : 'Spento';
+    } catch (e) {}
+  }
+  async function setTurbo(on) {
+    turboOn = !!on;
+    try { localStorage.setItem('koa.turbo', turboOn ? '1' : '0'); } catch (e) {}
+    paintTurbo();
+    try { tabs.forEach((t) => applyTurboToWebview(t.webview, t)); } catch (e) {}
+    try { if (window.browserAPI && window.browserAPI.setTurbo) await window.browserAPI.setTurbo(turboOn); } catch (e) {}
+  }
   let activeTabId = null;     // tab shown full-screen when not split
   let draggedTabId = null;
   let splitState = null;      // { panes: [id…] (2-4), rows: [%…], cols: [%…], focus: id } — rettangolare, persiste finché non viene tolto
@@ -1461,6 +1484,7 @@
     webview.addEventListener('did-finish-load', () => {
       tab.crashCount = 0;
       injectKoaScrollbar(webview);
+      if (turboOn) applyTurboToWebview(webview, tab);
       if (isFocused(id)) updateSiteTint();
     });
     webview.addEventListener('did-navigate-in-page', () => injectKoaScrollbar(webview));
@@ -2401,6 +2425,13 @@
     } catch (e) {}
   });
 
+  // ---- ZEN Turbo: interruttore velocità massima ----
+  try {
+    const turboToggle = document.getElementById('turbo-toggle');
+    if (turboToggle) turboToggle.addEventListener('change', () => setTurbo(turboToggle.checked));
+    paintTurbo();
+  } catch (e) {}
+
   try {
     if (window.browserAPI && window.browserAPI.onSupervisorStats) {
       window.browserAPI.onSupervisorStats(renderSupervisor);
@@ -3080,6 +3111,7 @@
   const dlDropdown = document.getElementById('dl-dropdown');
   const dlItemsEl = document.getElementById('dl-items');
   const dlCount = document.getElementById('dl-count');
+  const dlCatcher = document.getElementById('dl-catcher');
   const dlMap = new Map();
   let dlDone = [];
   try { dlDone = JSON.parse(localStorage.getItem('koa.downloads') || '[]'); } catch (e) { dlDone = []; }
@@ -3125,6 +3157,7 @@
   }
   function dlHide() {
     dlDropdown.classList.remove('open');
+    try { dlCatcher.hidden = true; } catch (e) {}
     clearTimeout(dlHideTimer);
     dlHideTimer = setTimeout(() => { dlDropdown.hidden = true; }, 280);
   }
@@ -3269,7 +3302,23 @@
   } catch (e) {}
   dlBtn.addEventListener('click', () => {
     if (dlIsOpen()) { dlPinned = false; dlHide(); }
-    else { dlPinned = true; dlUnseen = 0; dlShow(); renderDl(); }
+    else { dlPinned = true; dlUnseen = 0; dlShow(); try { dlCatcher.hidden = false; } catch (e) {} renderDl(); }
+  });
+  // Clic fuori (anche sopra le pagine, via catcher): la tendina scompare.
+  dlCatcher.addEventListener('mousedown', (e) => { e.preventDefault(); dlPinned = false; dlHide(); });
+  document.addEventListener('mousedown', (e) => {
+    try {
+      if (!dlIsOpen()) return;
+      if (dlDropdown.contains(e.target)) return;
+      if (dlBtn.contains(e.target)) return;
+      dlPinned = false;
+      dlHide();
+    } catch (err) {}
+  });
+  document.addEventListener('keydown', (e) => {
+    try {
+      if ((e.key === 'Escape' || e.key === 'Esc') && dlIsOpen()) { dlPinned = false; dlHide(); }
+    } catch (err) {}
   });
   renderDl();
 
@@ -3345,7 +3394,7 @@
   const stepEls = [...document.querySelectorAll('#update-steps .step')];
   const updateBar = document.getElementById('update-progress');
   function setSteps(state) {
-    const activeIdx = { checking: 0, found: 1, downloading: 1, ready: 2, installing: 3 }[state];
+    const activeIdx = { checking: 0, found: 1, downloading: 1, ready: 2, installing: 3, 'restart-ask': 3, 'restart-later': 3 }[state];
     stepEls.forEach((el, i) => {
       el.classList.remove('active', 'done');
       if (state === 'up-to-date' || state === 'installed') { el.classList.add('done'); return; }
@@ -3358,6 +3407,10 @@
 
   const updateConfirm = document.getElementById('update-confirm');
   const updateConfirmText = document.getElementById('update-confirm-text');
+  const updateRestart = document.getElementById('update-restart');
+  const updateRestartText = document.getElementById('update-restart-text');
+  const restartNow = document.getElementById('restart-now');
+  const restartLater = document.getElementById('restart-later');
   const updateAccept = document.getElementById('update-accept');
   const updateRefuse = document.getElementById('update-refuse');
   const appUninstall = document.getElementById('app-uninstall');
@@ -3366,11 +3419,12 @@
   let zendateSkipped = null;
 
   function hideConfirm() { updateConfirm.hidden = true; }
+  function hideRestart() { updateRestart.hidden = true; }
 
   function handleUpdateStatus(s) {
     if (!s) return;
     clearTimeout(checkFallbackTimer);
-    if (['up-to-date', 'no-channel', 'empty-channel', 'error', 'installed', 'ui-updated', 'ui-error'].includes(s.state)) {
+    if (['up-to-date', 'no-channel', 'empty-channel', 'error', 'installed', 'restart-ask', 'restart-later', 'ui-updated', 'ui-error'].includes(s.state)) {
       zendateCheck.disabled = false;
     }
     setSteps(s.state);
@@ -3431,6 +3485,22 @@
       case 'installing':
         updateStatus.textContent = 'Installazione… KOA si riavvia da solo.';
         updateFill.style.width = '100%';
+        hideRestart();
+        break;
+      case 'restart-ask':
+        updateStatus.textContent = 'Update v' + s.version + ' pronto. Riavvia per usarlo.';
+        updateFill.style.width = '100%';
+        hideConfirm();
+        updateRestartText.textContent = 'Riavviare ora con la v' + s.version + '? Si chiude e si riapre da solo.';
+        updateRestart.hidden = false;
+        zendateCheck.disabled = false;
+        openSettings();
+        break;
+      case 'restart-later':
+        updateStatus.textContent = 'Riavvio tra 5 minuti: tieni KOA aperto.';
+        updateFill.style.width = '100%';
+        hideRestart();
+        zendateCheck.disabled = false;
         break;
       case 'installed':
         updateStatus.textContent = 'Aggiornato alla v' + s.version + ' — pronto da usare!';
@@ -3440,6 +3510,7 @@
       case 'error':
         updateStatus.textContent = 'Errore ZENdate: ' + (s.message || 'rete non disponibile');
         hideConfirm();
+        hideRestart();
         break;
     }
     if (s.notes) updateNotes.textContent = s.notes.replace(/^#{1,6}\s*/gm, '').trim();
@@ -3486,6 +3557,24 @@
     zendateCheck.disabled = false;
   });
 
+  restartNow.addEventListener('click', () => {
+    hideRestart();
+    updateStatus.textContent = 'Installazione… KOA si riavvia da solo.';
+    zendateCheck.disabled = true;
+    try {
+      if (window.browserAPI && window.browserAPI.updateRestartNow) window.browserAPI.updateRestartNow();
+      else zendateCheck.disabled = false;
+    } catch (e) { zendateCheck.disabled = false; }
+  });
+
+  restartLater.addEventListener('click', () => {
+    hideRestart();
+    updateStatus.textContent = 'Riavvio tra 5 minuti: tieni KOA aperto.';
+    try {
+      if (window.browserAPI && window.browserAPI.updateRestartLater) window.browserAPI.updateRestartLater();
+    } catch (e) {}
+  });
+
   // Canali: stabile / beta / alpha (manifest separati).
   function paintChannel(ch) {
     chanSeg.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.chan === ch));
@@ -3530,9 +3619,16 @@
   try {
     const last = JSON.parse(localStorage.getItem('koa.zendate-last') || 'null');
     if (last && last.state) {
-      updateStatus.textContent = last.state === 'empty-channel'
-        ? 'Ultimo: canale vuoto' + (last.channel ? ' (' + last.channel + ')' : '')
-        : 'Ultima verifica: ' + last.state + (last.version ? ' (v' + last.version + ')' : '');
+      const ZLAST = {
+        'empty-channel': 'Ultimo: canale vuoto' + (last.channel ? ' (' + last.channel + ')' : ''),
+        'restart-ask': 'Ultimo: update v' + (last.version || '?') + ' pronto, da riavviare',
+        'restart-later': 'Ultimo: riavvio programmato (v' + (last.version || '?') + ')',
+        'installing': 'Ultimo: installazione in corso…',
+        'found': 'Ultimo: trovata v' + (last.version || '?'),
+        'downloading': 'Ultimo: download interrotto (v' + (last.version || '?') + ')'
+      };
+      updateStatus.textContent = ZLAST[last.state]
+        || 'Ultima verifica: ' + last.state + (last.version ? ' (v' + last.version + ')' : '');
     }
   } catch (e) {}
 

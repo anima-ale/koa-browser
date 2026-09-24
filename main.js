@@ -10,13 +10,21 @@ Menu.setApplicationMenu(null);
 
 const { ElectronBlocker } = require('@ghostery/adblocker-electron');
 
-// Evita gli errori "Unable to move the cache: Accesso negato" che compaiono
-// su Windows quando Chromium non riesce a scrivere la cache disco/GPU
-// (dovuto ad antivirus, permessi della cartella, o cartelle sincronizzate
-// come OneDrive). Va messo PRIMA di app.whenReady().
-app.commandLine.appendSwitch('disable-gpu-shader-disk-cache');
-app.commandLine.appendSwitch('disable-http-cache');
-app.disableHardwareAcceleration();
+// ZEN Turbo al boot: se il flag è attivo, GPU piena + cache HTTP
+// (effetto dal riavvio successivo all'attivazione). Altrimenti resta
+// il profilo prudente anti-freeze. Va messo PRIMA di app.whenReady().
+function turboBootOn() {
+  try { return fs.existsSync(path.join(app.getPath('userData'), 'zen-turbo.on')); } catch (e) { return false; }
+}
+if (turboBootOn()) {
+  app.commandLine.appendSwitch('ignore-gpu-blocklist');
+  app.commandLine.appendSwitch('enable-gpu-rasterization');
+  app.commandLine.appendSwitch('enable-zero-copy');
+} else {
+  app.commandLine.appendSwitch('disable-gpu-shader-disk-cache');
+  app.commandLine.appendSwitch('disable-http-cache');
+  app.disableHardwareAcceleration();
+}
 
 // Log persistente: se il main inciampa, resta scritto qui (niente più misteri).
 function koaLog(tag, msg) {
@@ -152,8 +160,8 @@ function zendateNewer(a, b) {
   return false;
 }
 
-async function downloadFile(url, dest, onPct) {
-  const res = await fetch(url, { cache: 'no-store' });
+async function downloadFile(url, dest, onPct, signal) {
+  const res = await fetch(url, { cache: 'no-store', signal });
   if (!res.ok || !res.body) throw new Error('download HTTP ' + res.status);
   const total = Number(res.headers.get('content-length')) || 0;
   await fs.promises.mkdir(path.dirname(dest), { recursive: true });
@@ -253,19 +261,48 @@ async function checkForUpdates(source) {
   } finally { clearTimeout(updateWatchdog); updateChecking = false; }
 }
 
+// Riavvio staged: il download prepara tutto, ma l'app si chiude e si
+// riapre SOLO dopo il via dell'utente (subito o tra 5 minuti).
+let pendingRestart = null;
+
+function runUpdateBatAndQuit() {
+  const p = pendingRestart;
+  if (!p || p.done) return false;
+  p.done = true;
+  if (p.timer) { try { clearTimeout(p.timer); } catch (e) {} p.timer = 0; }
+  // Marcatore: al boot confrontiamo questa versione con quella reale.
+  // Se non combaciano, l'app sa di essersi riaperta col vecchio exe.
+  try { fs.writeFileSync(path.join(os.tmpdir(), 'koa-zendate-expect.txt'), String(p.version || '')); } catch (e) {}
+  sendUpdate({ state: 'installing', version: p.version });
+  willQuit = true;
+  try {
+    spawn('cmd.exe', ['/c', 'start', '/min', '', p.bat, String(process.pid), p.cur, p.file, String(p.version || ''), String(p.size || 0)],
+      { detached: true, stdio: 'ignore', windowsHide: true }).unref();
+  } catch (e) {}
+  setTimeout(() => { try { app.quit(); } catch (e) {} }, 900);
+  return true;
+}
+
 ipcMain.handle('zen:update-accept', async () => {
   const p = pendingUpdate;
   if (!p || !p.man) return { state: 'none' };
   if (updateChecking) return { state: 'busy' };
   updateChecking = true;
   clearTimeout(updateWatchdog);
+  // Percorso download allungato: fino a 60 min totali + aborto se fermo 10 min.
+  let lastProgress = Date.now();
+  const dlCtrl = new AbortController();
+  const stallTimer = setInterval(() => {
+    if (Date.now() - lastProgress > 10 * 60 * 1000) { try { dlCtrl.abort(); } catch (e) {} }
+  }, 30000);
   updateWatchdog = setTimeout(() => {
     if (updateChecking) {
       updateChecking = false;
       pendingUpdate = null;
+      try { dlCtrl.abort(); } catch (e) {}
       sendUpdate({ state: 'error', message: 'download troppo lento: riprova' });
     }
-  }, 15 * 60 * 1000);
+  }, 60 * 60 * 1000);
   try {
     if (process.execPath.toLowerCase().includes('win-unpacked')) {
       sendUpdate({ state: 'error', message: 'Stai girando da win-unpacked: avvia il portable per auto-aggiornarti.' });
@@ -273,19 +310,59 @@ ipcMain.handle('zen:update-accept', async () => {
     }
     const man = p.man;
     const tmpFile = path.join(os.tmpdir(), 'koa-zendate', 'KOA-Browser-' + man.version + '.exe');
-    await downloadFile(man.url, tmpFile, (pct) => sendUpdate({ state: 'downloading', version: man.version, percent: pct }));
+    await downloadFile(man.url, tmpFile, (pct) => { lastProgress = Date.now(); sendUpdate({ state: 'downloading', version: man.version, percent: pct }); }, dlCtrl.signal);
     if (man.sha256) {
       const digest = await sha256File(tmpFile);
       if (digest.toLowerCase() !== String(man.sha256).toLowerCase()) throw new Error('hash di sicurezza non corrispondente');
     }
-    sendUpdate({ state: 'ready', version: man.version });
-    await installUpdate(tmpFile, man.version);
-    return { state: 'ready', version: man.version };
+    let size = 0;
+    try { size = fs.statSync(tmpFile).size || 0; } catch (e) {}
+    if (size < 30000000) throw new Error('file scaricato incompleto: riprova');
+    const bat = prepareUpdateBat(realExePath(), tmpFile, man.version, size);
+    pendingUpdate = null;
+    pendingRestart = { bat, cur: realExePath(), file: tmpFile, version: man.version, size, timer: 0, done: false };
+    sendUpdate({ state: 'restart-ask', version: man.version });
+    return { state: 'restart-ask', version: man.version };
   } catch (e) {
     pendingUpdate = null;
-    sendUpdate({ state: 'error', message: (e && e.message) || 'errore di rete' });
+    const msg = (e && e.name === 'AbortError') ? 'download fermo troppo a lungo: riprova' : ((e && e.message) || 'errore di rete');
+    sendUpdate({ state: 'error', message: msg });
     return { state: 'error' };
-  } finally { clearTimeout(updateWatchdog); updateChecking = false; }
+  } finally { try { clearInterval(stallTimer); } catch (e) {} clearTimeout(updateWatchdog); updateChecking = false; }
+});
+
+ipcMain.handle('zen:update-restart-now', () => {
+  if (!pendingRestart || pendingRestart.done) return { state: 'none' };
+  runUpdateBatAndQuit();
+  return { state: 'installing' };
+});
+
+ipcMain.handle('zen:update-restart-later', () => {
+  const r = pendingRestart;
+  if (!r || r.done) return { state: 'none' };
+  if (r.timer) { try { clearTimeout(r.timer); } catch (e) {} }
+  r.timer = setTimeout(() => { runUpdateBatAndQuit(); }, 5 * 60 * 1000);
+  sendUpdate({ state: 'restart-later', version: r.version, minutes: 5 });
+  return { state: 'restart-later' };
+});
+
+// ZEN Turbo: flag su disco letto al boot (GPU piena) + stato live.
+function turboFlagPath() {
+  try { return path.join(app.getPath('userData'), 'zen-turbo.on'); } catch (e) { return null; }
+}
+ipcMain.handle('zen:set-turbo', (_e, on) => {
+  const f = turboFlagPath();
+  try {
+    if (f) {
+      if (on) {
+        try { fs.mkdirSync(path.dirname(f), { recursive: true }); } catch (e) {}
+        fs.writeFileSync(f, '1');
+      } else {
+        try { fs.unlinkSync(f); } catch (e) {}
+      }
+    }
+  } catch (e) {}
+  return { on: !!on };
 });
 
 ipcMain.handle('zen:uninstall', async () => {
@@ -324,8 +401,6 @@ ipcMain.handle('zen:uninstall', async () => {
   } catch (e) { return { ok: false }; }
 });
 
-// Swap verificato: backup, attesa uscita, sostituzione, controllo taglia,
-// ripristino se corrotto, log diagnostico, rilancio con versione attesa.
 function realExePath() {
   try {
     const p = process.env.PORTABLE_EXECUTABLE_FILE;
@@ -333,8 +408,11 @@ function realExePath() {
   } catch (e) {}
   return process.execPath;
 }
-async function installUpdate(filePath, version) {
-  const cur = realExePath();
+// Prepara lo swap verificato senza chiudere nulla: backup, attesa uscita,
+// sostituzione, controllo taglia attesa + minima, ripristino se corrotto,
+// log diagnostico, rilancio SEMPRE del file appena scritto (mai del vecchio).
+// Il .bat parte solo dopo il via dell'utente (runUpdateBatAndQuit).
+function prepareUpdateBat(cur, filePath, version, expectedSize) {
   const bat = path.join(os.tmpdir(), 'koa-zendate-' + Date.now() + '.bat');
   const lines = [
     '@echo off',
@@ -342,6 +420,7 @@ async function installUpdate(filePath, version) {
     'set "ZCUR=%~2"',
     'set "ZNEW=%~3"',
     'set "ZVER=%~4"',
+    'set "ZEXP=%~5"',
     'set "ZLOG=%TEMP%\\koa-zendate-last.log"',
     'set "ZBAK=%ZCUR%.bak"',
     'if not exist "%ZNEW%" (',
@@ -359,6 +438,13 @@ async function installUpdate(filePath, version) {
     'move /y "%ZNEW%" "%ZCUR%" >nul',
     'set ZSZ=0',
     'for %%A in ("%ZCUR%") do set ZSZ=%%~zA',
+    'if "%ZSZ%" NEQ "%ZEXP%" (',
+    '  echo RESTORED size-mismatch got=%ZSZ% exp=%ZEXP% >> "%ZLOG%"',
+    '  move /y "%ZBAK%" "%ZCUR%" >nul',
+    '  del "%ZNEW%" 2>nul',
+    '  start "" "%ZCUR%"',
+    '  (goto) 2>nul & del "%~f0"',
+    ')',
     'if %ZSZ% LSS 30000000 (',
     '  echo RESTORED backup size=%ZSZ% >> "%ZLOG%"',
     '  move /y "%ZBAK%" "%ZCUR%" >nul',
@@ -368,18 +454,12 @@ async function installUpdate(filePath, version) {
     ')',
     'del "%ZBAK%" 2>nul',
     'del "%ZNEW%" 2>nul',
-    'echo OK swapped size=%ZSZ% >> "%ZLOG%"',
+    'echo OK swapped size=%ZSZ% ver=%ZVER% >> "%ZLOG%"',
     'start "" "%ZCUR%" --zendate-updated=%ZVER%',
     '(goto) 2>nul & del "%~f0"'
   ];
   fs.writeFileSync(bat, lines.join('\r\n'));
-  sendUpdate({ state: 'installing' });
-  willQuit = true;
-  try {
-    spawn('cmd.exe', ['/c', 'start', '/min', '', bat, String(process.pid), cur, filePath, String(version || '')],
-      { detached: true, stdio: 'ignore', windowsHide: true }).unref();
-  } catch (e) {}
-  setTimeout(() => { try { app.quit(); } catch (e) {} }, 900);
+  return bat;
 }
 
 // Legge il log dell'updater precedente: se fallì, lo mostra una volta sola.
@@ -1160,13 +1240,25 @@ app.whenReady().then(() => {
       if (u) openExternalInWindow(u);
     }, 1200);
     // Esito updater precedente (una tantum) + conferma versione reale, mai presunta.
+    // Se l'atteso non combacia con app.getVersion(), l'app si è riaperta col vecchio exe.
     setTimeout(() => {
       checkUpdaterLog();
+      let expected = null;
       const flag = (process.argv || []).find(a => typeof a === 'string' && a.indexOf('--zendate-updated') === 0);
-      if (flag) {
-        const expected = flag.includes('=') ? flag.split('=')[1] : null;
-        if (expected && expected === app.getVersion()) {
+      if (flag && flag.includes('=')) expected = flag.split('=')[1];
+      try {
+        const mf = path.join(os.tmpdir(), 'koa-zendate-expect.txt');
+        if (fs.existsSync(mf)) {
+          const mv = fs.readFileSync(mf, 'utf8').trim();
+          if (mv && !expected) expected = mv;
+          try { fs.unlinkSync(mf); } catch (e) {}
+        }
+      } catch (e) {}
+      if (expected) {
+        if (expected === app.getVersion()) {
           sendUpdate({ state: 'installed', version: app.getVersion() });
+        } else {
+          sendUpdate({ state: 'error', message: 'Update applicato ma sei sulla v' + app.getVersion() + ' invece della v' + expected + ': ricontrolla gli update.' });
         }
       }
     }, 1500);
