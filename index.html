@@ -3370,11 +3370,11 @@
   function handleUpdateStatus(s) {
     if (!s) return;
     clearTimeout(checkFallbackTimer);
-    if (['up-to-date', 'no-channel', 'error', 'installed', 'ui-updated', 'ui-error'].includes(s.state)) {
+    if (['up-to-date', 'no-channel', 'empty-channel', 'error', 'installed', 'ui-updated', 'ui-error'].includes(s.state)) {
       zendateCheck.disabled = false;
     }
     setSteps(s.state);
-    try { localStorage.setItem('koa.zendate-last', JSON.stringify({ t: Date.now(), state: s.state, version: s.version || '' })); } catch (e) {}
+    try { localStorage.setItem('koa.zendate-last', JSON.stringify({ t: Date.now(), state: s.state, version: s.version || '', channel: s.channel || '' })); } catch (e) {}
     switch (s.state) {
       case 'checking':
         updateStatus.textContent = s.source === 'auto' ? 'ZENdate: controllo automatico…' : 'Controllo aggiornamenti…';
@@ -3382,6 +3382,13 @@
       case 'no-channel':
         updateStatus.textContent = 'Canale ZENdate non configurato.';
         break;
+      case 'empty-channel': {
+        const chn = (s && s.channel) || updateChannel || 'beta';
+        updateStatus.textContent = 'Canale ' + chn + ' vuoto: nessuna build pubblicata. Torna su stabile o pubblica (pubblica-update.bat).';
+        updateFill.style.width = '0%';
+        hideConfirm();
+        break;
+      }
       case 'up-to-date':
         updateStatus.textContent = 'KOA è aggiornato (v' + (s.version || '?') + ').';
         updateFill.style.width = '0%';
@@ -3490,13 +3497,22 @@
   chanSeg.addEventListener('click', (e) => {
     const btn = e.target.closest('button[data-chan]');
     if (!btn) return;
+    if (btn.dataset.chan === updateChannel) return;
     updateChannel = btn.dataset.chan;
     paintChannel(updateChannel);
+    zendateSkipped = null;
+    pendingVersion = null;
+    hideConfirm();
+    updateNotes.textContent = '';
+    updateFill.style.width = '0%';
+    updateStatus.textContent = 'Controllo canale ' + updateChannel + '…';
+    zendateCheck.disabled = true;
     try { localStorage.setItem('koa.channel', updateChannel); } catch (err) {}
     try {
       if (window.browserAPI && window.browserAPI.setChannel) window.browserAPI.setChannel(updateChannel);
       if (window.browserAPI && window.browserAPI.checkUpdate) window.browserAPI.checkUpdate();
-    } catch (err) {}
+      else zendateCheck.disabled = false;
+    } catch (err) { zendateCheck.disabled = false; }
   });
   try {
     if (window.browserAPI && window.browserAPI.setChannel) window.browserAPI.setChannel(updateChannel);
@@ -3513,7 +3529,11 @@
 
   try {
     const last = JSON.parse(localStorage.getItem('koa.zendate-last') || 'null');
-    if (last && last.state) updateStatus.textContent = 'Ultima verifica: ' + last.state + (last.version ? ' (v' + last.version + ')' : '');
+    if (last && last.state) {
+      updateStatus.textContent = last.state === 'empty-channel'
+        ? 'Ultimo: canale vuoto' + (last.channel ? ' (' + last.channel + ')' : '')
+        : 'Ultima verifica: ' + last.state + (last.version ? ' (v' + last.version + ')' : '');
+    }
   } catch (e) {}
 
   createTab();

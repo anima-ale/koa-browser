@@ -1,6 +1,6 @@
 {
-    "version":  "1.0.12",
-    "notes":  "### Corretto\n- Update loop infinito sul portable: l\u0027updater sostituiva la copia in Temp invece dell\u0027exe vero (ora usa PORTABLE_EXECUTABLE_FILE); stesso fix per la disinstallazione\n\n### Aggiunto\n- Tinta adattiva: la barra prende il colore del sito (theme-color) su indicatore, URL e divider\n- Dettagli hanko: sigilli quadrati, kanji 木 nel brand, texture washi, timbro sulla scheda attiva\n- Update con conferma: chiede prima di scaricare, pronto-subito alla fine, rifiuto senza conseguenze\n- Canali stabile/beta/alpha con cartelle manifest separate e selettore nelle Impostazioni\n- Disinstallazione completa da Impostazioni (exe, profilo, password, chiavi registry)\n- Browser predefinito che funziona: polling di conferma dopo la scelta in Impostazioni Windows",
-    "url":  "https://github.com/anima-ale/koa-browser/releases/download/v1.0.12/KOA.Browser.1.0.12.exe",
-    "sha256":  "10b54014344dd92930c83b7c00bac37611631ca2b2323b6946d1bd04f9d48a79"
+    "version":  "1.0.13",
+    "notes":  "### Corretto\n- Canali beta/alpha mai pubblicati: il 404 ora mostra \"Canale vuoto\" invece di \"Errore ZENdate: canale HTTP 404\"\n- Cambio canale: pulisce conferma in sospeso, note e versione saltata prima di ricontrollare\n- Ultima verifica salvata: lo stato canale-vuoto si rilegge in chiaro",
+    "url":  "https://github.com/anima-ale/koa-browser/releases/download/v1.0.13/KOA.Browser.1.0.13.exe",
+    "sha256":  "75d019648f15d3778e5f1a961f9e8b567b73ec37a2a3cc735a1a1539fdfd973d"
 }

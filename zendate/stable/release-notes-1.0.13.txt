@@ -1,0 +1,4 @@
+### Corretto
+- Canali beta/alpha mai pubblicati: il 404 ora mostra "Canale vuoto" invece di "Errore ZENdate: canale HTTP 404"
+- Cambio canale: pulisce conferma in sospeso, note e versione saltata prima di ricontrollare
+- Ultima verifica salvata: lo stato canale-vuoto si rilegge in chiaro

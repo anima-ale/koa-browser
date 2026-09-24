@@ -14,6 +14,13 @@ di `zendate\make-zendate.ps1`, più il testo della Release GitHub.
 ### Corretto
 -
 
+## [1.0.13] - 2026-09-24
+
+### Corretto
+- Canali beta/alpha mai pubblicati: il 404 ora mostra "Canale vuoto" invece di "Errore ZENdate: canale HTTP 404"
+- Cambio canale: pulisce conferma in sospeso, note e versione saltata prima di ricontrollare
+- Ultima verifica salvata: lo stato canale-vuoto si rilegge in chiaro
+
 ## [1.0.12] - 2026-09-24
 
 ### Corretto

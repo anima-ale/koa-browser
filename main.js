@@ -123,7 +123,10 @@ function zendateUrl() {
   return ZENDATE_BASE + ch + '/zendate.json';
 }
 ipcMain.handle('zen:set-channel', (_e, ch) => {
-  if (['stable', 'beta', 'alpha'].includes(ch)) updateChannel = ch;
+  if (['stable', 'beta', 'alpha'].includes(ch) && ch !== updateChannel) {
+    updateChannel = ch;
+    pendingUpdate = null;
+  }
   return { channel: updateChannel };
 });
 
@@ -198,11 +201,13 @@ async function checkForUpdates(source) {
     }
   }, 90000);
   sendUpdate({ state: 'checking', source: source || 'manual' });
+  pendingUpdate = null;
   try {
     if (!ZENDATE_BASE || ZENDATE_BASE.includes('<UTENTE>')) {
       sendUpdate({ state: 'no-channel' });
       return { state: 'no-channel' };
     }
+    const ch = ['stable', 'beta', 'alpha'].includes(updateChannel) ? updateChannel : 'stable';
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), 25000);
     let man;
@@ -211,7 +216,12 @@ async function checkForUpdates(source) {
       const base = zendateUrl();
       const url = base + (base.includes('?') ? '&' : '?') + 't=' + Date.now();
       const res = await fetch(url, { signal: ctrl.signal, cache: 'no-store' });
-      if (!res.ok) throw new Error('canale HTTP ' + res.status);
+      // Canale mai pubblicato (beta/alpha appena creati): nessun manifest online = canale vuoto, non errore.
+      if (res.status === 404 && ch !== 'stable') {
+        sendUpdate({ state: 'empty-channel', channel: ch });
+        return { state: 'empty-channel', channel: ch };
+      }
+      if (!res.ok) throw new Error('canale ' + ch + ' HTTP ' + res.status);
       man = await res.json();
     } finally { clearTimeout(timer); }
     const current = app.getVersion();
