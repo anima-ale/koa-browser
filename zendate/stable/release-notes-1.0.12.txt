@@ -1,0 +1,10 @@
+### Corretto
+- Update loop infinito sul portable: l'updater sostituiva la copia in Temp invece dell'exe vero (ora usa PORTABLE_EXECUTABLE_FILE); stesso fix per la disinstallazione
+
+### Aggiunto
+- Tinta adattiva: la barra prende il colore del sito (theme-color) su indicatore, URL e divider
+- Dettagli hanko: sigilli quadrati, kanji 木 nel brand, texture washi, timbro sulla scheda attiva
+- Update con conferma: chiede prima di scaricare, pronto-subito alla fine, rifiuto senza conseguenze
+- Canali stabile/beta/alpha con cartelle manifest separate e selettore nelle Impostazioni
+- Disinstallazione completa da Impostazioni (exe, profilo, password, chiavi registry)
+- Browser predefinito che funziona: polling di conferma dopo la scelta in Impostazioni Windows

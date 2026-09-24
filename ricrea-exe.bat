@@ -61,11 +61,19 @@ exit /b 1
 
 echo Compilo l'exe, potrebbe volerci qualche minuto...
 call npm run dist
+if not errorlevel 1 goto build_ok
+echo [AVVISO] Build fallita al primo colpo (spesso e' l'antivirus che blocca i file).
+echo Attendo 20 secondi e riprovo una volta...
+timeout /t 20 /nobreak >nul
+call npm run dist
 if errorlevel 1 (
-    echo [ERRORE] Compilazione fallita.
+    echo [ERRORE] Compilazione fallita due volte.
+    echo Se fallisce su "Can't open output file": metti la cartella del progetto
+    echo nelle esclusioni dell'antivirus e rilancia.
     pause
     exit /b 1
 )
+:build_ok
 
 echo Applico icona e metadati KOA all'exe scompattato...
 echo (portable e setup prendono l'icona da makensis in build: MAI usare rcedit su di loro, li corrompe)

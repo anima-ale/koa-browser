@@ -14,7 +14,10 @@ di `zendate\make-zendate.ps1`, più il testo della Release GitHub.
 ### Corretto
 -
 
-## [1.0.11] - 2026-09-24
+## [1.0.12] - 2026-09-24
+
+### Corretto
+- Update loop infinito sul portable: l'updater sostituiva la copia in Temp invece dell'exe vero (ora usa PORTABLE_EXECUTABLE_FILE); stesso fix per la disinstallazione
 
 ### Aggiunto
 - Tinta adattiva: la barra prende il colore del sito (theme-color) su indicatore, URL e divider

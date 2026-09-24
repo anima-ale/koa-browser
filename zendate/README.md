@@ -17,6 +17,8 @@ Ogni canale ha la sua cartella con manifest indipendente:
 Nell'app si cambia da Impostazioni → Canale aggiornamenti (salvato in locale).
 Promuovere una build = rigenerare il manifest del canale superiore con
 gli stessi file (`make-zendate.ps1 -Tag vX -Channel stable`).
+A ogni publish stabile, `zendate/zendate.json` (root) viene aggiornato
+in automatico come alias: serve ai client <=1.0.10, che non conoscono le cartelle.
 
 ## File
 

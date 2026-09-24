@@ -111,6 +111,12 @@ $manifest = [ordered]@{
 }
 if ($uiBlock) { $manifest['ui'] = $uiBlock }
 [IO.File]::WriteAllText($Out, ($manifest | ConvertTo-Json), (New-Object Text.UTF8Encoding $false))
+# Ponte legacy: i client <=1.0.10 leggono solo zendate/zendate.json (root).
+# A ogni publish stabile, la root diventa alias dello stabile.
+if ($Channel -eq 'stable') {
+  [IO.File]::WriteAllText((Join-Path $kitDir 'zendate.json'), ($manifest | ConvertTo-Json), (New-Object Text.UTF8Encoding $false))
+  Write-Output '  alias root zendate/zendate.json aggiornato (per client <=1.0.10)'
+}
 
 Write-Output ''
 Write-Output 'zendate.json pronto:'

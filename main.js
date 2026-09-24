@@ -283,7 +283,7 @@ ipcMain.handle('zen:uninstall', async () => {
     if (process.execPath.toLowerCase().includes('program files')) {
       return { ok: false, error: 'installed' };
     }
-    const cur = process.execPath;
+    const cur = realExePath();
     const ud = app.getPath('userData');
     const bat = path.join(os.tmpdir(), 'koa-uninstall-' + Date.now() + '.bat');
     const lines = [
@@ -316,8 +316,15 @@ ipcMain.handle('zen:uninstall', async () => {
 
 // Swap verificato: backup, attesa uscita, sostituzione, controllo taglia,
 // ripristino se corrotto, log diagnostico, rilancio con versione attesa.
+function realExePath() {
+  try {
+    const p = process.env.PORTABLE_EXECUTABLE_FILE;
+    if (p && fs.existsSync(p)) return p;
+  } catch (e) {}
+  return process.execPath;
+}
 async function installUpdate(filePath, version) {
-  const cur = process.execPath;
+  const cur = realExePath();
   const bat = path.join(os.tmpdir(), 'koa-zendate-' + Date.now() + '.bat');
   const lines = [
     '@echo off',
