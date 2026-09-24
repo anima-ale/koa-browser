@@ -3384,7 +3384,7 @@
         break;
       case 'empty-channel': {
         const chn = (s && s.channel) || updateChannel || 'beta';
-        updateStatus.textContent = 'Canale ' + chn + ' vuoto: nessuna build pubblicata. Torna su stabile o pubblica (pubblica-update.bat).';
+        updateStatus.textContent = 'Canale ' + chn + ' vuoto: nessuna versione disponibile al momento. Torna sul canale stabile.';
         updateFill.style.width = '0%';
         hideConfirm();
         break;

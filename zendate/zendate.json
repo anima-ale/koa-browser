@@ -2,5 +2,5 @@
     "version":  "1.0.13",
     "notes":  "### Corretto\n- Canali beta/alpha mai pubblicati: il 404 ora mostra \"Canale vuoto\" invece di \"Errore ZENdate: canale HTTP 404\"\n- Cambio canale: pulisce conferma in sospeso, note e versione saltata prima di ricontrollare\n- Ultima verifica salvata: lo stato canale-vuoto si rilegge in chiaro",
     "url":  "https://github.com/anima-ale/koa-browser/releases/download/v1.0.13/KOA.Browser.1.0.13.exe",
-    "sha256":  "75d019648f15d3778e5f1a961f9e8b567b73ec37a2a3cc735a1a1539fdfd973d"
+    "sha256":  "2dd576720c5a6bc6ac3f4385af8b4ffb6a1ef1c137bcd7527725540fe002c459"
 }
