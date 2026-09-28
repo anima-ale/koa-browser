@@ -19,6 +19,7 @@ di `zendate\make-zendate.ps1`, più il testo della Release GitHub.
 ### Aggiunto
 - Nuovo logo K dappertutto: PNG master + set icone 16–256, icon.ico ricostruita, start page, header e Impostazioni
 - Ponte ZEN MOON: aprendo ZEN in KOA, la sidebar elenca i modelli locali selezionati; il clic apre moon.html (stile ZEN) con motore locale proprio WebGPU/WASM/cloud
+- Bridge MOON autoriparante: modelli rilevati anche dai pesi in cache (download col default) e ricontrollo ogni 15s senza ricaricare
 - moon.html incluso in packaging exe, update istantaneo e publish (nessuna modifica al progetto ZEN)
 - Tendina download in vetro liquido vero (liquidGL v3 MIT, vendored): rifrazione GPU, aberrazione cromatica e specular; senza content-capture così i bottoni restano vivi; tinta rimossa (anneriva su sfondi scuri), motore WebGL2 stabile
 

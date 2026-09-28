@@ -2492,7 +2492,25 @@
     'Qwen2.5-Coder-0.5B-Instruct-Q4_K_M.gguf': 'Qwen Coder 0.5B · CPU',
     'qwen2.5-1.5b-instruct-q4_k_m.gguf': 'Qwen 1.5B · CPU'
   };
-  let moonProbeAt = 0;
+  // Inferenza dai pesi scaricati (quando ZEN non ha scritto le chiavi, es. download col default).
+  const MOON_GPU_INFER = [
+    ['smollm2-135m', 'SmolLM2-135M-Instruct-q0f16-MLC'],
+    ['smollm2-360m', 'SmolLM2-360M-Instruct-q4f16_1-MLC'],
+    ['qwen2.5-coder-1.5b', 'Qwen2.5-Coder-1.5B-Instruct-q4f16_1-MLC'],
+    ['qwen2.5-coder-3b', 'Qwen2.5-Coder-3B-Instruct-q4f16_1-MLC'],
+    ['qwen2.5-0.5b', 'Qwen2.5-0.5B-Instruct-q4f16_1-MLC'],
+    ['qwen2.5-1.5b', 'Qwen2.5-1.5B-Instruct-q4f16_1-MLC'],
+    ['qwen2.5-3b', 'Qwen2.5-3B-Instruct-q4f16_1-MLC'],
+    ['llama-3.2-1b', 'Llama-3.2-1B-Instruct-q4f16_1-MLC'],
+    ['llama-3.2-3b', 'Llama-3.2-3B-Instruct-q4f16_1-MLC'],
+    ['hermes-3-llama-3.2-3b', 'Hermes-3-Llama-3.2-3B-q4f16_1-MLC']
+  ];
+  const MOON_CPU_INFER = {
+    'qwen2.5-0.5b-instruct-q4_k_m.gguf': 'Qwen/Qwen2.5-0.5B-Instruct-GGUF',
+    'qwen2.5-coder-0.5b-instruct-q4_k_m.gguf': 'bartowski/Qwen2.5-Coder-0.5B-Instruct-GGUF',
+    'qwen2.5-1.5b-instruct-q4_k_m.gguf': 'Qwen/Qwen2.5-1.5B-Instruct-GGUF'
+  };
+  const moonProbeTimes = new WeakMap();
   function moonOpen(kind, id) {
     try {
       const u = new URL('moon.html', window.location.href);
@@ -2511,7 +2529,7 @@
     } catch (e) {}
     const card = document.getElementById('card-moon');
     if (!card) return;
-    if (!origin || !gpu) { card.hidden = true; return; }
+    if (!origin || (!gpu && !cpu)) { card.hidden = true; return; }
     card.hidden = false;
     try {
       let host = origin;
@@ -2535,34 +2553,51 @@
       b.addEventListener('click', () => moonOpen(kindName, id));
       box.appendChild(b);
     };
-    mkRow('gpu', gpu, MOON_LABELS[gpu] || gpu, ready === '1' ? 'WebGPU · apri per usare' : 'WebGPU · si scarica al primo uso');
+    if (gpu) mkRow('gpu', gpu, MOON_LABELS[gpu] || gpu, ready === '1' ? 'WebGPU · apri per usare' : 'WebGPU · si scarica al primo uso');
     if (cpu && cpu.indexOf('|') !== -1) {
       const file = cpu.split('|')[1] || '';
-      mkRow('cpu', cpu, MOON_CPU_LABELS[file] || file, 'CPU · senza WebGPU');
+      mkRow('cpu', cpu, MOON_CPU_LABELS[file] || MOON_CPU_LABELS[file.toLowerCase()] || file, 'CPU · senza WebGPU');
     }
   }
   async function probeZenMoon(wv) {
     try {
       const now = Date.now();
-      if (now - moonProbeAt < 10000) return;
-      moonProbeAt = now;
+      const lastT = moonProbeTimes.get(wv) || 0;
+      if (now - lastT < 10000) return;
+      moonProbeTimes.set(wv, now);
       let url = '';
       try { url = wv.getURL() || ''; } catch (e) { return; }
       if (!/^https?:\/\//i.test(url)) return;
+      const runJS = (code) => wv.executeJavaScript(code, true);
       let gpu = '';
-      try { gpu = await wv.executeJavaScript("try{localStorage.getItem('zen_moon_gpu')||''}catch(e){''}", true); } catch (e) { return; }
-      if (!gpu) return;
+      try { gpu = await runJS("try{localStorage.getItem('zen_moon_gpu')||''}catch(e){''}") || ''; } catch (e) { return; }
       let cpu = '';
-      try { cpu = await wv.executeJavaScript("try{localStorage.getItem('zen_moon_cpu')||''}catch(e){''}", true) || ''; } catch (e) {}
-      let ready = false;
+      try { cpu = await runJS("try{localStorage.getItem('zen_moon_cpu')||''}catch(e){''}") || ''; } catch (e) {}
+      // Pesi nella cache del guest: download avvenuto anche senza chiavi (default).
+      let hfUrls = [];
       try {
-        ready = await wv.executeJavaScript("(async()=>{try{const ks=await caches.keys();for(const k of ks){const c=await caches.open(k);const rs=await c.keys();for(const r of rs){const u=r.url||'';if(u.indexOf('huggingface.co')!==-1)return true}}return false}catch(e){return false}})()", true);
+        const r = await runJS("(async()=>{try{const o=[];const ks=await caches.keys();for(const k of ks){const c=await caches.open(k);const rs=await c.keys();for(const x of rs){const u=x.url||'';if(u.indexOf('huggingface.co')!==-1||u.indexOf('cdn-lfs')!==-1){o.push(u);if(o.length>=80)return o}}}return o}catch(e){return[]}})()");
+        if (Array.isArray(r)) hfUrls = r;
       } catch (e) {}
+      const ready = hfUrls.length > 0;
+      if (!gpu && ready) {
+        const blob = hfUrls.join('\n').toLowerCase();
+        for (const [sub, id] of MOON_GPU_INFER) {
+          if (blob.indexOf(sub) !== -1) { gpu = id; break; }
+        }
+      }
+      if ((!cpu || cpu.indexOf('|') === -1) && ready) {
+        const blob = hfUrls.join('\n').toLowerCase();
+        for (const file of Object.keys(MOON_CPU_INFER)) {
+          if (blob.indexOf(file) !== -1) { cpu = MOON_CPU_INFER[file] + '|' + file; break; }
+        }
+      }
+      if (!gpu && !cpu) return;
       let first = false;
       try {
         first = !localStorage.getItem('koa.zenOrigin');
         localStorage.setItem('koa.zenOrigin', new URL(url).origin);
-        localStorage.setItem('koa.zenGpu', gpu);
+        if (gpu) localStorage.setItem('koa.zenGpu', gpu);
         if (cpu) localStorage.setItem('koa.zenCpu', cpu);
         localStorage.setItem('koa.zenReady', ready ? '1' : '0');
       } catch (e) {}
@@ -2571,6 +2606,27 @@
     } catch (e) {}
   }
   renderMoonCard();
+  // ZEN è una pagina singola: il download non ricarica. Ricontrolla ogni 15s
+  // la scheda a fuoco (e quelle sull'origine ZEN nota) finché non spunta.
+  setInterval(() => {
+    try {
+      const seen = new Set();
+      let focused = null;
+      try { focused = (typeof getFocusedTab === 'function') ? getFocusedTab() : null; } catch (e) {}
+      if (focused && focused.webview) { seen.add(focused); probeZenMoon(focused.webview); }
+      let origin = '';
+      try { origin = localStorage.getItem('koa.zenOrigin') || ''; } catch (e) {}
+      if (origin && typeof tabs !== 'undefined') {
+        tabs.forEach((tb) => {
+          if (!tb || seen.has(tb)) return;
+          try {
+            const u = tb.webview.getURL() || '';
+            if (u.indexOf(origin) === 0) { seen.add(tb); probeZenMoon(tb.webview); }
+          } catch (e) {}
+        });
+      }
+    } catch (e) {}
+  }, 15000);
 
   try {
     if (window.browserAPI && window.browserAPI.onSupervisorStats) {
