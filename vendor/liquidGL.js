@@ -1,3 +1,4 @@
+/* liquidGL v3.0.0 (MIT (c) NaughtyDuk) — build classic per KOA/ZEN: export ESM -> window.liquidGL */
 /*
  * liquidGL – Liquid Glass - Powered by WebGPU/WebGL
  * -----------------------------------------------------------------------------
@@ -8984,4 +8985,4 @@ fn fs() -> @location(0) vec4<f32> {
   return window.liquidGL;
 })();
 
-export default liquidGL;
+window.liquidGL = liquidGL;

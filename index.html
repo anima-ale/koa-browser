@@ -987,13 +987,15 @@
     transition: transform 260ms var(--ease);
     overflow: hidden;
   }
-  /* Contenuto nitido sopra la lente (liquidGL lo compone senza distorsione) */
+  /* Contenitore righe: resta DOM vivo sopra la lente (niente content-capture) */
   #dl-content {
     position: relative; z-index: 3;
     display: flex; flex-direction: column; gap: 8px;
     padding: 12px 12px 10px 12px;
     max-height: 56vh;
   }
+  /* La lente azzera i pointer-events sul bersaglio: i bottoni restano cliccabili */
+  #dl-content, #dl-content * { pointer-events: auto !important; }
   #dl-dropdown.open { transform: translateY(0); }
   #dl-dropdown[hidden] { display: none; }
   #dl-catcher {
@@ -3314,7 +3316,6 @@
         engine: 'auto',
         snapshot: 'body',
         target: '#dl-dropdown',
-        content: '#dl-content',
         resolution: 1.5,
         zIndex: 540,
         refraction: 0.02,
