@@ -14,12 +14,16 @@ const { ElectronBlocker } = require('@ghostery/adblocker-electron');
 // (effetto dal riavvio successivo all'attivazione). Altrimenti resta
 // il profilo prudente anti-freeze. Va messo PRIMA di app.whenReady().
 function turboBootOn() {
-  try { return fs.existsSync(path.join(app.getPath('userData'), 'zen-turbo.on')); } catch (e) { return false; }
+  try {
+    const args = process.argv || [];
+    if (args.includes('--safe')) return false; // provvisoria: sempre software
+    if (args.includes('--disable-turbo-gpu')) return false; // avvio di salvataggio una tantum
+    return fs.existsSync(path.join(app.getPath('userData'), 'zen-turbo.on'));
+  } catch (e) { return false; }
 }
 if (turboBootOn()) {
   app.commandLine.appendSwitch('ignore-gpu-blocklist');
   app.commandLine.appendSwitch('enable-gpu-rasterization');
-  app.commandLine.appendSwitch('enable-zero-copy');
 } else {
   app.commandLine.appendSwitch('disable-gpu-shader-disk-cache');
   app.commandLine.appendSwitch('disable-http-cache');
@@ -596,10 +600,10 @@ function externalUrlFromArg(a) {
 }
 
 function openExternalInWindow(u) {
+  if (!u) return;
+  showMainWindow();
   const w = BrowserWindow.getAllWindows()[0];
-  if (!w || !u) return;
-  if (!w.isVisible()) w.show();
-  w.focus();
+  if (!w) return;
   try { w.webContents.send('zen:open-url', u); } catch (e) {}
 }
 // Menu contestuale e scorciatoie: opera sul webview cliccato
@@ -887,18 +891,35 @@ function setupTray() {
     tray = new Tray(path.join(__dirname, 'assets', 'icon.ico'));
     tray.setToolTip('KOA Browser');
     tray.setContextMenu(Menu.buildFromTemplate([
-      { label: 'Mostra KOA Browser', click: () => { const w = BrowserWindow.getAllWindows()[0]; if (w) { w.show(); w.focus(); } } },
+      { label: 'Mostra KOA Browser', click: () => showMainWindow() },
       { label: 'Controlla ZENdate', click: () => checkForUpdates('tray') },
       { label: 'Riavvia KOA', click: () => { try { willQuit = true; app.relaunch(); app.exit(0); } catch (e) {} } },
       { type: 'separator' },
       { label: 'Esci', click: () => { willQuit = true; app.quit(); } }
     ]));
     tray.on('click', () => {
-      const w = BrowserWindow.getAllWindows()[0];
-      if (!w) return;
-      if (w.isVisible()) w.hide(); else { w.show(); w.focus(); }
+      let w = null;
+      try { w = BrowserWindow.getAllWindows()[0] || null; } catch (e) {}
+      if (w && w.isVisible()) { try { w.hide(); } catch (e) {} }
+      else showMainWindow();
     });
   } catch (e) { console.error('[tray]', e.message); }
+}
+
+// Riporta la finestra in primo piano da qualsiasi stato (tray, minimizzata,
+// altro desktop); la ricrea se non esiste più. Usata da tray e secondo avvio.
+function showMainWindow() {
+  let w = null;
+  try { w = BrowserWindow.getAllWindows()[0] || null; } catch (e) {}
+  if (!w) {
+    try { createWindow(); } catch (e) {}
+    try { w = BrowserWindow.getAllWindows()[0] || null; } catch (e) {}
+  }
+  if (!w) return;
+  try { if (w.isMinimized()) w.restore(); } catch (e) {}
+  try { w.show(); } catch (e) {}
+  try { w.moveTop(); } catch (e) {}
+  try { w.focus(); } catch (e) {}
 }
 
 // ================= KOA Vault — password cifrate, solo con PIN =================
@@ -1134,10 +1155,7 @@ if (!app.requestSingleInstanceLock() && !(process.argv || []).includes('--new-in
   app.on('second-instance', (_event, argv) => {
     const u = (argv || []).slice(1).map(externalUrlFromArg).find(Boolean);
     if (u) openExternalInWindow(u);
-    else {
-      const w = BrowserWindow.getAllWindows()[0];
-      if (w) { w.show(); w.focus(); }
-    }
+    else showMainWindow();
   });
 
   // ================= ZENdate ISTANTANEO — interfaccia senza riavvio =================

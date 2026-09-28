@@ -14,6 +14,12 @@ di `zendate\make-zendate.ps1`, più il testo della Release GitHub.
 ### Corretto
 -
 
+## [1.0.15] - 2026-09-28
+
+### Corretto
+- Doppio clic e niente finestra: secondo avvio, tray e link esterni ora ripristinano, portano in primo piano e ricreano la finestra se manca
+- Turbo GPU più prudente: rimosso `enable-zero-copy` (rischio schermo nero); `--safe` usa sempre software; `--disable-turbo-gpu` per un avvio di salvataggio
+
 ## [1.0.14] - 2026-09-24
 
 ### Aggiunto
