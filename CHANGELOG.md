@@ -17,6 +17,9 @@ di `zendate\make-zendate.ps1`, più il testo della Release GitHub.
 ## [1.0.16] - 2026-09-28
 
 ### Aggiunto
+- moon.html mostra solo i modelli davvero installati (config + pesi verificati in cache, registro usi riusciti, pesi visti in ZEN); gli altri via tasto Altri
+
+### Aggiunto
 - Nuovo logo K dappertutto: PNG master + set icone 16–256, icon.ico ricostruita, start page, header e Impostazioni
 - Ponte ZEN MOON: aprendo ZEN in KOA, la sidebar elenca i modelli locali selezionati; il clic apre moon.html (stile ZEN) con motore locale proprio WebGPU/WASM/cloud
 - Bridge MOON autoriparante: modelli rilevati anche dai pesi in cache (download col default) e ricontrollo ogni 15s senza ricaricare

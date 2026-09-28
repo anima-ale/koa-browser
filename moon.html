@@ -86,6 +86,7 @@
   <h1>ZEN MOON<small>modello sul tuo dispositivo · gratis, privato, offline dopo il download</small></h1>
   <div class="spacer"></div>
   <select id="model-sel" title="Modello locale"></select>
+  <button id="more-btn" class="ghost" title="Mostra anche i modelli da scaricare">Altri</button>
   <button id="clear-btn" class="ghost" title="Svuota conversazione">Svuota</button>
 </header>
 <div id="status">Pronto. Il primo uso scarica i pesi (una volta sola), poi tutto resta nel dispositivo.</div>
@@ -115,6 +116,86 @@
     { repo: 'Qwen/Qwen2.5-1.5B-Instruct-GGUF', file: 'qwen2.5-1.5b-instruct-q4_k_m.gguf', label: 'Qwen 1.5B CPU · ~1GB' }
   ];
   const WLLAMA_BASE = 'https://cdn.jsdelivr.net/npm/wllama/esm/';
+  // Registro locale dei modelli riusciti + scansione cache pesi.
+  function loadRegistry() {
+    try {
+      const r = JSON.parse(localStorage.getItem('koa.moonInstalled') || 'null');
+      if (r && Array.isArray(r.gpu) && Array.isArray(r.cpu)) return r;
+    } catch (e) {}
+    return { gpu: [], cpu: [] };
+  }
+  function saveRegistry(r) {
+    try { localStorage.setItem('koa.moonInstalled', JSON.stringify({ gpu: r.gpu.slice(0, 20), cpu: r.cpu.slice(0, 10) })); } catch (e) {}
+  }
+  function registryAdd(k, id) {
+    try {
+      const r = loadRegistry();
+      if (k === 'cpu') { if (!r.cpu.includes(id)) r.cpu.push(id); }
+      else if (!r.gpu.includes(id)) r.gpu.push(id);
+      saveRegistry(r);
+    } catch (e) {}
+  }
+  // GPU installato = config + indice pesi presenti sotto il suo percorso (niente mezzi download).
+  async function scanModelCaches() {
+    const gpu = new Set(), cpu = new Set();
+    try {
+      if (!('caches' in window)) return { gpu, cpu };
+      const urls = [];
+      const keys = await caches.keys();
+      for (const k of keys) {
+        try {
+          const c = await caches.open(k);
+          const rs = await c.keys();
+          for (const r of rs) {
+            const u = r.url || '';
+            if (/huggingface\.co|cdn-lfs|\.gguf/i.test(u)) urls.push(u);
+            if (urls.length > 300) break;
+          }
+        } catch (e) {}
+        if (urls.length > 300) break;
+      }
+      for (const m of GPU_MODELS) {
+        const base = m.id.replace(/-mlc$/i, '').toLowerCase();
+        let cfg = false, idx = false;
+        for (const u of urls) {
+          const l = u.toLowerCase();
+          if (l.indexOf(base) === -1) continue;
+          if (l.indexOf('mlc-chat-config.json') !== -1) cfg = true;
+          if (l.indexOf('ndarray-cache.json') !== -1) idx = true;
+          if (cfg && idx) break;
+        }
+        if (cfg && idx) gpu.add(m.id);
+      }
+      for (const m of CPU_MODELS) {
+        const f = m.file.toLowerCase();
+        for (const u of urls) {
+          if (u.toLowerCase().indexOf(f) !== -1) { cpu.add(m.repo + '|' + m.file); break; }
+        }
+      }
+    } catch (e) {}
+    return { gpu, cpu };
+  }
+  async function installedModels() {
+    const reg = loadRegistry();
+    const gpu = new Set(reg.gpu.filter(id => GPU_MODELS.some(m => m.id === id)));
+    const cpu = new Set(reg.cpu.filter(k => CPU_MODELS.some(m => (m.repo + '|' + m.file) === k)));
+    try {
+      const sc = await scanModelCaches();
+      sc.gpu.forEach(id => gpu.add(id));
+      sc.cpu.forEach(k => cpu.add(k));
+      if (sc.gpu.size || sc.cpu.size) saveRegistry({ gpu: [...gpu], cpu: [...cpu] });
+    } catch (e) {}
+    // Pesi verificati nella scheda ZEN (stesso dispositivo).
+    try {
+      if (localStorage.getItem('koa.zenReady') === '1') {
+        const zg = localStorage.getItem('koa.zenGpu') || '';
+        if (zg && GPU_MODELS.some(m => m.id === zg)) gpu.add(zg);
+        const zc = localStorage.getItem('koa.zenCpu') || '';
+        if (zc && CPU_MODELS.some(m => (m.repo + '|' + m.file) === zc)) cpu.add(zc);
+      }
+    } catch (e) {}
+    return { gpu: [...gpu], cpu: [...cpu] };
+  }
   const SYS_GPU = 'Sei ZEN Moon, assistente AI che gira sul dispositivo dell\u2019utente. Scrivi SOLO in italiano corretto, frasi semplici e chiare. Rispondi in modo conciso ma completo. Il codice HTML va in un blocco ```html completo e autonomo.';
   const SYS_CPU = 'Sei ZEN Moon su CPU locale. Scrivi SOLO in italiano corretto, frasi semplicissime. Rispondi MOLTO breve: massimo 5 righe.';
 
@@ -127,30 +208,73 @@
   let kind = params.get('kind') === 'cpu' ? 'cpu' : 'gpu';
   let modelId = params.get('model') || (isMobile ? 'Qwen2.5-0.5B-Instruct-q4f16_1-MLC' : 'Qwen2.5-1.5B-Instruct-q4f16_1-MLC');
 
-  GPU_MODELS.forEach(m => {
-    const o = document.createElement('option');
-    o.value = 'gpu|' + m.id; o.textContent = m.label;
-    sel.appendChild(o);
-  });
-  CPU_MODELS.forEach(m => {
-    const o = document.createElement('option');
-    o.value = 'cpu|' + m.repo + '|' + m.file; o.textContent = m.label + ' (CPU)';
-    sel.appendChild(o);
-  });
-  function syncSel() {
-    const v = kind === 'cpu'
-      ? 'cpu|' + (CPU_MODELS.find(m => (modelId || '').includes(m.file)) || CPU_MODELS[0]).repo + '|' + (CPU_MODELS.find(m => (modelId || '').includes(m.file)) || CPU_MODELS[0]).file
-      : 'gpu|' + ((GPU_MODELS.some(m => m.id === modelId) ? modelId : null) || (isMobile ? 'Qwen2.5-0.5B-Instruct-q4f16_1-MLC' : 'Qwen2.5-1.5B-Instruct-q4f16_1-MLC'));
-    sel.value = v;
+  let showAllModels = false;
+  const moreBtn = $('more-btn');
+  async function rebuildModelList() {
+    const keep = sel.value;
+    sel.innerHTML = '';
+    const inst = await installedModels();
+    const present = new Set();
+    const addOpt = (k, id, text) => {
+      const v = k + '|' + id;
+      if (present.has(v)) return;
+      present.add(v);
+      const o = document.createElement('option');
+      o.value = v; o.textContent = text;
+      sel.appendChild(o);
+    };
+    inst.gpu.forEach(id => {
+      const m = GPU_MODELS.find(x => x.id === id);
+      if (m) addOpt('gpu', id, m.label);
+    });
+    inst.cpu.forEach(k => {
+      const m = CPU_MODELS.find(x => (x.repo + '|' + x.file) === k);
+      if (m) addOpt('cpu', k, m.label + ' (CPU)');
+    });
+    // Modello richiesto via ?model= : sempre disponibile (si scarica al primo uso).
+    let want = null;
+    if (kind === 'cpu') {
+      const m = CPU_MODELS.find(x => (modelId || '').includes(x.file)) || CPU_MODELS[0];
+      want = { k: 'cpu', id: m.repo + '|' + m.file, t: m.label + ' (CPU)' };
+    } else {
+      const id = GPU_MODELS.some(m => m.id === modelId) ? modelId
+        : (isMobile ? 'Qwen2.5-0.5B-Instruct-q4f16_1-MLC' : 'Qwen2.5-1.5B-Instruct-q4f16_1-MLC');
+      want = { k: 'gpu', id, t: GPU_MODELS.find(x => x.id === id).label };
+    }
+    const wantV = want.k + '|' + want.id;
+    const wantInstalled = present.has(wantV);
+    if (!wantInstalled) addOpt(want.k, want.id, want.t + ' · da scaricare');
+    if (showAllModels) {
+      GPU_MODELS.forEach(m => { if (!present.has('gpu|' + m.id)) addOpt('gpu', m.id, m.label + ' · da scaricare'); });
+      CPU_MODELS.forEach(m => {
+        const v = 'cpu|' + m.repo + '|' + m.file;
+        if (!present.has(v)) addOpt('cpu', m.repo + '|' + m.file, m.label + ' (CPU) · da scaricare');
+      });
+    }
+    let target = null;
+    for (const o of sel.options) { if (o.value === keep) { target = keep; break; } }
+    sel.value = target || wantV;
     applySel();
+    const n = inst.gpu.length + inst.cpu.length;
+    if (n === 0 && !showAllModels && wantInstalled) setStatus('Nessun modello scaricato: aprilo dal sito ZEN o premi Altri per scaricarne uno.');
+    else if (n === 0 && !showAllModels) setStatus('Il modello richiesto si scarica al primo uso.');
+    else setStatus('Pronti: ' + inst.gpu.length + ' GPU + ' + inst.cpu.length + ' CPU.' + (wantInstalled ? '' : ' Il richiesto si scarica al primo uso.'));
   }
+  moreBtn.addEventListener('click', async () => {
+    showAllModels = !showAllModels;
+    moreBtn.textContent = showAllModels ? 'Solo pronti' : 'Altri';
+    await rebuildModelList().catch(() => {});
+  });
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) { try { rebuildModelList().catch(() => {}); } catch (e) {} }
+  });
+  rebuildModelList().catch(() => {});
   function applySel() {
     const [k, ...rest] = (sel.value || '').split('|');
     kind = k === 'cpu' ? 'cpu' : 'gpu';
     modelId = rest.join('|');
   }
   sel.addEventListener('change', () => { applySel(); dropEngines(); say('sys', 'Modello: ' + sel.options[sel.selectedIndex].textContent); });
-  syncSel();
 
   let gpuEngine = null, gpuEngineModel = null, gpuLoading = null;
   let cpuEngine = null, cpuEngineModel = null, cpuLoading = null;
@@ -230,6 +354,7 @@
     const h = history();
     if (kind === 'cpu') {
       const w = await ensureCpu();
+      try { registryAdd('cpu', modelId); rebuildModelList().catch(() => {}); } catch (e) {}
       setStatus('Elaboro in CPU (lento)…');
       const msgs = [{ role: 'system', content: SYS_CPU }, ...tail(h, 2, 800), { role: 'user', content: prompt.slice(0, 1000) }];
       const text = await withTimeout(w.createChatCompletion(msgs, { nPredict: 512, sampling: { temp: 0.2, top_k: 20, top_p: 0.85 } }), 300000, 'Timeout CPU (300s)');
@@ -237,6 +362,7 @@
       return text.trim();
     }
     const eng = await ensureGpu();
+    try { registryAdd('gpu', modelId); rebuildModelList().catch(() => {}); } catch (e) {}
     setStatus('Elaboro sul dispositivo…');
     const msgs = [{ role: 'system', content: SYS_GPU }, ...tail(h, 4, 1500), { role: 'user', content: prompt.slice(0, 2000) }];
     const out = await withTimeout(eng.chat.completions.create({ messages: msgs, temperature: 0.2, top_p: 0.9, max_tokens: 1024 }), 300000, 'Timeout GPU (300s)');
@@ -277,7 +403,7 @@
             kind = 'cpu';
             const m = CPU_MODELS[0];
             modelId = m.repo + '|' + m.file;
-            syncSel();
+            await rebuildModelList().catch(() => {});
             answer = await askLocal(prompt);
           } catch (e2) { answer = await askCloud(prompt); }
         } else { answer = await askCloud(prompt); }
