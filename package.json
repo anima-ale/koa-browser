@@ -33,6 +33,7 @@
     "files": [
       "index.html",
       "start.html",
+      "moon.html",
       "main.js",
       "preload.js",
       "vault-preload.js",

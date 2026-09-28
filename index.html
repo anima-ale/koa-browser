@@ -823,6 +823,21 @@
     box-shadow: none !important;
   }
   #turbo-state { margin-left: auto; font-size: 10px; letter-spacing: 0.08em; color: var(--text-muted); }
+  /* ZEN MOON bridge: elenco modelli locali rilevati */
+  #moon-models { display: flex; flex-direction: column; gap: 8px; }
+  #moon-state { margin-left: auto; font-size: 10px; letter-spacing: 0.08em; color: var(--text-muted); }
+  .moon-model {
+    display: flex; align-items: center; gap: 10px; width: 100%; text-align: left;
+    background: rgba(251, 191, 36, 0.06);
+    border: 1px solid rgba(251, 191, 36, 0.35);
+    color: var(--text); border-radius: var(--radius);
+    padding: 9px 11px; cursor: pointer; font-family: var(--font);
+  }
+  .moon-model:hover { background: rgba(251, 191, 36, 0.12); }
+  .moon-model .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text-muted); flex-shrink: 0; }
+  .moon-model .dot.ok { background: #4ade80; box-shadow: 0 0 8px rgba(74, 222, 128, 0.6); }
+  .moon-model b { font-size: 12.5px; display: block; }
+  .moon-model small { font-size: 10.5px; color: var(--text-muted); display: block; }
   .chan-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; font-size: 12.5px; font-weight: 600; }
   .chan-seg { display: flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
   .chan-seg button {
@@ -1089,6 +1104,11 @@
           <header><span class="card-dot"></span>ZEN TURBO<span id="turbo-state">…</span></header>
           <label class="sup-row"><span>Velocità massima</span><span class="switch"><input type="checkbox" id="turbo-toggle" /><i></i></span></label>
           <div class="sup-note">App leggera + pagine snelle · GPU piena dal prossimo riavvio</div>
+        </section>
+        <section class="card" id="card-moon" hidden>
+          <header><span class="card-dot"></span>ZEN MOON<span id="moon-state">…</span></header>
+          <div id="moon-models"></div>
+          <div class="sup-note">Modelli locali da ZEN · si usano in una pagina KOA</div>
         </section>
         <section class="card" id="card-chat">
           <header><span class="card-dot"></span>CHAT KOA<button id="chat-summarize" class="mini-btn" title="Riassumi la pagina aperta">Riassumi</button></header>
@@ -1485,6 +1505,7 @@
       tab.crashCount = 0;
       injectKoaScrollbar(webview);
       if (turboOn) applyTurboToWebview(webview, tab);
+      probeZenMoon(webview);
       if (isFocused(id)) updateSiteTint();
     });
     webview.addEventListener('did-navigate-in-page', () => injectKoaScrollbar(webview));
@@ -2431,6 +2452,107 @@
     if (turboToggle) turboToggle.addEventListener('change', () => setTurbo(turboToggle.checked));
     paintTurbo();
   } catch (e) {}
+
+  // ================= ZEN MOON bridge (sola osservazione: ZEN non viene toccato) =================
+  // Quando una scheda apre ZEN (qualsiasi URL: lo riconosce dalle chiavi MOON in localStorage
+  // della pagina), KOA legge i modelli selezionati e li elenca nella sidebar. Il clic apre
+  // moon.html: pagina KOA con motore locale proprio (stesso catalogo ZEN).
+  const MOON_LABELS = {
+    'SmolLM2-135M-Instruct-q0f16-MLC': 'SmolLM2 135M · ~150MB',
+    'SmolLM2-360M-Instruct-q4f16_1-MLC': 'SmolLM2 360M · ~300MB',
+    'Qwen2.5-0.5B-Instruct-q4f16_1-MLC': 'Qwen 0.5B · ~400MB',
+    'Llama-3.2-1B-Instruct-q4f16_1-MLC': 'Llama 1B · ~800MB',
+    'Qwen2.5-1.5B-Instruct-q4f16_1-MLC': 'Qwen 1.5B · ~1GB · PC',
+    'Qwen2.5-Coder-1.5B-Instruct-q4f16_1-MLC': 'Qwen Coder 1.5B · codice',
+    'Qwen2.5-3B-Instruct-q4f16_1-MLC': 'Qwen 3B · ~2GB',
+    'Qwen2.5-Coder-3B-Instruct-q4f16_1-MLC': 'Qwen Coder 3B · codice',
+    'Llama-3.2-3B-Instruct-q4f16_1-MLC': 'Llama 3B · ~2GB',
+    'Hermes-3-Llama-3.2-3B-q4f16_1-MLC': 'Hermes 3B · creativo'
+  };
+  const MOON_CPU_LABELS = {
+    'qwen2.5-0.5b-instruct-q4_k_m.gguf': 'Qwen 0.5B · CPU',
+    'Qwen2.5-Coder-0.5B-Instruct-Q4_K_M.gguf': 'Qwen Coder 0.5B · CPU',
+    'qwen2.5-1.5b-instruct-q4_k_m.gguf': 'Qwen 1.5B · CPU'
+  };
+  let moonProbeAt = 0;
+  function moonOpen(kind, id) {
+    try {
+      const u = new URL('moon.html', window.location.href);
+      u.searchParams.set('kind', kind);
+      u.searchParams.set('model', id);
+      createTab(u.href);
+    } catch (e) {}
+  }
+  function renderMoonCard() {
+    let origin = '', gpu = '', cpu = '', ready = '';
+    try {
+      origin = localStorage.getItem('koa.zenOrigin') || '';
+      gpu = localStorage.getItem('koa.zenGpu') || '';
+      cpu = localStorage.getItem('koa.zenCpu') || '';
+      ready = localStorage.getItem('koa.zenReady') || '';
+    } catch (e) {}
+    const card = document.getElementById('card-moon');
+    if (!card) return;
+    if (!origin || !gpu) { card.hidden = true; return; }
+    card.hidden = false;
+    try {
+      let host = origin;
+      try { host = new URL(origin).host; } catch (e) {}
+      document.getElementById('moon-state').textContent = host + (ready === '1' ? ' · pesi pronti' : ' · pesi da scaricare');
+    } catch (e) {}
+    const box = document.getElementById('moon-models');
+    box.innerHTML = '';
+    const mkRow = (kindName, id, label, sub) => {
+      const b = document.createElement('button');
+      b.className = 'moon-model';
+      const dot = document.createElement('span');
+      dot.className = 'dot' + (ready === '1' ? ' ok' : '');
+      const tx = document.createElement('span');
+      const t1 = document.createElement('b');
+      t1.textContent = label;
+      const t2 = document.createElement('small');
+      t2.textContent = sub;
+      tx.append(t1, t2);
+      b.append(dot, tx);
+      b.addEventListener('click', () => moonOpen(kindName, id));
+      box.appendChild(b);
+    };
+    mkRow('gpu', gpu, MOON_LABELS[gpu] || gpu, ready === '1' ? 'WebGPU · apri per usare' : 'WebGPU · si scarica al primo uso');
+    if (cpu && cpu.indexOf('|') !== -1) {
+      const file = cpu.split('|')[1] || '';
+      mkRow('cpu', cpu, MOON_CPU_LABELS[file] || file, 'CPU · senza WebGPU');
+    }
+  }
+  async function probeZenMoon(wv) {
+    try {
+      const now = Date.now();
+      if (now - moonProbeAt < 10000) return;
+      moonProbeAt = now;
+      let url = '';
+      try { url = wv.getURL() || ''; } catch (e) { return; }
+      if (!/^https?:\/\//i.test(url)) return;
+      let gpu = '';
+      try { gpu = await wv.executeJavaScript("try{localStorage.getItem('zen_moon_gpu')||''}catch(e){''}", true); } catch (e) { return; }
+      if (!gpu) return;
+      let cpu = '';
+      try { cpu = await wv.executeJavaScript("try{localStorage.getItem('zen_moon_cpu')||''}catch(e){''}", true) || ''; } catch (e) {}
+      let ready = false;
+      try {
+        ready = await wv.executeJavaScript("(async()=>{try{const ks=await caches.keys();for(const k of ks){const c=await caches.open(k);const rs=await c.keys();for(const r of rs){const u=r.url||'';if(u.indexOf('huggingface.co')!==-1)return true}}return false}catch(e){return false}})()", true);
+      } catch (e) {}
+      let first = false;
+      try {
+        first = !localStorage.getItem('koa.zenOrigin');
+        localStorage.setItem('koa.zenOrigin', new URL(url).origin);
+        localStorage.setItem('koa.zenGpu', gpu);
+        if (cpu) localStorage.setItem('koa.zenCpu', cpu);
+        localStorage.setItem('koa.zenReady', ready ? '1' : '0');
+      } catch (e) {}
+      renderMoonCard();
+      if (first) { try { document.getElementById('app').classList.remove('side-collapsed'); } catch (e) {} }
+    } catch (e) {}
+  }
+  renderMoonCard();
 
   try {
     if (window.browserAPI && window.browserAPI.onSupervisorStats) {

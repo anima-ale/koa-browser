@@ -1166,7 +1166,8 @@ const UI_FILES = {
   'preload.js': 'preload.js',
   'vault-preload.js': 'vault-preload.js',
   'logo.svg': 'assets/logo.svg',
-  'start.html': 'start.html'
+  'start.html': 'start.html',
+  'moon.html': 'moon.html'
 };
 
 function uiDir() {
