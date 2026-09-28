@@ -14,7 +14,7 @@ di `zendate\make-zendate.ps1`, più il testo della Release GitHub.
 ### Corretto
 -
 
-## [1.0.15] - 2026-09-28
+## [1.0.16] - 2026-09-28
 
 ### Aggiunto
 - Nuovo logo K dappertutto: PNG master + set icone 16–256, icon.ico ricostruita, start page, header e Impostazioni
