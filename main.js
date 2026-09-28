@@ -1165,7 +1165,7 @@ const UI_FILES = {
   'index.html': 'index.html',
   'preload.js': 'preload.js',
   'vault-preload.js': 'vault-preload.js',
-  'logo.svg': 'assets/logo.svg',
+  'logo.png': 'assets/logo.png',
   'start.html': 'start.html',
   'moon.html': 'moon.html',
   'liquidGL.js': 'vendor/liquidGL.js'

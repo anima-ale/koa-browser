@@ -46,5 +46,5 @@ Il portable si auto-aggiorna all'avvio e dal pannello Impostazioni
 - `main.js` — processo principale Electron: crea la finestra dell'app (senza menu File/Edit/View)
 - `preload.js` — ponte sicuro tra il processo main e l'interfaccia
 - `index.html` — l'interfaccia del browser: header, schede, sidebar e area di navigazione (`<webview>`)
-- `assets/logo.svg` — logo KOA (sole vermiglio su legno)
+- `assets/logo.png` — logo KOA (K serif su fondo vermiglio)
 - `package.json` — configurazione del progetto e packaging
