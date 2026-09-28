@@ -38,6 +38,7 @@
       "preload.js",
       "vault-preload.js",
       "assets/**/*",
+      "vendor/**/*",
       "package.json",
       "node_modules/**/*"
     ],

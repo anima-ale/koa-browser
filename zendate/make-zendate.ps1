@@ -84,6 +84,7 @@ if (-not [string]::IsNullOrWhiteSpace($UiVersion)) {
     'logo.svg'   = 'assets/logo.svg'
     'start.html' = 'start.html'
     'moon.html'  = 'moon.html'
+    'liquidGL.js' = 'vendor/liquidGL.js'
   }
   $uiBase = 'https://github.com/' + $User + '/' + $Repo + '/releases/download/' + $Tag + '/'
   $uiFiles = [ordered]@{}
