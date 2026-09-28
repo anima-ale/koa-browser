@@ -19,6 +19,7 @@ di `zendate\make-zendate.ps1`, più il testo della Release GitHub.
 ### Aggiunto
 - Ponte ZEN MOON: aprendo ZEN in KOA, la sidebar elenca i modelli locali selezionati; il clic apre moon.html (stile ZEN) con motore locale proprio WebGPU/WASM/cloud
 - moon.html incluso in packaging exe, update istantaneo e publish (nessuna modifica al progetto ZEN)
+- Tendina download in vetro liquido: sfondo traslucido con blur+saturazione, riflessi inset multipli e velo di luce con rifrazione SVG
 
 ### Corretto
 - Doppio clic e niente finestra: secondo avvio, tray e link esterni ora ripristinano, portano in primo piano e ricreano la finestra se manca
