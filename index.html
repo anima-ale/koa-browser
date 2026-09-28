@@ -3313,10 +3313,10 @@
     try {
       if (typeof liquidGL !== 'function') return;
       dlLens = liquidGL({
-        engine: 'auto',
+        engine: 'webgl2',
         snapshot: 'body',
         target: '#dl-dropdown',
-        resolution: 1.5,
+        resolution: 1,
         zIndex: 540,
         refraction: 0.02,
         aberration: 0.25,
@@ -3326,7 +3326,7 @@
         shadow: false,
         specular: true,
         reveal: 'none',
-        tint: 'rgba(24, 14, 7, 0.38)'
+        tint: null
       });
     } catch (e) { dlLens = null; }
   }
