@@ -1,6 +1,6 @@
 {
-    "version":  "1.0.13",
-    "notes":  "### Corretto\n- Canali beta/alpha mai pubblicati: il 404 ora mostra \"Canale vuoto\" invece di \"Errore ZENdate: canale HTTP 404\"\n- Cambio canale: pulisce conferma in sospeso, note e versione saltata prima di ricontrollare\n- Ultima verifica salvata: lo stato canale-vuoto si rilegge in chiaro",
-    "url":  "https://github.com/anima-ale/koa-browser/releases/download/v1.0.13/KOA.Browser.1.0.13.exe",
-    "sha256":  "2dd576720c5a6bc6ac3f4385af8b4ffb6a1ef1c137bcd7527725540fe002c459"
+    "version":  "1.0.16",
+    "notes":  "### Aggiunto\n- moon.html mostra solo i modelli davvero installati (config + pesi verificati in cache, registro usi riusciti, pesi visti in ZEN); gli altri via tasto Altri\n\n### Aggiunto\n- Nuovo logo K dappertutto: PNG master + set icone 16–256, icon.ico ricostruita, start page, header e Impostazioni\n- Ponte ZEN MOON: aprendo ZEN in KOA, la sidebar elenca i modelli locali selezionati; il clic apre moon.html (stile ZEN) con motore locale proprio WebGPU/WASM/cloud\n- Bridge MOON autoriparante: modelli rilevati anche dai pesi in cache (download col default) e ricontrollo ogni 15s senza ricaricare\n- moon.html incluso in packaging exe, update istantaneo e publish (nessuna modifica al progetto ZEN)\n- Tendina download in vetro liquido vero (liquidGL v3 MIT, vendored): rifrazione GPU, aberrazione cromatica e specular; senza content-capture così i bottoni restano vivi; tinta rimossa (anneriva su sfondi scuri), motore WebGL2 stabile\n\n### Corretto\n- Doppio clic e niente finestra: secondo avvio, tray e link esterni ora ripristinano, portano in primo piano e ricreano la finestra se manca\n- Turbo GPU più prudente: rimosso `enable-zero-copy` (rischio schermo nero); `--safe` usa sempre software; `--disable-turbo-gpu` per un avvio di salvataggio",
+    "url":  "https://github.com/anima-ale/koa-browser/releases/download/v1.0.16/KOA.Browser.1.0.16.exe",
+    "sha256":  "03f2c49a155ac38310cfcdd76e051edac3e3e0bc7e818b03dcab8705e5b35a37"
 }
