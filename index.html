@@ -823,21 +823,113 @@
     box-shadow: none !important;
   }
   #turbo-state { margin-left: auto; font-size: 10px; letter-spacing: 0.08em; color: var(--text-muted); }
-  /* ZEN MOON bridge: elenco modelli locali rilevati */
-  #moon-models { display: flex; flex-direction: column; gap: 8px; }
-  #moon-state { margin-left: auto; font-size: 10px; letter-spacing: 0.08em; color: var(--text-muted); }
-  .moon-model {
-    display: flex; align-items: center; gap: 10px; width: 100%; text-align: left;
-    background: rgba(251, 191, 36, 0.06);
-    border: 1px solid rgba(251, 191, 36, 0.35);
-    color: var(--text); border-radius: var(--radius);
-    padding: 9px 11px; cursor: pointer; font-family: var(--font);
+  /* ---------- KOA Autonomia: modelli locali + agente + aura ---------- */
+  #auto-form { display: flex; gap: 8px; }
+  #auto-input {
+    flex: 1; min-width: 0;
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    color: var(--text); font-family: var(--font); font-size: 13px;
+    padding: 8px 10px; outline: none;
   }
-  .moon-model:hover { background: rgba(251, 191, 36, 0.12); }
-  .moon-model .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text-muted); flex-shrink: 0; }
-  .moon-model .dot.ok { background: #4ade80; box-shadow: 0 0 8px rgba(74, 222, 128, 0.6); }
-  .moon-model b { font-size: 12.5px; display: block; }
-  .moon-model small { font-size: 10.5px; color: var(--text-muted); display: block; }
+  #auto-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--orange-dim); }
+  #auto-log {
+    display: flex; flex-direction: column; gap: 6px;
+    max-height: 220px; overflow-y: auto;
+    font-size: 12px; line-height: 1.5;
+  }
+  #auto-log:empty { display: none; }
+  .auto-step {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--line-soft);
+    border-left: 3px solid var(--accent);
+    border-radius: 8px;
+    padding: 7px 10px;
+  }
+  .auto-step b { display: block; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); }
+  .auto-step.done { border-left-color: #4ade80; }
+  .auto-step.error { border-left-color: #e14b4b; }
+  .auto-answer {
+    background: rgba(232, 106, 44, 0.08);
+    border: 1px solid rgba(232, 106, 44, 0.4);
+    border-radius: var(--radius);
+    padding: 10px 12px;
+    white-space: pre-wrap;
+  }
+  /* Barra sottospecie */
+  #group-bar { display: flex; gap: 8px; align-items: center; padding: 6px 10px; overflow-x: auto; }
+  #group-bar[hidden] { display: none; }
+  .gchip {
+    display: flex; align-items: center; gap: 8px; flex-shrink: 0;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid var(--line);
+    color: var(--text); font-family: var(--font); font-size: 12px; font-weight: 600;
+    border-radius: 99px; padding: 5px 8px 5px 12px; cursor: pointer;
+  }
+  .gchip .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--c, var(--accent)); box-shadow: 0 0 8px var(--c, var(--accent)); }
+  .gchip.on { border-color: var(--accent); box-shadow: var(--glow-soft); }
+  .gchip .x {
+    border: none; background: transparent; color: var(--text-muted);
+    font-size: 14px; line-height: 1; cursor: pointer; padding: 2px 4px;
+  }
+  .gchip .x:hover { color: var(--text); }
+  /* Velo aura */
+  #aura-veil { position: fixed; inset: 0; z-index: 900; pointer-events: none; opacity: 0; }
+  #aura-veil[hidden] { display: none; }
+  #aura-veil.show { opacity: 1; animation: aura-sweep 1.15s var(--ease); }
+  #aura-veil::before {
+    content: ""; position: absolute; inset: -20%;
+    background:
+      radial-gradient(420px 200px at 20% 8%, rgba(232, 106, 44, 0.28), transparent 70%),
+      radial-gradient(520px 260px at 80% 12%, rgba(157, 78, 221, 0.22), transparent 70%),
+      radial-gradient(600px 300px at 50% 100%, rgba(232, 168, 60, 0.14), transparent 70%);
+    animation: aura-drift 1.15s var(--ease);
+  }
+  @keyframes aura-sweep { from { opacity: 0; } 25% { opacity: 1; } to { opacity: 1; } }
+  @keyframes aura-drift { from { transform: translateX(-6%) scale(1.05); } to { transform: translateX(6%) scale(1.02); } }
+  body.aura .tab { animation: aura-tab 1.15s var(--ease); }
+  body.aura .card { animation: aura-tab 1.15s var(--ease); }
+  @keyframes aura-tab {
+    0% { box-shadow: 0 0 0 rgba(232, 106, 44, 0); }
+    35% { box-shadow: 0 0 22px rgba(232, 106, 44, 0.55), 0 0 44px rgba(157, 78, 221, 0.3); }
+    100% { box-shadow: 0 0 0 rgba(232, 106, 44, 0); }
+  }
+  /* Finestra modelli */
+  #models-modal {
+    position: fixed; inset: 0; z-index: 800;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(0, 0, 0, 0.55);
+  }
+  #models-modal[hidden] { display: none; }
+  .models-card {
+    width: min(560px, 92vw); max-height: 86vh; overflow-y: auto;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-top: 3px solid var(--accent);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+    padding: 24px 26px;
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .models-card h1 { font-size: 16px; font-weight: 700; letter-spacing: 0.1em; }
+  .models-card .sub { font-size: 12px; color: var(--text-muted); margin-top: -8px; }
+  .model-row {
+    display: flex; align-items: center; gap: 12px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--line-soft);
+    border-radius: var(--radius);
+    padding: 10px 12px;
+  }
+  .model-row .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--text-muted); flex-shrink: 0; }
+  .model-row .dot.ok { background: #4ade80; box-shadow: 0 0 8px rgba(74, 222, 128, 0.6); }
+  .model-row .dot.busy { background: var(--highlight); box-shadow: 0 0 8px rgba(232, 168, 60, 0.6); animation: aura-tab 1s var(--ease) infinite; }
+  .model-row .tx { flex: 1; min-width: 0; }
+  .model-row .tx b { display: block; font-size: 13px; }
+  .model-row .tx small { display: block; font-size: 11px; color: var(--text-muted); }
+  .model-row .bar { height: 5px; background: rgba(255, 255, 255, 0.08); border-radius: 99px; margin-top: 6px; overflow: hidden; display: none; }
+  .model-row .bar.on { display: block; }
+  .model-row .bar i { display: block; height: 100%; width: 0; background: var(--grad); }
   .chan-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; font-size: 12.5px; font-weight: 600; }
   .chan-seg { display: flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
   .chan-seg button {
@@ -1101,6 +1193,9 @@
     </div>
   </div>
 
+  <div id="group-bar" hidden></div>
+  <div id="aura-veil" hidden></div>
+
   <div id="fav-bar" hidden>
     <div id="fav-scroll"></div>
   </div>
@@ -1120,10 +1215,18 @@
           <label class="sup-row"><span>Velocità massima</span><span class="switch"><input type="checkbox" id="turbo-toggle" /><i></i></span></label>
           <div class="sup-note">App leggera + pagine snelle · GPU piena dal prossimo riavvio</div>
         </section>
-        <section class="card" id="card-moon" hidden>
-          <header><span class="card-dot"></span>ZEN MOON<span id="moon-state">…</span></header>
-          <div id="moon-models"></div>
-          <div class="sup-note">Modelli locali da ZEN · si usano in una pagina KOA</div>
+        <section class="card" id="card-auto">
+          <header><span class="card-dot"></span>KOA AUTONOMIA<span id="auto-state">…</span></header>
+          <form id="auto-form">
+            <input id="auto-input" type="text" placeholder="Cerca volo Roma, prenota hotel…" autocomplete="off" spellcheck="false" />
+            <button type="submit" class="btn primary" title="Esegui">Vai</button>
+          </form>
+          <div id="auto-log"></div>
+          <div class="row">
+            <button id="auto-models" class="btn">Modelli</button>
+            <button id="auto-group" class="btn">Raggruppa</button>
+          </div>
+          <div class="sup-note">Micromodelli locali · navigazione autonoma sorvegliata</div>
         </section>
         <section class="card" id="card-chat">
           <header><span class="card-dot"></span>CHAT KOA<button id="chat-summarize" class="mini-btn" title="Riassumi la pagina aperta">Riassumi</button></header>
@@ -1242,6 +1345,18 @@
         <button id="settings-close" class="btn">Chiudi</button>
       </div>
       <button id="app-uninstall" class="btn">Disinstalla completamente KOA</button>
+    </div>
+  </div>
+
+  <div id="models-modal" hidden>
+    <div class="models-card">
+      <h1>MICROMODELLI LOCALI</h1>
+      <div class="sub">Motori sul tuo PC: pianificazione, italiano, azioni web. I pesi restano installati nel dispositivo, verificati a ogni avvio.</div>
+      <div id="models-list"></div>
+      <div class="row">
+        <button id="models-download-all" class="btn primary">Scarica tutti</button>
+        <button id="models-close" class="btn">Chiudi</button>
+      </div>
     </div>
   </div>
 
@@ -1523,7 +1638,6 @@
       tab.crashCount = 0;
       injectKoaScrollbar(webview);
       if (turboOn) applyTurboToWebview(webview, tab);
-      probeZenMoon(webview);
       if (isFocused(id)) updateSiteTint();
     });
     webview.addEventListener('did-navigate-in-page', () => injectKoaScrollbar(webview));
@@ -2471,162 +2585,6 @@
     paintTurbo();
   } catch (e) {}
 
-  // ================= ZEN MOON bridge (sola osservazione: ZEN non viene toccato) =================
-  // Quando una scheda apre ZEN (qualsiasi URL: lo riconosce dalle chiavi MOON in localStorage
-  // della pagina), KOA legge i modelli selezionati e li elenca nella sidebar. Il clic apre
-  // moon.html: pagina KOA con motore locale proprio (stesso catalogo ZEN).
-  const MOON_LABELS = {
-    'SmolLM2-135M-Instruct-q0f16-MLC': 'SmolLM2 135M · ~150MB',
-    'SmolLM2-360M-Instruct-q4f16_1-MLC': 'SmolLM2 360M · ~300MB',
-    'Qwen2.5-0.5B-Instruct-q4f16_1-MLC': 'Qwen 0.5B · ~400MB',
-    'Llama-3.2-1B-Instruct-q4f16_1-MLC': 'Llama 1B · ~800MB',
-    'Qwen2.5-1.5B-Instruct-q4f16_1-MLC': 'Qwen 1.5B · ~1GB · PC',
-    'Qwen2.5-Coder-1.5B-Instruct-q4f16_1-MLC': 'Qwen Coder 1.5B · codice',
-    'Qwen2.5-3B-Instruct-q4f16_1-MLC': 'Qwen 3B · ~2GB',
-    'Qwen2.5-Coder-3B-Instruct-q4f16_1-MLC': 'Qwen Coder 3B · codice',
-    'Llama-3.2-3B-Instruct-q4f16_1-MLC': 'Llama 3B · ~2GB',
-    'Hermes-3-Llama-3.2-3B-q4f16_1-MLC': 'Hermes 3B · creativo'
-  };
-  const MOON_CPU_LABELS = {
-    'qwen2.5-0.5b-instruct-q4_k_m.gguf': 'Qwen 0.5B · CPU',
-    'Qwen2.5-Coder-0.5B-Instruct-Q4_K_M.gguf': 'Qwen Coder 0.5B · CPU',
-    'qwen2.5-1.5b-instruct-q4_k_m.gguf': 'Qwen 1.5B · CPU'
-  };
-  // Inferenza dai pesi scaricati (quando ZEN non ha scritto le chiavi, es. download col default).
-  const MOON_GPU_INFER = [
-    ['smollm2-135m', 'SmolLM2-135M-Instruct-q0f16-MLC'],
-    ['smollm2-360m', 'SmolLM2-360M-Instruct-q4f16_1-MLC'],
-    ['qwen2.5-coder-1.5b', 'Qwen2.5-Coder-1.5B-Instruct-q4f16_1-MLC'],
-    ['qwen2.5-coder-3b', 'Qwen2.5-Coder-3B-Instruct-q4f16_1-MLC'],
-    ['qwen2.5-0.5b', 'Qwen2.5-0.5B-Instruct-q4f16_1-MLC'],
-    ['qwen2.5-1.5b', 'Qwen2.5-1.5B-Instruct-q4f16_1-MLC'],
-    ['qwen2.5-3b', 'Qwen2.5-3B-Instruct-q4f16_1-MLC'],
-    ['llama-3.2-1b', 'Llama-3.2-1B-Instruct-q4f16_1-MLC'],
-    ['llama-3.2-3b', 'Llama-3.2-3B-Instruct-q4f16_1-MLC'],
-    ['hermes-3-llama-3.2-3b', 'Hermes-3-Llama-3.2-3B-q4f16_1-MLC']
-  ];
-  const MOON_CPU_INFER = {
-    'qwen2.5-0.5b-instruct-q4_k_m.gguf': 'Qwen/Qwen2.5-0.5B-Instruct-GGUF',
-    'qwen2.5-coder-0.5b-instruct-q4_k_m.gguf': 'bartowski/Qwen2.5-Coder-0.5B-Instruct-GGUF',
-    'qwen2.5-1.5b-instruct-q4_k_m.gguf': 'Qwen/Qwen2.5-1.5B-Instruct-GGUF'
-  };
-  const moonProbeTimes = new WeakMap();
-  function moonOpen(kind, id) {
-    try {
-      const u = new URL('moon.html', window.location.href);
-      u.searchParams.set('kind', kind);
-      u.searchParams.set('model', id);
-      createTab(u.href);
-    } catch (e) {}
-  }
-  function renderMoonCard() {
-    let origin = '', gpu = '', cpu = '', ready = '';
-    try {
-      origin = localStorage.getItem('koa.zenOrigin') || '';
-      gpu = localStorage.getItem('koa.zenGpu') || '';
-      cpu = localStorage.getItem('koa.zenCpu') || '';
-      ready = localStorage.getItem('koa.zenReady') || '';
-    } catch (e) {}
-    const card = document.getElementById('card-moon');
-    if (!card) return;
-    if (!origin || (!gpu && !cpu)) { card.hidden = true; return; }
-    card.hidden = false;
-    try {
-      let host = origin;
-      try { host = new URL(origin).host; } catch (e) {}
-      document.getElementById('moon-state').textContent = host + (ready === '1' ? ' · pesi pronti' : ' · pesi da scaricare');
-    } catch (e) {}
-    const box = document.getElementById('moon-models');
-    box.innerHTML = '';
-    const mkRow = (kindName, id, label, sub) => {
-      const b = document.createElement('button');
-      b.className = 'moon-model';
-      const dot = document.createElement('span');
-      dot.className = 'dot' + (ready === '1' ? ' ok' : '');
-      const tx = document.createElement('span');
-      const t1 = document.createElement('b');
-      t1.textContent = label;
-      const t2 = document.createElement('small');
-      t2.textContent = sub;
-      tx.append(t1, t2);
-      b.append(dot, tx);
-      b.addEventListener('click', () => moonOpen(kindName, id));
-      box.appendChild(b);
-    };
-    if (gpu) mkRow('gpu', gpu, MOON_LABELS[gpu] || gpu, ready === '1' ? 'WebGPU · apri per usare' : 'WebGPU · si scarica al primo uso');
-    if (cpu && cpu.indexOf('|') !== -1) {
-      const file = cpu.split('|')[1] || '';
-      mkRow('cpu', cpu, MOON_CPU_LABELS[file] || MOON_CPU_LABELS[file.toLowerCase()] || file, 'CPU · senza WebGPU');
-    }
-  }
-  async function probeZenMoon(wv) {
-    try {
-      const now = Date.now();
-      const lastT = moonProbeTimes.get(wv) || 0;
-      if (now - lastT < 10000) return;
-      moonProbeTimes.set(wv, now);
-      let url = '';
-      try { url = wv.getURL() || ''; } catch (e) { return; }
-      if (!/^https?:\/\//i.test(url)) return;
-      const runJS = (code) => wv.executeJavaScript(code, true);
-      let gpu = '';
-      try { gpu = await runJS("try{localStorage.getItem('zen_moon_gpu')||''}catch(e){''}") || ''; } catch (e) { return; }
-      let cpu = '';
-      try { cpu = await runJS("try{localStorage.getItem('zen_moon_cpu')||''}catch(e){''}") || ''; } catch (e) {}
-      // Pesi nella cache del guest: download avvenuto anche senza chiavi (default).
-      let hfUrls = [];
-      try {
-        const r = await runJS("(async()=>{try{const o=[];const ks=await caches.keys();for(const k of ks){const c=await caches.open(k);const rs=await c.keys();for(const x of rs){const u=x.url||'';if(u.indexOf('huggingface.co')!==-1||u.indexOf('cdn-lfs')!==-1){o.push(u);if(o.length>=80)return o}}}return o}catch(e){return[]}})()");
-        if (Array.isArray(r)) hfUrls = r;
-      } catch (e) {}
-      const ready = hfUrls.length > 0;
-      if (!gpu && ready) {
-        const blob = hfUrls.join('\n').toLowerCase();
-        for (const [sub, id] of MOON_GPU_INFER) {
-          if (blob.indexOf(sub) !== -1) { gpu = id; break; }
-        }
-      }
-      if ((!cpu || cpu.indexOf('|') === -1) && ready) {
-        const blob = hfUrls.join('\n').toLowerCase();
-        for (const file of Object.keys(MOON_CPU_INFER)) {
-          if (blob.indexOf(file) !== -1) { cpu = MOON_CPU_INFER[file] + '|' + file; break; }
-        }
-      }
-      if (!gpu && !cpu) return;
-      let first = false;
-      try {
-        first = !localStorage.getItem('koa.zenOrigin');
-        localStorage.setItem('koa.zenOrigin', new URL(url).origin);
-        if (gpu) localStorage.setItem('koa.zenGpu', gpu);
-        if (cpu) localStorage.setItem('koa.zenCpu', cpu);
-        localStorage.setItem('koa.zenReady', ready ? '1' : '0');
-      } catch (e) {}
-      renderMoonCard();
-      if (first) { try { document.getElementById('app').classList.remove('side-collapsed'); } catch (e) {} }
-    } catch (e) {}
-  }
-  renderMoonCard();
-  // ZEN è una pagina singola: il download non ricarica. Ricontrolla ogni 15s
-  // la scheda a fuoco (e quelle sull'origine ZEN nota) finché non spunta.
-  setInterval(() => {
-    try {
-      const seen = new Set();
-      let focused = null;
-      try { focused = (typeof getFocusedTab === 'function') ? getFocusedTab() : null; } catch (e) {}
-      if (focused && focused.webview) { seen.add(focused); probeZenMoon(focused.webview); }
-      let origin = '';
-      try { origin = localStorage.getItem('koa.zenOrigin') || ''; } catch (e) {}
-      if (origin && typeof tabs !== 'undefined') {
-        tabs.forEach((tb) => {
-          if (!tb || seen.has(tb)) return;
-          try {
-            const u = tb.webview.getURL() || '';
-            if (u.indexOf(origin) === 0) { seen.add(tb); probeZenMoon(tb.webview); }
-          } catch (e) {}
-        });
-      }
-    } catch (e) {}
-  }, 15000);
 
   try {
     if (window.browserAPI && window.browserAPI.onSupervisorStats) {
@@ -3858,5 +3816,6 @@
 
   createTab();
 </script>
+<script src="autonomy.js"></script>
 </body>
 </html>

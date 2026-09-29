@@ -83,7 +83,7 @@ if (-not [string]::IsNullOrWhiteSpace($UiVersion)) {
     'vault-preload.js' = 'vault-preload.js'
     'logo.png'   = 'assets/logo.png'
     'start.html' = 'start.html'
-    'moon.html'  = 'moon.html'
+    'autonomy.js' = 'autonomy.js'
     'liquidGL.js' = 'vendor/liquidGL.js'
   }
   $uiBase = 'https://github.com/' + $User + '/' + $Repo + '/releases/download/' + $Tag + '/'

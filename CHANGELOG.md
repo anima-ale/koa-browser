@@ -5,6 +5,16 @@ Scrivi qui la storia delle versioni: per ogni release usa
 mostrato nell'app (Impostazioni → note) va nel parametro `-Notes`
 di `zendate\make-zendate.ps1`, più il testo della Release GitHub.
 
+## [1.0.17] - 2026-09-29
+
+### Aggiunto
+- KOA Autonomia: micromodelli locali (pianificatore, italiano, azioni) con finestra Modelli che scarica, verifica e installa i pesi sul PC
+- Agente autonomo: scompone il comando, apre fino a 3 schede, legge le pagine con alone rosso pulsante sul bordo e risponde con sintesi
+- Sottospecie: tasto Raggruppa con animazione aura, classificazione automatica e chip filtro per topic
+
+### Rimosso
+- moon.html e ponte ZEN MOON (sostituiti dal sistema Autonomia)
+
 ## [Non rilasciato]
 
 ### Aggiunto

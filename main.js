@@ -1167,7 +1167,7 @@ const UI_FILES = {
   'vault-preload.js': 'vault-preload.js',
   'logo.png': 'assets/logo.png',
   'start.html': 'start.html',
-  'moon.html': 'moon.html',
+  'autonomy.js': 'autonomy.js',
   'liquidGL.js': 'vendor/liquidGL.js'
 };
 
