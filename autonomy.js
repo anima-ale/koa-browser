@@ -4,7 +4,8 @@
 const KOA_MODELS = [
   { id: 'SmolLM2-360M-Instruct-q4f16_1-MLC', label: 'Pianificatore', sub: '360M · ~300MB · scompone i comandi', role: 'planner' },
   { id: 'Qwen2.5-0.5B-Instruct-q4f16_1-MLC', label: 'Italiano', sub: '0.5B · ~400MB · capisce e riassume', role: 'italiano' },
-  { id: 'Qwen2.5-Coder-1.5B-Instruct-q4f16_1-MLC', label: 'Azioni web', sub: '1.5B · ~1GB · clic e moduli', role: 'azioni' }
+  { id: 'Qwen2.5-Coder-1.5B-Instruct-q4f16_1-MLC', label: 'Azioni web', sub: '1.5B · ~1GB · clic e moduli', role: 'azioni' },
+  { id: 'Phi-3.5-vision-instruct-q4f16_1-MLC', label: 'Occhi', sub: '3.5B vision · ~2.5GB · vede lo schermo', role: 'occhi' }
 ];
 let koaEngines = {}, koaEnginesLoading = {};
 
@@ -251,6 +252,102 @@ async function agentAct(tab, act) {
   }
   return 'ignoto';
 }
+// ---------- Occhi e tocco vero: screenshot, coordinate, clic nativo ----------
+function shrinkShot(dataUrl, maxW) {
+  return new Promise((resolve, reject) => {
+    try {
+      const img = new Image();
+      img.onload = () => {
+        try {
+          const sc = Math.min(1, maxW / img.width);
+          const w = Math.max(1, Math.round(img.width * sc));
+          const h = Math.max(1, Math.round(img.height * sc));
+          const cv = document.createElement('canvas');
+          cv.width = w; cv.height = h;
+          cv.getContext('2d').drawImage(img, 0, 0, w, h);
+          resolve(cv.toDataURL('image/jpeg', 0.7));
+        } catch (e) { reject(e); }
+      };
+      img.onerror = () => reject(new Error('shot illeggibile'));
+      img.src = dataUrl;
+    } catch (e) { reject(e); }
+  });
+}
+async function agentScreenshot(tab) {
+  let wcId = 0;
+  try { wcId = tab.webview.getWebContentsId(); } catch (e) {}
+  if (!wcId) throw new Error('id webview mancante');
+  if (!window.browserAPI || !window.browserAPI.captureTab) throw new Error('cattura non supportata da questa build');
+  let r = null;
+  try { r = await window.browserAPI.captureTab(wcId); } catch (e) {}
+  if (!r || !r.ok || !r.dataUrl) throw new Error('screenshot fallito');
+  return shrinkShot(r.dataUrl, 768);
+}
+async function agentLocate(tab, target) {
+  const shot = await agentScreenshot(tab);
+  const raw = await koaLocalChat(koaModelByRole('occhi'), [
+    { role: 'system', content: 'Sei il puntatore di un browser. Guarda lo screenshot (coordinate 0-1000, origine in alto a sinistra). Rispondi SOLO con JSON {"x":N,"y":M} del centro esatto del bersaglio. Niente altro testo.' },
+    { role: 'user', content: [
+      { type: 'text', text: 'Bersaglio: ' + String(target).slice(0, 200) },
+      { type: 'image_url', image_url: { url: shot } }
+    ] }
+  ], 256);
+  const clean = raw.replace(/```json|```/g, '').trim();
+  const pt = JSON.parse(clean.slice(clean.indexOf('{'), clean.lastIndexOf('}') + 1));
+  const x = Number(pt.x), y = Number(pt.y);
+  if (!isFinite(x) || !isFinite(y) || x < 0 || x > 1000 || y < 0 || y > 1000) throw new Error('coordinate illeggibili');
+  let rect = { width: 1000, height: 800 };
+  try { rect = tab.webview.getBoundingClientRect(); } catch (e) {}
+  return { x: x / 1000 * rect.width, y: y / 1000 * rect.height };
+}
+async function agentTouch(tab, target) {
+  try { await agentGlow(tab.webview, true); } catch (e) {}
+  try {
+    try { await ensureAutonomyModels(['occhi']); }
+    catch (e) { return 'occhi non pronto'; }
+    const pt = await agentLocate(tab, target);
+    let wcId = 0;
+    try { wcId = tab.webview.getWebContentsId(); } catch (e) { return 'id webview mancante'; }
+    if (!window.browserAPI || !window.browserAPI.clickTab) return 'clic non supportato da questa build';
+    let ok = false;
+    try {
+      const r = await window.browserAPI.clickTab(wcId, Math.round(pt.x), Math.round(pt.y));
+      ok = !!(r && r.ok);
+    } catch (e) {}
+    await waitLoad(tab.webview, 8000);
+    if (ok) return 'toccato ' + Math.round(pt.x) + ',' + Math.round(pt.y);
+    return 'tocco fallito';
+  } finally { try { await agentGlow(tab.webview, false); } catch (e) {} }
+}
+async function agentPageAct(tab, page, cmd) {
+  try { await ensureAutonomyModels(['azioni']); }
+  catch (e) { return false; }
+  let raw;
+  try {
+    raw = await koaLocalChat(koaModelByRole('azioni'), [
+      { role: 'system', content: 'Sei le mani di un browser. Pagina: ' + (page.title || '').slice(0, 80) + '\n' + page.text.slice(0, 1500) + '\n\nRispondi SOLO JSON: {"op":"touch","target":"descrizione elemento da premere"} per toccare cio che serve alla domanda, oppure {"op":"done"}. Niente altro testo.' },
+      { role: 'user', content: 'DOMANDA: ' + cmd.slice(0, 300) }
+    ], 256);
+  } catch (e) { return false; }
+  let act;
+  try {
+    const clean = raw.replace(/```json|```/g, '').trim();
+    act = JSON.parse(clean.slice(clean.indexOf('{'), clean.lastIndexOf('}') + 1));
+  } catch (e) { return false; }
+  if (!act || act.op === 'done') return false;
+  if (act.op === 'touch' && act.target) {
+    autoLog('Tocco', String(act.target).slice(0, 120));
+    const r = await agentTouch(tab, String(act.target));
+    autoLog('Tocco', r, r.indexOf('toccato') === 0 ? 'done' : 'error');
+    return r.indexOf('toccato') === 0;
+  }
+  if ((act.op === 'click' && act.selector) || (act.op === 'type' && act.selector)) {
+    const r = await agentAct(tab, act);
+    autoLog('Azione', r, '');
+    return true;
+  }
+  return false;
+}
 const AGENT_SEARCH = 'https://www.bing.com/search?q=';
 function heuristicPlan(cmd) {
   const queries = [cmd.length > 120 ? cmd.slice(0, 120) : cmd];
@@ -259,10 +356,10 @@ function heuristicPlan(cmd) {
     queries.push('aeroporto piu vicino a me');
   }
   if (queries.length === 1) queries.push(cmd + ' prezzo');
-  return { tabs: queries.slice(0, 3), note: 'euristica' };
+  return { tabs: queries.slice(0, 40), note: 'euristica' };
 }
 async function planWithModel(cmd) {
-  const sys = 'Sei il pianificatore di un browser. Rispondi SOLO con JSON valido, senza testo fuori: {"tabs":["URL https://... oppure query di ricerca", "..."]}. Massimo 3 schede. Per ricerche usa query brevi in italiano.';
+  const sys = 'Sei il pianificatore di un browser. Rispondi SOLO con JSON valido, senza testo fuori: {"tabs":["URL https://... oppure query di ricerca", "..."]}. Massimo 40 schede. Per ricerche usa query brevi in italiano.';
   const raw = await koaLocalChat(koaModelByRole('planner'), [
     { role: 'system', content: sys },
     { role: 'user', content: cmd.slice(0, 500) }
@@ -272,7 +369,7 @@ async function planWithModel(cmd) {
   if (start === -1 || end === -1) throw new Error('piano illeggibile');
   const plan = JSON.parse(clean.slice(start, end + 1));
   if (!plan || !Array.isArray(plan.tabs) || !plan.tabs.length) throw new Error('piano vuoto');
-  return { tabs: plan.tabs.filter(t => typeof t === 'string' && t.trim()).slice(0, 3), note: 'modello' };
+  return { tabs: plan.tabs.filter(t => typeof t === 'string' && t.trim()).slice(0, 40), note: 'modello' };
 }
 function autoLog(title, body, cls) {
   try {
@@ -290,6 +387,7 @@ function autoLog(title, body, cls) {
     }
     box.appendChild(d);
     box.scrollTop = box.scrollHeight;
+    while (box.children.length > 80) box.removeChild(box.firstChild);
   } catch (e) {}
 }
 function autoAnswer(text) {
@@ -313,7 +411,7 @@ async function koaAutonomyRun(cmd) {
   if (!cmd) return;
   autoRunning = true;
   autoState('al lavoro…');
-  const deadline = Date.now() + 120000;
+  const deadline = Date.now() + 1200000;
   try {
     autoLog('Comando', cmd);
     try { await ensureAutonomyModels(['planner', 'italiano']); }
@@ -327,7 +425,7 @@ async function koaAutonomyRun(cmd) {
     let n = 0;
     for (const item of plan.tabs) {
       if (Date.now() > deadline) { autoLog('Tempo', 'scaduto: chiudo con quanto raccolto', 'error'); break; }
-      if (++n > 3) break;
+      if (++n > 40) break;
       const url = /^https?:\/\//i.test(item) ? item : AGENT_SEARCH + encodeURIComponent(item);
       let tabId;
       try { tabId = createTab(url); }
@@ -341,6 +439,18 @@ async function koaAutonomyRun(cmd) {
       try { await agentGlow(tab.webview, false); } catch (e) {}
       if (page.text) collected.push('FONTE ' + n + ' (' + (page.title || url).slice(0, 80) + '):\n' + page.text.slice(0, 2500));
       else autoLog('Lettura', 'pagina vuota o protetta', 'error');
+      // Un giro di mani: il modello azioni decide se toccare/cliccare, poi rileggo.
+      if (page.text && Date.now() < deadline) {
+        try {
+          const acted = await agentPageAct(tab, page, cmd);
+          if (acted) {
+            const page2 = await agentRead(tab);
+            if (page2.text && page2.text !== page.text) {
+              collected.push('FONTE ' + n + 'b (' + (page2.title || url).slice(0, 80) + ', dopo azione):\n' + page2.text.slice(0, 2500));
+            }
+          }
+        } catch (e) {}
+      }
     }
     if (!collected.length) { autoLog('Risultato', 'nessuna pagina leggibile', 'error'); autoState('fermo'); autoRunning = false; return; }
     autoLog('Sintesi', 'unisco i risultati…');

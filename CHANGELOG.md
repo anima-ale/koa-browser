@@ -9,7 +9,8 @@ di `zendate\make-zendate.ps1`, più il testo della Release GitHub.
 
 ### Aggiunto
 - KOA Autonomia: micromodelli locali (pianificatore, italiano, azioni) con finestra Modelli che scarica, verifica e installa i pesi sul PC
-- Agente autonomo: scompone il comando, apre fino a 3 schede, legge le pagine con alone rosso pulsante sul bordo e risponde con sintesi
+- Agente autonomo: scompone il comando, apre fino a 40 schede, legge le pagine con alone rosso pulsante sul bordo e risponde con sintesi
+- Occhi e tocco vero: modello vision locale che vede lo screenshot, localizza gli elementi e li preme con clic nativi (screenshot + coordinate + sendInputEvent)
 - Sottospecie: tasto Raggruppa con animazione aura, classificazione automatica e chip filtro per topic
 
 ### Rimosso

@@ -631,6 +631,28 @@ ipcMain.handle('zen:inspect', (_e, id, x, y) => {
   if (!c) return;
   try { c.inspectElement(Math.round(x || 0), Math.round(y || 0)); } catch (e) {}
 });
+// Occhi dell'agente: screenshot del guest per il modello vision.
+ipcMain.handle('zen:capture-tab', async (_e, wcId) => {
+  try {
+    const c = webContents.fromId(Number(wcId));
+    if (!c || c.isDestroyed()) return { ok: false };
+    const img = await c.capturePage();
+    return { ok: true, dataUrl: img.toDataURL() };
+  } catch (e) { return { ok: false }; }
+});
+// Tocco vero dell'agente: eventi mouse nativi sul guest.
+ipcMain.handle('zen:click-tab', (_e, wcId, x, y) => {
+  try {
+    const c = webContents.fromId(Number(wcId));
+    if (!c || c.isDestroyed()) return { ok: false };
+    const px = Math.max(0, Math.round(Number(x) || 0));
+    const py = Math.max(0, Math.round(Number(y) || 0));
+    c.sendInputEvent({ type: 'mouseMove', x: px, y: py });
+    c.sendInputEvent({ type: 'mouseDown', x: px, y: py, button: 'left', clickCount: 1 });
+    c.sendInputEvent({ type: 'mouseUp', x: px, y: py, button: 'left', clickCount: 1 });
+    return { ok: true };
+  } catch (e) { return { ok: false }; }
+});
 ipcMain.handle('zen:print-tab', (_e, id) => {
   const c = guestContents(id);
   if (c) { try { c.print({ silent: false }); } catch (e) {} }

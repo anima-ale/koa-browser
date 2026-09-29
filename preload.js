@@ -30,6 +30,8 @@ contextBridge.exposeInMainWorld('browserAPI', {
   copyText: (text) => ipcRenderer.invoke('zen:copy-text', text),
   editAction: (id, action) => ipcRenderer.invoke('zen:edit-action', id, action),
   inspectTab: (id, x, y) => ipcRenderer.invoke('zen:inspect', id, x, y),
+  captureTab: (wcId) => ipcRenderer.invoke('zen:capture-tab', wcId),
+  clickTab: (wcId, x, y) => ipcRenderer.invoke('zen:click-tab', wcId, x, y),
   printTab: (id) => ipcRenderer.invoke('zen:print-tab', id),
   zoomTab: (id, mode) => ipcRenderer.invoke('zen:zoom-tab', id, mode),
   toggleFullscreen: () => ipcRenderer.invoke('zen:fullscreen'),
