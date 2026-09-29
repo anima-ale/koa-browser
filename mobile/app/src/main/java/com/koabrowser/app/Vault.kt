@@ -3,7 +3,7 @@ package com.koabrowser.app
 import android.content.Context
 import android.webkit.WebView
 import androidx.security.crypto.EncryptedSharedPreferences
-import androidx.security.crypto.MasterKey
+import androidx.security.crypto.MasterKeys
 import java.security.MessageDigest
 
 // KOA Vault Mobile: PIN + password cifrate (Android Keystore).
@@ -50,9 +50,9 @@ object VaultStore {
     }
 
     private fun enc(c: Context): android.content.SharedPreferences {
-        val mk = MasterKey.Builder(c).setKeyScheme(MasterKey.KeyScheme.AES256_GCM).build()
+        val alias = MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC)
         return EncryptedSharedPreferences.create(
-            c, FILE, mk,
+            FILE, alias, c,
             EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
             EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
         )

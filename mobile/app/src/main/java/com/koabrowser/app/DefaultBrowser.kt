@@ -25,19 +25,17 @@ object DefaultBrowser {
 
     fun request(a: Activity, done: (Boolean) -> Unit) {
         try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            if (Build.VERSION.SDK_INT >= 35) {
                 val rm = a.getSystemService(RoleManager::class.java) as RoleManager
-                if (rm.isRoleAvailable(RoleManager.ROLE_BROWSER) && !rm.isRoleHeld(RoleManager.ROLE_BROWSER)) {
-                    rm.requestRole(RoleManager.ROLE_BROWSER, a.mainExecutor, { granted ->
-                        try {
-                            done(granted)
-                        } catch (e: Exception) {
-                        }
-                    })
+                if (rm.isRoleAvailable(RoleManager.ROLE_BROWSER)) {
+                    if (rm.isRoleHeld(RoleManager.ROLE_BROWSER)) {
+                        done(true)
+                        return
+                    }
+                    a.startActivity(rm.createRequestRoleIntent(RoleManager.ROLE_BROWSER))
+                    done(false)
                     return
                 }
-                done(rm.isRoleHeld(RoleManager.ROLE_BROWSER))
-                return
             }
         } catch (e: Exception) {
         }

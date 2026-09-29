@@ -41,15 +41,7 @@ class DownloadsActivity : AppCompatActivity() {
         items.clear()
         try {
             val dm = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-            val q = DownloadManager.Query()
-            try {
-                q.orderBy(
-                    DownloadManager.COLUMN_LAST_MODIFIED_TIMESTAMP,
-                    DownloadManager.Query.ORDER_DESCENDING
-                )
-            } catch (e: Exception) {
-            }
-            val c: Cursor = dm.query(q)
+            val c: Cursor = dm.query(DownloadManager.Query())
             while (c.moveToNext()) {
                 val id = c.getLong(c.getColumnIndexOrThrow(DownloadManager.COLUMN_ID))
                 val name = try {
@@ -75,6 +67,7 @@ class DownloadsActivity : AppCompatActivity() {
                 items.add(Dl(id, name, stateText(st, done, total)))
             }
             c.close()
+            items.sortByDescending { it.id }
         } catch (e: Exception) {
         }
         if (items.isEmpty()) {
