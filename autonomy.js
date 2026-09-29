@@ -93,14 +93,30 @@ async function missingAutonomyModels(roles) {
     .filter(m => m && (!st[m.id] || st[m.id].state !== 'ok'));
 }
 // Nucleo download senza interfaccia (lo riusano finestra e fetch automatico).
+// Riprova fino a 3 volte: su reti instabili gli shard falliscono e ripartono.
 async function fetchAutonomyModel(id, onPct) {
-  await koaLocalChat(id, [{ role: 'user', content: 'ok' }], 8, onPct);
-  const ok = await autonomyVerify(id);
-  if (!ok) throw new Error('verifica pesi fallita');
-  const reg = autonomyReg();
-  reg[id] = { state: 'ok', size: '', at: Date.now() };
-  autonomySave(reg);
-  await koaLocalChat(id, [{ role: 'user', content: 'rispondi solo con la parola: pronto' }], 16);
+  let lastErr = new Error('download fallito');
+  for (let t = 1; t <= 3; t++) {
+    try {
+      if (t > 1) {
+        try { delete koaEngines[id]; } catch (e) {}
+        autoLog('Download', 'tentativo ' + t + '/3…', '');
+      }
+      await koaLocalChat(id, [{ role: 'user', content: 'ok' }], 8, onPct);
+      if (await autonomyVerify(id)) {
+        const reg = autonomyReg();
+        reg[id] = { state: 'ok', size: '', at: Date.now() };
+        autonomySave(reg);
+        await koaLocalChat(id, [{ role: 'user', content: 'rispondi solo con la parola: pronto' }], 16);
+        return;
+      }
+      lastErr = new Error('pesi incompleti (rete instabile), riprovo da solo');
+    } catch (e) {
+      lastErr = e;
+      try { delete koaEngines[id]; } catch (err) {}
+    }
+  }
+  throw lastErr;
 }
 let pendingAutoCmd = null, pendingAutoFetch = [], autoFetchSkip = false, prefetchChecked = null;
 function hideFetchBox() {
@@ -133,7 +149,9 @@ async function autoFetchMissing(models) {
 let lastFetchPct = {};
 function autoLogProgress(label, pct) {
   try {
-    if (Math.abs(pct - (lastFetchPct[label] || -10)) < 10 && pct !== 100) return;
+    const last = (lastFetchPct[label] == null) ? -10 : lastFetchPct[label];
+    if (pct === 100 && last === 100) return;
+    if (Math.abs(pct - last) < 10 && pct !== 100) return;
     lastFetchPct[label] = pct;
     autoLog('Download', label + ' ' + pct + '%', '');
   } catch (e) {}

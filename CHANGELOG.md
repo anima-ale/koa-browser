@@ -17,6 +17,9 @@ di `zendate\make-zendate.ps1`, più il testo della Release GitHub.
 ### Rimosso
 - moon.html e ponte ZEN MOON (sostituiti dal sistema Autonomia)
 
+### Corretto
+- Download micromodelli con 3 tentativi automatici su reti instabili (niente più loop 0-100)
+
 ## [Non rilasciato]
 
 ### Aggiunto
