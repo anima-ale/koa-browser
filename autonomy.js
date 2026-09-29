@@ -2,10 +2,10 @@
 // Tre micromodelli sul PC (pianificatore, italiano, azioni). Pesi in CacheStorage,
 // registro in localStorage, verifica reale a ogni avvio. Niente cloud, niente emoji.
 const KOA_MODELS = [
-  { id: 'SmolLM2-360M-Instruct-q4f16_1-MLC', label: 'Pianificatore', sub: '360M · ~300MB · scompone i comandi', role: 'planner' },
-  { id: 'Qwen2.5-0.5B-Instruct-q4f16_1-MLC', label: 'Italiano', sub: '0.5B · ~400MB · capisce e riassume', role: 'italiano' },
-  { id: 'Qwen2.5-Coder-1.5B-Instruct-q4f16_1-MLC', label: 'Azioni web', sub: '1.5B · ~1GB · clic e moduli', role: 'azioni' },
-  { id: 'Phi-3.5-vision-instruct-q4f16_1-MLC', label: 'Occhi', sub: '3.5B vision · ~2.5GB · vede lo schermo', role: 'occhi' }
+  { id: 'SmolLM2-360M-Instruct-q4f16_1-MLC', label: 'Pianificatore', sub: '360M · ~300MB · scompone i comandi', role: 'planner', gb: 0.3 },
+  { id: 'Qwen2.5-0.5B-Instruct-q4f16_1-MLC', label: 'Italiano', sub: '0.5B · ~400MB · capisce e riassume', role: 'italiano', gb: 0.4 },
+  { id: 'Qwen2.5-Coder-1.5B-Instruct-q4f16_1-MLC', label: 'Azioni web', sub: '1.5B · ~1GB · clic e moduli', role: 'azioni', gb: 1 },
+  { id: 'Phi-3.5-vision-instruct-q4f16_1-MLC', label: 'Occhi', sub: '3.5B vision · ~2.5GB · vede lo schermo', role: 'occhi', gb: 2.5 }
 ];
 let koaEngines = {}, koaEnginesLoading = {};
 
@@ -83,11 +83,60 @@ function koaModelByRole(role) {
   return m ? m.id : KOA_MODELS[0].id;
 }
 async function ensureAutonomyModels(roles) {
+  const missing = await missingAutonomyModels(roles);
+  if (missing.length) throw new Error('manca ' + missing.map(m => m.label).join(', ') + ': apri Modelli e scaricali');
+}
+async function missingAutonomyModels(roles) {
   const st = await autonomyStatus();
-  const missing = (roles || ['planner', 'italiano'])
+  return (roles || [])
     .map(r => KOA_MODELS.find(m => m.role === r))
     .filter(m => m && (!st[m.id] || st[m.id].state !== 'ok'));
-  if (missing.length) throw new Error('manca ' + missing.map(m => m.label).join(', ') + ': apri Modelli e scaricali');
+}
+// Nucleo download senza interfaccia (lo riusano finestra e fetch automatico).
+async function fetchAutonomyModel(id, onPct) {
+  await koaLocalChat(id, [{ role: 'user', content: 'ok' }], 8, onPct);
+  const ok = await autonomyVerify(id);
+  if (!ok) throw new Error('verifica pesi fallita');
+  const reg = autonomyReg();
+  reg[id] = { state: 'ok', size: '', at: Date.now() };
+  autonomySave(reg);
+  await koaLocalChat(id, [{ role: 'user', content: 'rispondi solo con la parola: pronto' }], 16);
+}
+let pendingAutoCmd = null, pendingAutoFetch = [], autoFetchSkip = false, prefetchChecked = null;
+function hideFetchBox() {
+  try { document.getElementById('auto-fetch').hidden = true; } catch (e) {}
+}
+function showFetchBox(models) {
+  try {
+    const gb = models.reduce((s, m) => s + (m.gb || 0), 0);
+    document.getElementById('auto-fetch-text').textContent =
+      'Servono i micromodelli (' + models.map(m => m.label).join(', ') + ', circa ' + gb.toFixed(1).replace('.', ',') + ' GB). Li scarico ora?';
+    document.getElementById('auto-fetch').hidden = false;
+  } catch (e) {}
+}
+async function autoFetchMissing(models) {
+  for (const m of models) {
+    autoLog('Download', m.label + ' (' + m.sub + ')…');
+    try {
+      await fetchAutonomyModel(m.id, (pct) => autoLogProgress(m.label, pct));
+      autoLog('Download', m.label + ' pronto', 'done');
+    } catch (e) {
+      autoLog('Download', m.label + ': ' + (e.message || 'fallito'), 'error');
+      return false;
+    }
+  }
+  try {
+    if (!modelsModal.hidden) renderAutonomyModels(await autonomyStatus());
+  } catch (e) {}
+  return true;
+}
+let lastFetchPct = {};
+function autoLogProgress(label, pct) {
+  try {
+    if (Math.abs(pct - (lastFetchPct[label] || -10)) < 10 && pct !== 100) return;
+    lastFetchPct[label] = pct;
+    autoLog('Download', label + ' ' + pct + '%', '');
+  } catch (e) {}
 }
 
 // ---------- Finestra modelli ----------
@@ -145,15 +194,9 @@ async function downloadAutonomyModel(id) {
   const els = autonomyRowEls(id);
   try {
     if (els) { els.dot.className = 'dot busy'; els.bar.classList.add('on'); els.btn.disabled = true; }
-    await koaLocalChat(id, [{ role: 'user', content: 'ok' }], 8, (pct) => {
+    await fetchAutonomyModel(id, (pct) => {
       if (els) els.fill.style.width = pct + '%';
     });
-    const ok = await autonomyVerify(id);
-    if (!ok) throw new Error('verifica pesi fallita');
-    const reg = autonomyReg();
-    reg[id] = { state: 'ok', size: '', at: Date.now() };
-    autonomySave(reg);
-    await koaLocalChat(id, [{ role: 'user', content: 'rispondi solo con la parola: pronto' }], 16);
   } catch (e) {
     try { if (els) els.sub.textContent += ' · errore: ' + (e.message || 'download'); } catch (err) {}
     return;
@@ -414,8 +457,34 @@ async function koaAutonomyRun(cmd) {
   const deadline = Date.now() + 1200000;
   try {
     autoLog('Comando', cmd);
-    try { await ensureAutonomyModels(['planner', 'italiano']); }
-    catch (e) { autoLog('Modelli mancanti', e.message || 'scaricali', 'error'); autoState('fermo'); autoRunning = false; return; }
+    const need = await missingAutonomyModels(['planner', 'italiano']);
+    if (need.length) {
+      let pre = false;
+      try {
+        if (prefetchChecked == null && window.browserAPI && window.browserAPI.modelsPrefetch) {
+          const r = await window.browserAPI.modelsPrefetch();
+          prefetchChecked = !!(r && r.prefetch);
+        }
+        pre = !!prefetchChecked;
+      } catch (e) {}
+      if (pre) {
+        autoLog('Setup', 'scarico i micromodelli scelti in installazione…');
+        const ok = await autoFetchMissing(need);
+        if (!ok) { autoState('fermo'); autoRunning = false; return; }
+      } else if (!autoFetchSkip) {
+        pendingAutoCmd = cmd;
+        pendingAutoFetch = need;
+        showFetchBox(need);
+        autoState('fermo');
+        autoRunning = false;
+        return;
+      } else {
+        autoLog('Modelli mancanti', 'servono: ' + need.map(m => m.label).join(', '), 'error');
+        autoState('fermo');
+        autoRunning = false;
+        return;
+      }
+    }
     autoLog('Piano', 'scompongo la richiesta…');
     let plan;
     try { plan = await planWithModel(cmd); }
@@ -620,6 +689,22 @@ try {
   document.getElementById('auto-models').addEventListener('click', openAutonomyModels);
   document.getElementById('auto-group').addEventListener('click', koaGroupTabs);
   document.getElementById('models-close').addEventListener('click', closeAutonomyModels);
+  document.getElementById('fetch-accept').addEventListener('click', async () => {
+    hideFetchBox();
+    const cmd = pendingAutoCmd, need = pendingAutoFetch;
+    pendingAutoCmd = null; pendingAutoFetch = [];
+    if (!cmd || !need.length) return;
+    autoState('scarico…');
+    const ok = await autoFetchMissing(need);
+    if (ok) koaAutonomyRun(cmd);
+    else autoState('fermo');
+  });
+  document.getElementById('fetch-later').addEventListener('click', () => {
+    autoFetchSkip = true;
+    pendingAutoCmd = null; pendingAutoFetch = [];
+    hideFetchBox();
+    autoLog('Download', 'rimandato: apri Modelli quando vuoi', '');
+  });
   document.getElementById('models-download-all').addEventListener('click', async () => {
     for (const m of KOA_MODELS) {
       try {

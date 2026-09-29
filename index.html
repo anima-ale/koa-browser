@@ -840,6 +840,16 @@
     font-size: 12px; line-height: 1.5;
   }
   #auto-log:empty { display: none; }
+  #auto-fetch {
+    background: rgba(232, 106, 44, 0.07);
+    border: 1px solid rgba(232, 106, 44, 0.45);
+    border-radius: var(--radius);
+    padding: 10px 12px;
+    display: flex; flex-direction: column; gap: 8px;
+    box-shadow: var(--glow-soft);
+  }
+  #auto-fetch[hidden] { display: none; }
+  #auto-fetch-text { font-size: 12.5px; font-weight: 600; }
   .auto-step {
     background: rgba(0, 0, 0, 0.3);
     border: 1px solid var(--line-soft);
@@ -1222,6 +1232,13 @@
             <button type="submit" class="btn primary" title="Esegui">Vai</button>
           </form>
           <div id="auto-log"></div>
+          <div id="auto-fetch" hidden>
+            <div id="auto-fetch-text"></div>
+            <div class="row">
+              <button id="fetch-accept" class="btn primary">Scarica ora</button>
+              <button id="fetch-later" class="btn">Più tardi</button>
+            </div>
+          </div>
           <div class="row">
             <button id="auto-models" class="btn">Modelli</button>
             <button id="auto-group" class="btn">Raggruppa</button>

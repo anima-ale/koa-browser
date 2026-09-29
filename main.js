@@ -3,7 +3,7 @@ const path = require('path');
 const fs = require('fs');
 const os = require('os');
 const crypto = require('crypto');
-const { spawn } = require('child_process');
+const { spawn, execSync } = require('child_process');
 
 // Niente barra dei menu File/Edit/View: finestra pulita stile browser.
 Menu.setApplicationMenu(null);
@@ -367,6 +367,24 @@ ipcMain.handle('zen:set-turbo', (_e, on) => {
     }
   } catch (e) {}
   return { on: !!on };
+});
+
+// Scelta setup micromodelli: letta una tantum dal registry (scritta dalla
+// pagina custom NSIS), poi cancellata. Portable: assente, si chiede in app.
+function readFetchModelsPref() {
+  if (process.platform !== 'win32') return null;
+  try {
+    const out = execSync('reg query "HKCU\\Software\\KOA Browser" /v FetchModels',
+      { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+    const m = String(out || '').match(/FetchModels\s+REG_\w+\s+(\S+)/);
+    return m ? m[1] : null;
+  } catch (e) { return null; }
+}
+ipcMain.handle('zen:models-prefetch', () => {
+  const v = readFetchModelsPref();
+  try { execSync('reg delete "HKCU\\Software\\KOA Browser" /v FetchModels /f',
+    { stdio: ['ignore', 'ignore', 'ignore'] }); } catch (e) {}
+  return { prefetch: v === '1' };
 });
 
 ipcMain.handle('zen:uninstall', async () => {

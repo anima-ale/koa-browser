@@ -16,6 +16,7 @@ contextBridge.exposeInMainWorld('browserAPI', {
   updateRestartNow: () => ipcRenderer.invoke('zen:update-restart-now'),
   updateRestartLater: () => ipcRenderer.invoke('zen:update-restart-later'),
   setTurbo: (on) => ipcRenderer.invoke('zen:set-turbo', !!on),
+  modelsPrefetch: () => ipcRenderer.invoke('zen:models-prefetch'),
   setChannel: (ch) => ipcRenderer.invoke('zen:set-channel', ch),
   uninstallApp: () => ipcRenderer.invoke('zen:uninstall'),
   toggleDevTools: () => ipcRenderer.invoke('zen:toggle-devtools'),
