@@ -101,11 +101,11 @@
             <LinearLayout
                 android:id="@+id/navTabs"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="52dp"
                 android:layout_weight="1"
                 android:orientation="vertical"
                 android:gravity="center"
-                android:padding="6dp">
+                android:padding="2dp">
                 <ImageView
                     android:layout_width="24dp"
                     android:layout_height="24dp"
@@ -122,7 +122,7 @@
             <ImageButton
                 android:id="@+id/navNew"
                 android:layout_width="0dp"
-                android:layout_height="48dp"
+                android:layout_height="52dp"
                 android:layout_weight="1"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:src="@drawable/ic_plus"
@@ -131,7 +131,7 @@
             <ImageButton
                 android:id="@+id/navHome"
                 android:layout_width="0dp"
-                android:layout_height="48dp"
+                android:layout_height="52dp"
                 android:layout_weight="1"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:src="@drawable/ic_home"
@@ -140,7 +140,7 @@
             <ImageButton
                 android:id="@+id/navDl"
                 android:layout_width="0dp"
-                android:layout_height="48dp"
+                android:layout_height="52dp"
                 android:layout_weight="1"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:src="@drawable/ic_download"
@@ -149,7 +149,7 @@
             <ImageButton
                 android:id="@+id/navChat"
                 android:layout_width="0dp"
-                android:layout_height="48dp"
+                android:layout_height="52dp"
                 android:layout_weight="1"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:src="@drawable/ic_chat"
@@ -238,55 +238,49 @@
                 android:id="@+id/drawerChat"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@drawable/btn_ghost"
+                style="@style/KoaDrawerBtn"
                 android:drawableStart="@drawable/ic_chat"
-                android:text="Chat KOA"
-                android:textColor="@color/koa_cream" />
+                android:text="Chat KOA" />
 
             <Button
                 android:id="@+id/drawerMoon"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@drawable/btn_ghost"
+                style="@style/KoaDrawerBtn"
                 android:drawableStart="@drawable/ic_moon"
-                android:text="ZEN Moon locale"
-                android:textColor="@color/koa_cream" />
+                android:text="ZEN Moon locale" />
 
             <Button
                 android:id="@+id/drawerDl"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@drawable/btn_ghost"
+                style="@style/KoaDrawerBtn"
                 android:drawableStart="@drawable/ic_download"
-                android:text="Download"
-                android:textColor="@color/koa_cream" />
+                android:text="Download" />
 
             <Button
                 android:id="@+id/drawerVault"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@drawable/btn_ghost"
+                style="@style/KoaDrawerBtn"
                 android:drawableStart="@drawable/ic_lock"
-                android:text="KOA Vault"
-                android:textColor="@color/koa_cream" />
+                android:text="KOA Vault" />
 
             <Button
                 android:id="@+id/drawerSettings"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@drawable/btn_ghost"
+                style="@style/KoaDrawerBtn"
                 android:drawableStart="@drawable/ic_settings"
-                android:text="Impostazioni"
-                android:textColor="@color/koa_cream" />
+                android:text="Impostazioni" />
 
             <Button
                 android:id="@+id/drawerExit"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@drawable/btn_ghost"
+                style="@style/KoaDrawerBtn"
                 android:drawableStart="@drawable/ic_close"
-                android:text="Esci"
-                android:textColor="@color/koa_cream" />
+                android:text="Esci" />
         </LinearLayout>
     </ScrollView>
 </androidx.drawerlayout.widget.DrawerLayout>

@@ -260,7 +260,8 @@ class MainActivity : AppCompatActivity() {
     private fun refreshTabUi() {
         val w = current()
         if (!urlBar.hasFocus()) {
-            urlBar.setText(w?.url ?: "")
+            val u = w?.url ?: ""
+            urlBar.setText(if (u.startsWith("file:///android_asset/")) "" else u)
         }
         tabCount.text = tabs.size.toString()
         tabAdapter.notifyDataSetChanged()
