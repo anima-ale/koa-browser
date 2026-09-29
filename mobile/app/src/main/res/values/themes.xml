@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.KOA" parent="Theme.AppCompat.NoActionBar">
+        <item name="colorPrimary">@color/koa_orange</item>
+        <item name="colorPrimaryDark">@color/koa_wood2</item>
+        <item name="colorAccent">@color/koa_amber</item>
+        <item name="android:statusBarColor">@color/koa_wood2</item>
+        <item name="android:navigationBarColor">@color/koa_wood2</item>
+        <item name="android:windowBackground">@drawable/splash</item>
+        <item name="android:textColorPrimary">@color/koa_cream</item>
+        <item name="android:textColorSecondary">@color/koa_muted</item>
+        <item name="android:editTextBackground">@drawable/field_bg</item>
+    </style>
+</resources>

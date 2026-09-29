@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/koa_bg"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/vault_title"
+            android:textColor="@color/koa_cream"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:id="@+id/vaultPinBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="12dp">
+
+            <EditText
+                android:id="@+id/vaultPin"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/field_bg"
+                android:textColor="@color/koa_cream"
+                android:hint="PIN"
+                android:inputType="numberPassword"
+                android:textSize="14sp" />
+
+            <Button
+                android:id="@+id/vaultUnlock"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/btn_primary"
+                android:text="Sblocca"
+                android:textColor="#2A1C12" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/vaultOpenBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="12dp"
+            android:visibility="gone">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/vaultList"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:nestedScrollingEnabled="false" />
+
+            <Button
+                android:id="@+id/vaultAdd"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/btn_primary"
+                android:text="+ Nuova"
+                android:textColor="#2A1C12" />
+
+            <Button
+                android:id="@+id/vaultLockBtn"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/btn_ghost"
+                android:text="Blocca"
+                android:textColor="@color/koa_cream" />
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>

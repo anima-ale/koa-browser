@@ -5,5 +5,10 @@ dist-test/
 *.log
 .DS_Store
 Thumbs.db
+# Build Android (generati in locale da Android Studio)
+mobile/.gradle/
+mobile/app/build/
+mobile/build/
+local.properties
 # Manifest generato in locale (quello vero si pubblica a mano o via bat)
 # zendate/zendate.json

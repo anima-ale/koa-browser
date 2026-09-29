@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KOA Browser — Teaser Ufficiale</title>
+<style>
+  :root{
+    --vermiglio:#E8441B;
+    --vermiglio-soft:#FF6A3D;
+    --legno:#0D0906;
+    --legno2:#17100A;
+    --carta:#F5EDE0;
+    --oro:#C9A86A;
+    --vetro:rgba(255,255,255,.08);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%;background:#000;overflow:hidden;font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:var(--carta)}
+  #stage{position:fixed;inset:0;background:radial-gradient(120% 90% at 50% 10%, #241209 0%, var(--legno) 45%, #000 100%);overflow:hidden}
+  /* texture legno */
+  #stage::before{content:"";position:absolute;inset:0;opacity:.35;pointer-events:none;
+    background:
+      repeating-linear-gradient(92deg, rgba(255,255,255,.018) 0 2px, transparent 2px 7px),
+      repeating-linear-gradient(88deg, rgba(0,0,0,.35) 0 3px, transparent 3px 9px),
+      radial-gradient(80% 60% at 50% 0%, rgba(232,68,27,.12), transparent 60%);
+    mix-blend-mode:overlay}
+  /* grain */
+  #grain{position:absolute;inset:-50%;width:200%;height:200%;opacity:.07;pointer-events:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='0.9'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+    animation:grain 1.2s steps(4) infinite}
+  @keyframes grain{0%{transform:translate(0,0)}25%{transform:translate(-2%,1%)}50%{transform:translate(1%,-2%)}75%{transform:translate(-1%,2%)}100%{transform:translate(0,0)}}
+  canvas#petali{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;opacity:.9}
+  /* letterbox */
+  .bar{position:absolute;left:0;right:0;height:9vh;background:#000;z-index:30;transition:height 1.2s cubic-bezier(.16,1,.3,1)}
+  .bar.top{top:0}.bar.bottom{bottom:0;display:flex;align-items:center;justify-content:space-between;padding:0 3vw}
+  body.cinema .bar{height:11vh}
+  /* scene */
+  .scene{position:absolute;inset:9vh 0 9vh 0;display:flex;align-items:center;justify-content:center;padding:4vh 7vw;opacity:0;transform:scale(1.04) translateY(18px);transition:opacity .9s ease,transform 1.1s cubic-bezier(.16,1,.3,1);pointer-events:none;z-index:10}
+  .scene.active{opacity:1;transform:scale(1) translateY(0);pointer-events:auto}
+  .scene.leaving{opacity:0;transform:scale(.985) translateY(-14px)}
+  .kicker{letter-spacing:.45em;font-size:clamp(10px,1.1vw,13px);color:var(--oro);text-transform:uppercase;margin-bottom:1.6vh}
+  h1,h2{font-weight:800;line-height:.95;letter-spacing:-.02em}
+  h1{font-size:clamp(48px,8.5vw,132px)}
+  h2{font-size:clamp(32px,4.6vw,72px)}
+  .verm{color:var(--vermiglio)}
+  .sub{margin-top:2vh;font-size:clamp(14px,1.5vw,20px);line-height:1.6;color:rgba(245,237,224,.78);max-width:62ch;font-weight:400}
+  .kanji-bg{position:absolute;font-size:62vh;line-height:1;opacity:.07;font-weight:900;right:2vw;top:50%;transform:translateY(-50%);pointer-events:none;user-select:none;color:var(--carta)}
+  /* logo */
+  .logo-wrap{display:flex;align-items:center;gap:2vw}
+  .logo-img{width:clamp(84px,10vw,148px);height:clamp(84px,10vw,148px);border-radius:28px;box-shadow:0 18px 80px rgba(232,68,27,.45), 0 2px 0 rgba(255,255,255,.2) inset;object-fit:cover;background:#1a0f08}
+  .hanko{display:inline-flex;align-items:center;justify-content:center;width:1.6em;height:1.6em;background:var(--vermiglio);color:#fff;border-radius:6px;font-weight:900;box-shadow:0 6px 24px rgba(232,68,27,.5);transform:rotate(-4deg)}
+  /* abstract visuals */
+  .visual{position:relative;flex-shrink:0;margin-left:4vw}
+  .split-demo{display:grid;gap:10px;width:min(34vw,460px);aspect-ratio:16/10}
+  .split-demo.s2{grid-template-columns:1fr 1fr}
+  .split-demo.s3{grid-template-columns:1fr 1fr 1fr}
+  .split-demo.s4{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr}
+  .pane{background:linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,.03));border:1px solid rgba(255,255,255,.16);border-radius:14px;position:relative;overflow:hidden;backdrop-filter:blur(8px)}
+  .pane::after{content:"";position:absolute;inset:0;background:linear-gradient(110deg, transparent 30%, rgba(232,68,27,.28) 50%, transparent 70%);transform:translateX(-100%);animation:sheen 3.2s infinite}
+  @keyframes sheen{60%,100%{transform:translateX(100%)}}
+  .tube{width:min(36vw,520px);height:64px;border-radius:999px;background:linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,.04));border:1px solid rgba(232,68,27,.6);box-shadow:0 0 0 6px rgba(232,68,27,.12), 0 18px 60px rgba(0,0,0,.5);position:relative;overflow:hidden}
+  .tube::before{content:"";position:absolute;inset:6px;border-radius:999px;background:linear-gradient(90deg, var(--vermiglio), #ffb199, var(--vermiglio));background-size:200% 100%;animation:flow 2.8s linear infinite;opacity:.85;filter:blur(.2px)}
+  @keyframes flow{to{background-position:200% 0}}
+  .shield{width:min(22vw,240px);aspect-ratio:1;border-radius:34px;background:radial-gradient(circle at 30% 20%, #ff7a52, var(--vermiglio) 55%, #5e1503 100%);display:flex;align-items:center;justify-content:center;font-size:84px;box-shadow:0 24px 90px rgba(232,68,27,.5);animation:float 4s ease-in-out infinite}
+  @keyframes float{50%{transform:translateY(-12px)}}
+  .vault{width:min(24vw,260px);aspect-ratio:1;border-radius:50%;background:conic-gradient(from 0deg, #2a1a0e, #4a2a14, #1a0f08, #4a2a14, #2a1a0e);border:8px solid rgba(201,168,106,.5);display:flex;align-items:center;justify-content:center;font-size:64px;box-shadow:0 0 0 12px rgba(0,0,0,.4), 0 24px 90px rgba(0,0,0,.6)}
+  .grid6{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;width:min(36vw,480px)}
+  .chip{background:var(--vetro);border:1px solid rgba(255,255,255,.14);border-radius:14px;padding:12px 14px;font-size:13px;line-height:1.3;backdrop-filter:blur(10px)}
+  .chip b{display:block;font-size:13px;color:#fff;margin-bottom:4px}
+  /* controls */
+  #progress{position:absolute;bottom:calc(9vh + 14px);left:7vw;right:7vw;height:2px;background:rgba(255,255,255,.14);z-index:40;border-radius:2px;overflow:hidden}
+  #progress i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--oro),var(--vermiglio));transition:width .3s linear}
+  #hud{font-size:11px;letter-spacing:.25em;color:rgba(245,237,224,.6)}
+  #controls{display:flex;gap:10px;align-items:center}
+  .btn{appearance:none;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.06);color:var(--carta);border-radius:999px;padding:8px 16px;font-size:13px;letter-spacing:.08em;cursor:pointer;backdrop-filter:blur(8px);transition:.2s}
+  .btn:hover{background:var(--vermiglio);border-color:var(--vermiglio);color:#fff}
+  .btn.primary{background:var(--vermiglio);border-color:var(--vermiglio);color:#fff;font-weight:700}
+  #dots{display:flex;gap:8px}
+  #dots button{width:8px;height:8px;border-radius:50%;border:0;background:rgba(255,255,255,.22);cursor:pointer;padding:0}
+  #dots button.on{background:var(--vermiglio);box-shadow:0 0 12px var(--vermiglio)}
+  #gate{position:absolute;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;background:radial-gradient(90% 90% at 50% 40%, rgba(20,10,5,.2), rgba(0,0,0,.88));backdrop-filter:blur(6px);transition:opacity .6s}
+  #gate.hidden{opacity:0;pointer-events:none}
+  .gate-card{text-align:center;max-width:640px;padding:40px;border:1px solid rgba(255,255,255,.12);border-radius:24px;background:rgba(15,9,5,.7)}
+  .gate-card img{width:96px;height:96px;border-radius:22px;margin-bottom:18px}
+  #timer{font-variant-numeric:tabular-nums}
+  @media (max-width:900px){.visual{display:none}.kanji-bg{font-size:40vh}.scene{padding:4vh 6vw}.bar.bottom{flex-wrap:wrap;gap:8px}}
+</style>
+</head>
+<body class="cinema">
+<div id="stage">
+  <canvas id="petali"></canvas>
+  <div id="grain"></div>
+
+  <div class="bar top"></div>
+
+  <!-- 0 INTRO -->
+  <section class="scene active" data-dur="9000">
+    <div class="kanji-bg">木</div>
+    <div>
+      <div class="kicker">Teaser ufficiale &nbsp;•&nbsp; 2026 &nbsp;•&nbsp; 16:9</div>
+      <div class="logo-wrap">
+        <img class="logo-img" src="koa-logo.png" alt="KOA" onerror="this.outerHTML='<div class=log-img style=&quot;width:120px;height:120px;border-radius:28px;background:#E8441B;display:flex;align-items:center;justify-content:center;font-size:72px;font-weight:900&quot;>K</div>'">
+        <h1>KOA<br><span class="verm">BROWSER</span></h1>
+      </div>
+      <p class="sub"><span class="hanko">禅</span>&nbsp;&nbsp;La via giapponese del web. Legno scuro, vermiglio, silenzio. <b style="color:#fff">Nessuna distrazione. Solo focus.</b><br>Un filmato di presentazione — l'interfaccia reale non viene mostrata.</p>
+    </div>
+  </section>
+
+  <!-- 1 FILOSOFIA -->
+  <section class="scene" data-dur="10000">
+    <div class="kanji-bg">道</div>
+    <div>
+      <div class="kicker">01 — Filosofia</div>
+      <h2>Non un browser.<br>Un <span class="verm">dojo</span> digitale.</h2>
+      <p class="sub">KOA nasce dal legno e dal washi: caldo, materico, calmo. Ogni dettaglio — luce radente, timbri hanko, tinta che respira coi siti — è disegnato per restare in secondo piano mentre tu lavori. Veloce all'avvio, leggero, silenzioso in background.</p>
+    </div>
+  </section>
+
+  <!-- 2 MULTITASKING -->
+  <section class="scene" data-dur="11000">
+    <div>
+      <div class="kicker">02 — Spazio di lavoro</div>
+      <h2>Pensa su <span class="verm">2, 3, 4 vie</span><br>contemporaneamente.</h2>
+      <p class="sub">Schede multiple trascinabili e pannelli affiancati rettangolari con divisori fluidi. Ricerca, documenti, video e chat — fianco a fianco, senza mai perdere il filo. Scorciatoie da tastiera complete per chi va veloce.</p>
+    </div>
+    <div class="visual"><div class="split-demo s4" id="splitDemo"><div class="pane"></div><div class="pane"></div><div class="pane"></div><div class="pane"></div></div></div>
+  </section>
+
+  <!-- 3 FLUIDO -->
+  <section class="scene" data-dur="11000">
+    <div>
+      <div class="kicker">03 — Fluidità</div>
+      <h2>Un <span class="verm">fluido</span>, non una barra.</h2>
+      <p class="sub">Indirizzi e ricerca in un unico tubo di luce. Scrollbar liquida dentro ogni pagina, vetro liquido reale con rifrazione GPU per download e tendine, riflessi che respirano. La tecnologia sparisce: resta il flusso.</p>
+    </div>
+    <div class="visual"><div class="tube"></div><p class="sub" style="margin-top:14px;max-width:32ch">Rappresentazione astratta — nessuna schermata reale.</p></div>
+  </section>
+
+  <!-- 4 SUPERVISOR -->
+  <section class="scene" data-dur="11000">
+    <div>
+      <div class="kicker">04 — ZEN Supervisor</div>
+      <h2>Silenzio <span class="verm">protetto</span>.</h2>
+      <p class="sub">Anti-tracciamento + anti-pubblicità veri, con contatore live di ciò che è stato bloccato. Pagine più snelle, più veloci, più tue. <b id="counter" style="color:#fff;font-size:1.4em">0</b> <span style="opacity:.7">elementi neutralizzati in questa demo</span>.</p>
+    </div>
+    <div class="visual"><div class="shield">◉</div></div>
+  </section>
+
+  <!-- 5 VAULT + AI -->
+  <section class="scene" data-dur="12000">
+    <div>
+      <div class="kicker">05 — Vault &amp; Chat KOA</div>
+      <h2>Cassaforte. <span class="verm">E mente.</span></h2>
+      <p class="sub"><b style="color:#fff">KOA Vault:</b> password cifrate con standard moderno, sblocco con PIN, cattura e inserimento automatico.<br><b style="color:#fff">Chat KOA:</b> assistente nella barra laterale — azioni rapide, riassunti di pagina, calcoli e ricerca. E con il ponte ai modelli locali, anche offline.</p>
+    </div>
+    <div class="visual"><div class="vault">錠</div></div>
+  </section>
+
+  <!-- 6 ECOSISTEMA -->
+  <section class="scene" data-dur="13000">
+    <div style="flex:1">
+      <div class="kicker">06 — Ecosistema</div>
+      <h2>Tutto. <span class="verm">Senza rumore.</span></h2>
+      <p class="sub">Ciò che ti serve, quando serve. Niente di più.</p>
+      <div class="grid6" style="margin-top:2vh">
+        <div class="chip"><b>☾ Cronologia</b>ricerca e pulizia istantanea</div>
+        <div class="chip"><b>★ Preferiti</b>bollicine rapide, rimozione al volo</div>
+        <div class="chip"><b>▽ Download</b>tendina in vetro, apri ed elimina vero</div>
+        <div class="chip"><b>⌕ Trova</b>contatore risultati nella pagina</div>
+        <div class="chip"><b>◐ Turbo</b>modalità leggera + GPU piena</div>
+        <div class="chip"><b>◍ Start offline</b>pagina iniziale sempre disponibile</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7 AGGIORNAMENTI (generico, nessun dettaglio privato) -->
+  <section class="scene" data-dur="10000">
+    <div class="kanji-bg">新</div>
+    <div>
+      <div class="kicker">07 — Sempre nuovo</div>
+      <h2>Sempre nuovo.<br>Sempre <span class="verm">sicuro</span>.</h2>
+      <p class="sub">KOA si mantiene aggiornato da solo, in modo verificato e con garanzia di continuità: se qualcosa non torna, riparte la versione precedente. Tu non devi fare nulla. <i style="opacity:.6">(I dettagli interni di distribuzione non sono mostrati in questo filmato).</i></p>
+    </div>
+  </section>
+
+  <!-- 8 FINALE -->
+  <section class="scene" data-dur="12000">
+    <div class="kanji-bg">和</div>
+    <div style="text-align:left">
+      <div class="kicker">Finale — KOA Browser</div>
+      <h1 style="font-size:clamp(40px,6vw,92px)">La via<br>del <span class="verm">web</span>.</h1>
+      <p class="sub">Legno. Vermiglio. Silenzio. Potenza.<br><b style="color:#fff">KOA Browser — entra nel flusso.</b></p>
+      <div style="margin-top:3vh;display:flex;gap:12px">
+        <button class="btn primary" onclick="restart()">↺ RIGUARDA</button>
+        <button class="btn" onclick="toggleFull()">⛶ SCHERMO INTERO</button>
+      </div>
+    </div>
+  </section>
+
+  <div id="progress"><i id="fill"></i></div>
+  <div class="bar bottom">
+    <div id="hud"><span id="sceneLabel">01 / 09</span> &nbsp;•&nbsp; <span id="timer">00:00</span> &nbsp;•&nbsp; KOA TEASER — rappresentazione astratta, interfaccia reale non mostrata</div>
+    <div id="controls">
+      <div id="dots"></div>
+      <button class="btn" id="prevBtn">‹</button>
+      <button class="btn primary" id="playBtn">❚❚ PAUSA</button>
+      <button class="btn" id="nextBtn">›</button>
+      <button class="btn" onclick="toggleFull()">⛶</button>
+    </div>
+  </div>
+
+  <div id="gate">
+    <div class="gate-card">
+      <img src="koa-logo.png" alt="KOA" onerror="this.style.display='none'">
+      <div class="kicker">Presentazione cinematografica • 90 secondi</div>
+      <h2 style="margin-bottom:12px">KOA <span class="verm">BROWSER</span></h2>
+      <p class="sub" style="margin:0 auto 22px">Teaser astratto ad altissimo livello.<br>Nessuna schermata reale • nessun dettaglio interno mostrato.</p>
+      <button class="btn primary" id="startBtn" style="font-size:16px;padding:12px 34px">▶ &nbsp;INIZIA IL FILMATO</button>
+      <p class="sub" style="margin-top:14px;font-size:12px;opacity:.6">Audio ambientale sintetizzato • premi SPAZIO per pausa • ← → per scene • F per fullscreen</p>
+    </div>
+  </div>
+
+</div>
+<script>
+const scenes=[...document.querySelectorAll('.scene')];
+const dots=document.getElementById('dots');
+const fill=document.getElementById('fill');
+const label=document.getElementById('sceneLabel');
+const timer=document.getElementById('timer');
+const playBtn=document.getElementById('playBtn');
+let idx=0, playing=false, tScene=0, tTotal=0, raf=null, last=0, started=false;
+let counter=0, counterTimer=null;
+
+scenes.forEach((_,i)=>{const d=document.createElement('button');d.onclick=()=>go(i,true);dots.appendChild(d)});
+const dotBtns=[...dots.children];
+function fmt(s){s=Math.floor(s);return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0')}
+function totalDur(){return scenes.reduce((a,s)=>a+(+s.dataset.dur),0)}
+function go(n,manual){
+  scenes[idx].classList.remove('active');scenes[idx].classList.add('leaving');
+  setTimeout(()=>scenes[idx].classList.remove('leaving'),900);
+  idx=(n+scenes.length)%scenes.length;tScene=0;
+  scenes[idx].classList.add('active');updateHud();
+  if(idx===2)cycleSplit();if(idx===4)startCounter();else stopCounter();
+  if(manual){tTotal=scenes.slice(0,idx).reduce((a,s)=>a+(+s.dataset.dur),0)}
+}
+function updateHud(){dotBtns.forEach((d,i)=>d.classList.toggle('on',i===idx));label.textContent=String(idx+1).padStart(2,'0')+' / '+String(scenes.length).padStart(2,'0')}
+function tick(ts){
+  if(!playing)return;if(!last)last=ts;const dt=ts-last;last=ts;
+  tScene+=dt;tTotal+=dt;const dur=+scenes[idx].dataset.dur;
+  fill.style.width=(tTotal/totalDur()*100)+'%';timer.textContent=fmt(tTotal/1000);
+  if(tScene>=dur){if(idx===scenes.length-1){pause();playBtn.textContent='↺ RIGUARDA';}else go(idx+1)}
+  raf=requestAnimationFrame(tick);
+}
+function play(){if(idx===scenes.length-1&&tTotal>=totalDur()-500){restart();return}playing=true;last=0;playBtn.textContent='❚❚ PAUSA';raf=requestAnimationFrame(tick);ensureAudio()}
+function pause(){playing=false;playBtn.textContent='▶ RIPRENDI';cancelAnimationFrame(raf)}
+function restart(){tTotal=0;go(0,true);fill.style.width='0%';timer.textContent='00:00';playBtn.textContent='❚❚ PAUSA';playing=true;last=0;raf=requestAnimationFrame(tick)}
+playBtn.onclick=()=>playing?pause():play();
+document.getElementById('prevBtn').onclick=()=>{tTotal=Math.max(0,tTotal-(+scenes[idx].dataset.dur));go(idx-1,true)};
+document.getElementById('nextBtn').onclick=()=>go(idx+1,true);
+document.addEventListener('keydown',e=>{
+  if(e.code==='Space'){e.preventDefault();playing?pause():play()}
+  if(e.key==='ArrowRight')go(idx+1,true);if(e.key==='ArrowLeft')go(idx-1,true);
+  if(e.key==='f'||e.key==='F')toggleFull();
+});
+function toggleFull(){const el=document.documentElement;if(!document.fullscreenElement)el.requestFullscreen&&el.requestFullscreen();else document.exitFullscreen()}
+// split demo cycle 2->3->4
+let splitModes=['s2','s3','s4'],si=0;
+function cycleSplit(){const el=document.getElementById('splitDemo');if(!el)return;el.className='split-demo '+splitModes[si%3];si++;}
+setInterval(()=>{if(scenes[idx]&&scenes[idx].querySelector('#splitDemo'))cycleSplit()},2800);
+// counter
+function startCounter(){stopCounter();counter=1284;const c=document.getElementById('counter');counterTimer=setInterval(()=>{counter+=Math.floor(Math.random()*7)+1;if(c)c.textContent=counter.toLocaleString('it-IT')},120)}
+function stopCounter(){if(counterTimer)clearInterval(counterTimer)}
+// petali sakura
+const cv=document.getElementById('petali'),cx=cv.getContext('2d');let P=[];
+function size(){cv.width=innerWidth;cv.height=innerHeight}size();addEventListener('resize',size);
+for(let i=0;i<70;i++)P.push({x:Math.random()*innerWidth,y:Math.random()*innerHeight,s:2+Math.random()*5,v:.3+Math.random()*.9,ph:Math.random()*6.28,sw:.5+Math.random()*1.5});
+(function draw(t){cx.clearRect(0,0,cv.width,cv.height);P.forEach(p=>{p.y+=p.v;p.x+=Math.sin(t/1600+p.ph)*p.sw*.4;if(p.y>innerHeight+10){p.y=-10;p.x=Math.random()*innerWidth}
+cx.save();cx.translate(p.x,p.y);cx.rotate(Math.sin(t/1200+p.ph)*.8);cx.fillStyle=p.s>4?'rgba(232,68,27,.5)':'rgba(245,237,224,.28)';cx.beginPath();cx.ellipse(0,0,p.s,p.s*.62,0,0,6.28);cx.fill();cx.restore()});requestAnimationFrame(draw)})(0);
+// audio ambientale sintetizzato (koto-like)
+let AC=null;
+function ensureAudio(){try{if(AC)return;AC=new (window.AudioContext||window.webkitAudioContext)();const g=AC.createGain();g.gain.value=.05;g.connect(AC.destination);
+const scale=[174.61,196,220,261.63,293.66,329.63,392];let n=0;
+setInterval(()=>{if(!playing)return;const o=AC.createOscillator(),og=AC.createGain();o.type='sine';o.frequency.value=scale[n%scale.length]*(Math.random()>.7?2:1);
+og.gain.setValueAtTime(0,AC.currentTime);og.gain.linearRampToValueAtTime(.5,AC.currentTime+.02);og.gain.exponentialRampToValueAtTime(.001,AC.currentTime+2.2);
+o.connect(og);og.connect(g);o.start();o.stop(AC.currentTime+2.3);n+=Math.floor(Math.random()*3)+1},2600)}catch(e){}}
+document.getElementById('startBtn').onclick=()=>{document.getElementById('gate').classList.add('hidden');started=true;updateHud();restart();ensureAudio();if(AC&&AC.state==='suspended')AC.resume()};
+updateHud();
+</script>
+</body>
+</html>

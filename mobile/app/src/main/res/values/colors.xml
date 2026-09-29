@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="koa_wood1">#3E2A1A</color>
+    <color name="koa_wood2">#241811</color>
+    <color name="koa_bg">#140D08</color>
+    <color name="koa_panel">#201410</color>
+    <color name="koa_orange">#E86A2C</color>
+    <color name="koa_amber">#E8A83C</color>
+    <color name="koa_cream">#F5EDE0</color>
+    <color name="koa_muted">#A89484</color>
+    <color name="koa_line">#4A3423</color>
+    <color name="koa_green">#4ADE80</color>
+    <color name="koa_red">#E14B4B</color>
+</resources>
