@@ -5,48 +5,83 @@
     android:orientation="vertical"
     android:background="@color/koa_bg">
 
-    <TextView
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="14dp"
-        android:text="@string/chat_title"
-        android:textColor="@color/koa_cream"
-        android:textSize="16sp"
-        android:textStyle="bold" />
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:padding="6dp"
+        android:background="@color/koa_wood2">
+
+        <ImageButton
+            android:id="@+id/chatBack"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_back"
+            android:contentDescription="Indietro" />
+
+        <ImageView
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginStart="2dp"
+            android:src="@drawable/logo" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="10dp"
+            android:text="@string/chat_title"
+            android:textColor="@color/koa_cream"
+            android:textSize="17sp"
+            android:textStyle="bold" />
+
+        <ImageButton
+            android:id="@+id/chatClear"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_trash"
+            android:contentDescription="Svuota chat" />
+    </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/msgList"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:padding="10dp"
+        android:padding="12dp"
         android:clipToPadding="false" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:padding="8dp">
+        android:gravity="bottom"
+        android:padding="10dp"
+        android:background="@color/koa_wood2">
 
         <EditText
             android:id="@+id/chatInput"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:minHeight="48dp"
             android:background="@drawable/field_bg"
             android:textColor="@color/koa_cream"
             android:textColorHint="@color/koa_muted"
             android:hint="@string/chat_hint"
             android:inputType="text"
+            android:imeOptions="actionSend"
             android:maxLines="4"
-            android:textSize="14sp" />
+            android:textSize="15sp" />
 
         <ImageButton
             android:id="@+id/chatSend"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_marginStart="6dp"
+            android:layout_width="52dp"
+            android:layout_height="52dp"
+            android:layout_marginStart="8dp"
             android:background="@drawable/btn_primary"
             android:src="@drawable/ic_check"
             android:contentDescription="Invia" />

@@ -1,5 +1,8 @@
 package com.koabrowser.app
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -7,29 +10,36 @@ import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.EditorInfo
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
-// Chat KOA su Android: /calc /cerca /riassumi /aiuto + AI Pollinations.
+// Chat KOA mobile: header, bolle con ora, invio da tastiera, copia alla pressione lunga.
 class ChatActivity : AppCompatActivity() {
 
-    data class Msg(val who: String, val text: String)
+    data class Msg(val who: String, val text: String, val at: Long = System.currentTimeMillis())
 
     private val msgs = ArrayList<Msg>()
     private lateinit var adapter: MsgAdapter
     private lateinit var input: EditText
+    private lateinit var list: RecyclerView
     private var busy = false
+    private val timeFmt = SimpleDateFormat("HH:mm", Locale.getDefault())
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_chat)
 
-        val list = findViewById<RecyclerView>(R.id.msgList)
+        list = findViewById(R.id.msgList)
         list.layoutManager = LinearLayoutManager(this)
         adapter = MsgAdapter()
         list.adapter = adapter
@@ -38,13 +48,25 @@ class ChatActivity : AppCompatActivity() {
         push("ai", "Ciao, sono KOA. /calc 2+2 · /cerca gatti · /riassumi testo · /aiuto")
 
         findViewById<ImageButton>(R.id.chatSend).setOnClickListener { send() }
+        findViewById<ImageButton>(R.id.chatBack).setOnClickListener { finish() }
+        findViewById<ImageButton>(R.id.chatClear).setOnClickListener {
+            msgs.clear()
+            adapter.notifyDataSetChanged()
+            push("ai", "Chat svuotata. Come posso aiutarti?")
+        }
+        input.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_SEND) {
+                send()
+                true
+            } else false
+        }
     }
 
     private fun push(who: String, text: String) {
         msgs.add(Msg(who, text))
         if (msgs.size > 100) msgs.removeAt(0)
         adapter.notifyItemInserted(msgs.size - 1)
-        findViewById<RecyclerView>(R.id.msgList).scrollToPosition(msgs.size - 1)
+        list.scrollToPosition(msgs.size - 1)
     }
 
     private fun send() {
@@ -86,7 +108,6 @@ class ChatActivity : AppCompatActivity() {
         }
     }
 
-    // Mini parser aritmetico (+ - * / parentesi, decimali).
     private class Expr(private val s: String) {
         var i = 0
         fun parse(): Double {
@@ -153,6 +174,7 @@ class ChatActivity : AppCompatActivity() {
                 runOnUiThread {
                     msgs[thinking] = Msg("ai", res.trim().ifEmpty { "Nessuna risposta." })
                     adapter.notifyItemChanged(thinking)
+                    list.scrollToPosition(thinking)
                     busy = false
                 }
             } catch (e: Exception) {
@@ -169,6 +191,7 @@ class ChatActivity : AppCompatActivity() {
         inner class Holder(v: View) : RecyclerView.ViewHolder(v) {
             val root: LinearLayout = v.findViewById(R.id.msgRoot)
             val text: TextView = v.findViewById(R.id.msgText)
+            val time: TextView = v.findViewById(R.id.msgTime)
         }
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): Holder {
@@ -181,14 +204,25 @@ class ChatActivity : AppCompatActivity() {
         override fun onBindViewHolder(h: Holder, position: Int) {
             val m = msgs[position]
             h.text.text = m.text
-            val p = h.root.layoutParams as? ViewGroup.MarginLayoutParams
+            h.time.text = try {
+                timeFmt.format(Date(m.at))
+            } catch (e: Exception) {
+                ""
+            }
             if (m.who == "user") {
                 h.root.gravity = Gravity.END
+                h.text.setBackgroundResource(R.drawable.bubble_user)
+                h.time.gravity = Gravity.END
             } else {
                 h.root.gravity = Gravity.START
+                h.text.setBackgroundResource(R.drawable.field_bg)
+                h.time.gravity = Gravity.START
             }
-            if (p != null) {
-                h.root.layoutParams = p
+            h.itemView.setOnLongClickListener {
+                val cm = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                cm.setPrimaryClip(ClipData.newPlainText("koa", m.text))
+                Toast.makeText(this@ChatActivity, "Copiato", Toast.LENGTH_SHORT).show()
+                true
             }
         }
     }

@@ -234,6 +234,12 @@
                 android:layout_marginTop="12dp"
                 android:background="@color/koa_line" />
 
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                style="@style/KoaSectionLabel"
+                android:text="Strumenti" />
+
             <Button
                 android:id="@+id/drawerChat"
                 android:layout_width="match_parent"
@@ -265,6 +271,18 @@
                 style="@style/KoaDrawerBtn"
                 android:drawableStart="@drawable/ic_lock"
                 android:text="KOA Vault" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginTop="16dp"
+                android:background="@color/koa_line" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                style="@style/KoaSectionLabel"
+                android:text="App" />
 
             <Button
                 android:id="@+id/drawerSettings"
