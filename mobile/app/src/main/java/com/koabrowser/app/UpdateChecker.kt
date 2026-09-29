@@ -10,26 +10,31 @@ import android.os.Environment
 import android.provider.Settings
 import androidx.appcompat.app.AlertDialog
 
-// Aggiornamenti mobile: cerca release con tag -mobile o APK, scarica e installa.
+// Aggiornamenti mobile via manifest (niente rate-limit GitHub API):
+// zendate/mobile/zendate.json su raw.githubusercontent.com
 object UpdateChecker {
 
-    data class Found(val tag: String, val url: String)
+    private const val MANIFEST =
+        "https://raw.githubusercontent.com/anima-ale/koa-browser/main/zendate/mobile/zendate.json"
 
     fun check(activity: Activity, silent: Boolean, done: (String) -> Unit) {
         Thread {
             try {
+                val j = Net.get(MANIFEST + "?t=" + System.currentTimeMillis())
+                val ver = str(j, "version")
+                val tag = str(j, "tag").ifEmpty { "v$ver-mobile" }
+                val url = str(j, "url")
+                val notes = str(j, "notes")
                 val current = activity.packageManager.getPackageInfo(activity.packageName, 0).versionName ?: ""
-                val api = Net.get("https://api.github.com/repos/anima-ale/koa-browser/releases?per_page=20")
-                val found = pickMobile(api)
                 activity.runOnUiThread {
-                    if (found == null) {
-                        done("Nessuna release mobile trovata.")
-                    } else if (sameOrOlder(found.tag, current)) {
+                    if (ver.isEmpty() || url.isEmpty()) {
+                        done("Manifest non valido.")
+                    } else if (cmpVer(ver, current) <= 0) {
                         done("KOA Mobile è aggiornato ($current).")
                     } else if (silent) {
-                        done("Disponibile " + found.tag + " (apri Impostazioni per scaricarla).")
+                        done("Disponibile $ver (apri Impostazioni per scaricarla).")
                     } else {
-                        askDownload(activity, found, done)
+                        askDownload(activity, tag, url, notes, done)
                     }
                 }
             } catch (e: Exception) {
@@ -38,30 +43,17 @@ object UpdateChecker {
         }.start()
     }
 
-    // Sceglie la release mobile più recente con allegato APK (prima i tag -mobile).
-    private fun pickMobile(api: String): Found? {
-        val blocks = api.split("\"tag_name\"")
-        var fallback: Found? = null
-        for (i in 1 until blocks.size) {
-            val seg = blocks[i]
-            val tag = Regex("\"\\s*:\\s*\"([^\"]+)\"").find(seg)?.groupValues?.get(1) ?: continue
-            val apk = Regex("\"browser_download_url\"\\s*:\\s*\"([^\"]+?\\.apk)\"")
-                .find(seg)?.groupValues?.get(1) ?: continue
-            if (tag.endsWith("-mobile", true)) return Found(tag, apk)
-            if (fallback == null) fallback = Found(tag, apk)
+    private fun str(j: String, k: String): String {
+        return try {
+            Regex("\"" + k + "\"\\s*:\\s*\"([^\"]*)\"").find(j)?.groupValues?.get(1) ?: ""
+        } catch (e: Exception) {
+            ""
         }
-        return fallback
-    }
-
-    private fun sameOrOlder(tag: String, current: String): Boolean {
-        val t = tag.trimStart('v', 'V').removeSuffix("-mobile")
-        val c = current.trimStart('v', 'V')
-        return cmpVer(t, c) <= 0
     }
 
     private fun cmpVer(a: String, b: String): Int {
-        val pa = a.split('.').map { it.toIntOrNull() ?: 0 }
-        val pb = b.split('.').map { it.toIntOrNull() ?: 0 }
+        val pa = a.trimStart('v', 'V').removeSuffix("-mobile").split('.').map { it.toIntOrNull() ?: 0 }
+        val pb = b.trimStart('v', 'V').removeSuffix("-mobile").split('.').map { it.toIntOrNull() ?: 0 }
         for (i in 0 until maxOf(pa.size, pb.size)) {
             val x = pa.getOrElse(i) { 0 }
             val y = pb.getOrElse(i) { 0 }
@@ -70,19 +62,19 @@ object UpdateChecker {
         return 0
     }
 
-    private fun askDownload(activity: Activity, found: Found, done: (String) -> Unit) {
+    private fun askDownload(activity: Activity, tag: String, url: String, notes: String, done: (String) -> Unit) {
         AlertDialog.Builder(activity)
-            .setTitle("Aggiornamento " + found.tag)
-            .setMessage("Scaricare e installare la nuova versione?")
+            .setTitle("Aggiornamento $tag")
+            .setMessage(if (notes.isEmpty()) "Scaricare e installare la nuova versione?" else notes)
             .setPositiveButton("Scarica e installa") { _, _ ->
-                downloadAndInstall(activity, found)
+                downloadAndInstall(activity, tag, url)
                 done("Download avviato: completa l'installazione dal pannello.")
             }
             .setNegativeButton("Più tardi", null)
             .show()
     }
 
-    private fun downloadAndInstall(activity: Activity, found: Found) {
+    private fun downloadAndInstall(activity: Activity, tag: String, url: String) {
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 if (!activity.packageManager.canRequestPackageInstalls()) {
@@ -94,8 +86,8 @@ object UpdateChecker {
                     )
                 }
             }
-            val name = "KOA-Mobile-" + found.tag + ".apk"
-            val req = DownloadManager.Request(Uri.parse(found.url))
+            val name = "KOA-Mobile-$tag.apk"
+            val req = DownloadManager.Request(Uri.parse(url))
                 .setTitle(name)
                 .setDescription("KOA Browser Mobile")
                 .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)

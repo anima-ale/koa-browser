@@ -17,7 +17,7 @@ echo Versione: %VER%
 set TAG=v%VER%-mobile
 set APK=app\build\outputs\apk\release\app-release.apk
 
-if not exist "..\keystore.properties" (
+if not exist "keystore.properties" (
     echo [ERRORE] Manca mobile\keystore.properties: APK non firmabile.
     pause
     exit /b 1
@@ -53,6 +53,16 @@ if errorlevel 1 (
     echo [ERRORE] Release fallita.
     pause
     exit /b 1
+)
+
+echo Genero manifest mobile e lo pusho ^(l'app lo legge senza limiti API^)...
+powershell -NoProfile -Command "$v='%VER%'; $t='%TAG%'; $apk='mobile/app/build/outputs/apk/release/app-release.apk'; $h=(Get-FileHash $apk -Algorithm SHA256).Hash.ToLowerInvariant(); $j='{ \"version\": \"'+$v+'\", \"tag\": \"'+$t+'\", \"url\": \"https://github.com/anima-ale/koa-browser/releases/download/'+$t+'/app-release.apk\", \"sha256\": \"'+$h+'\", \"notes\": \"KOA Browser Mobile '+$t+'\" }'; [IO.File]::WriteAllText('zendate/mobile/zendate.json', $j, (New-Object Text.UTF8Encoding $false)); Write-Output 'manifest ok'"
+git add zendate/mobile/zendate.json 2>nul
+git diff --cached --quiet >nul 2>&1
+if errorlevel 1 (
+    git commit -m "KOA Mobile %TAG% manifest" >nul 2>&1
+    git push origin main >nul 2>&1
+    echo Manifest pushato ^(visibile online entro pochi minuti^).
 )
 
 echo.
