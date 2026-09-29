@@ -923,6 +923,10 @@
     display: flex; flex-direction: column; gap: 12px;
   }
   .models-card h1 { font-size: 16px; font-weight: 700; letter-spacing: 0.1em; }
+  .models-card .row { display: flex; gap: 8px; align-items: center; }
+  .models-card .row .btn { flex: 1; }
+  #models-info { display: flex; flex-direction: column; gap: 8px; }
+  #models-info[hidden] { display: none; }
   .models-card .sub { font-size: 12px; color: var(--text-muted); margin-top: -8px; }
   .model-row {
     display: flex; align-items: center; gap: 12px;
@@ -1367,7 +1371,15 @@
 
   <div id="models-modal" hidden>
     <div class="models-card">
-      <h1>KOA OMNI-AGENTIC ASSISTANT</h1>
+      <div class="row" style="align-items:center;">
+        <h1 style="flex:1;">KOA OMNI-AGENTIC ASSISTANT</h1>
+        <button id="models-info-btn" class="btn" style="flex:0 0 auto;">Info</button>
+      </div>
+      <div id="models-info" hidden>
+        <div class="auto-step"><b>Limiti di sistema</b><div>GPU: serve WebGPU (Chrome o Edge 113+). Senza WebGPU i modelli non si avviano. Schede integrate: funzionano ma lente; dedicata consigliata per Occhi.</div></div>
+        <div class="auto-step"><b>Memoria</b><div>VRAM: circa 1,5 GB per i tre piccoli insieme, circa 4 GB in più mentre Occhi osserva. RAM di sistema: minimo 8 GB, consigliati 16 GB.</div></div>
+        <div class="auto-step"><b>Disco e rete</b><div>Pesi verificati e stabili nel PC, nessun riscaricamento. Rete solo per il download iniziale; dopo, tutto offline.</div></div>
+      </div>
       <div class="sub">Micromodelli sul tuo PC: pianificazione, italiano, azioni, occhi. I pesi restano installati nel dispositivo, verificati a ogni avvio.</div>
       <div id="models-list"></div>
       <div class="row">

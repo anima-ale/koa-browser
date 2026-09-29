@@ -689,6 +689,12 @@ try {
   document.getElementById('auto-models').addEventListener('click', openAutonomyModels);
   document.getElementById('auto-group').addEventListener('click', koaGroupTabs);
   document.getElementById('models-close').addEventListener('click', closeAutonomyModels);
+  document.getElementById('models-info-btn').addEventListener('click', () => {
+    try {
+      const b = document.getElementById('models-info');
+      b.hidden = !b.hidden;
+    } catch (e) {}
+  });
   document.getElementById('fetch-accept').addEventListener('click', async () => {
     hideFetchBox();
     const cmd = pendingAutoCmd, need = pendingAutoFetch;
