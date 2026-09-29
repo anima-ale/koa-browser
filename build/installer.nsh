@@ -3,6 +3,8 @@
 
 # Scelta micromodelli KOA: pagina dopo la cartella, prima dell'installazione.
 # Scrive HKCU\Software\KOA Browser\FetchModels = 1/0 (consumato al primo avvio).
+# Solo installer: nell'uninstaller queste funzioni sarebbero orfane (warning 6010 = errore).
+!ifndef BUILD_UNINSTALLER
 Var KOA_ModelsCheckbox
 Var KOA_ModelsDialog
 
@@ -33,3 +35,4 @@ Function koaModelsPageLeave
     WriteRegStr HKCU "Software\KOA Browser" "FetchModels" "0"
   ${EndIf}
 FunctionEnd
+!endif
