@@ -10,5 +10,9 @@ mobile/.gradle/
 mobile/app/build/
 mobile/build/
 local.properties
+# Chiavi di firma Android: MAI su GitHub (backup a parte o gli update futuri non si installano)
+mobile/keystore/
+mobile/keystore.properties
+*.jks
 # Manifest generato in locale (quello vero si pubblica a mano o via bat)
 # zendate/zendate.json
