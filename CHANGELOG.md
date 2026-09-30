@@ -5,7 +5,7 @@ Scrivi qui la storia delle versioni: per ogni release usa
 mostrato nell'app (Impostazioni → note) va nel parametro `-Notes`
 di `zendate\make-zendate.ps1`, più il testo della Release GitHub.
 
-## [1.0.19] - 2026-09-30
+## [1.0.20] - 2026-09-30
 
 ### Corretto
 - Schede grigie alla riapertura: blindate le letture guest non pronto (era quello a rompere createTab), reload con backoff fino a 5 volte, badge rosso oltre, rianimazione se il guest risulta crashato
