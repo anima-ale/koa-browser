@@ -230,7 +230,30 @@ function renderAutonomyModels(status) {
 async function openAutonomyModels() {
   modelsModal.hidden = false;
   renderAutonomyModels(null);
+  try {
+    const g = await koaGpuInfo();
+    try {
+      const sub = document.getElementById('models-sub');
+      if (sub) {
+        if (!sub.dataset.base) sub.dataset.base = sub.textContent;
+        sub.textContent = sub.dataset.base + (g.ok
+          ? ' GPU rilevata: ' + [g.vendor, g.arch, g.device, g.desc].filter(x => x && x !== '?').join(' ') + '.'
+          : ' GPU non vista (' + g.why + ').');
+      }
+    } catch (e) {}
+  } catch (e) {}
   renderAutonomyModels(await autonomyStatus());
+}
+// Legge la GPU vera vista dal browser (non quella presunta dai flag).
+async function koaGpuInfo() {
+  try {
+    if (!navigator.gpu) return { ok: false, why: 'API WebGPU assente' };
+    const a = await navigator.gpu.requestAdapter();
+    if (!a) return { ok: false, why: 'nessun adapter (driver o blocco GPU)' };
+    let info = {};
+    try { info = a.info || {}; } catch (e) {}
+    return { ok: true, vendor: info.vendor || '?', arch: info.architecture || '?', device: info.device || '?', desc: info.description || '' };
+  } catch (e) { return { ok: false, why: (e && e.message) || 'errore' }; }
 }
 function closeAutonomyModels() { modelsModal.hidden = true; }
 function autonomyRowEls(id) {
