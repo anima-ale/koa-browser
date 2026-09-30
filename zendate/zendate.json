@@ -1,6 +1,6 @@
 {
-    "version":  "1.0.19",
-    "notes":  "### Aggiunto\n- Split veloce: pannelli non a fuoco a 30fps + animazioni congelate (si riaccendono al fuoco)\n\n### Corretto\n- Sottospecie: ID modello normalizzati, niente gruppi da 1, potatura gruppi fantasma, niente IPC a raffica",
-    "url":  "https://github.com/anima-ale/koa-browser/releases/download/v1.0.19/KOA.Browser.1.0.19.exe",
-    "sha256":  "d50314763861a6af3c9d37e39ba5fb7418bc3ecc3f066454cf14b813bb266ddf"
+    "version":  "1.0.20",
+    "notes":  "### Corretto\n- Schede grigie alla riapertura: blindate le letture guest non pronto (era quello a rompere createTab), reload con backoff fino a 5 volte, badge rosso oltre, rianimazione se il guest risulta crashato\n- Crash ripetuti: avviso in sidebar che suggerisce di provare Turbo spento\n\n### Aggiunto\n- Split veloce: pannelli non a fuoco a 30fps + animazioni congelate (si riaccendono al fuoco)\n\n### Corretto\n- Sottospecie: ID modello normalizzati, niente gruppi da 1, potatura gruppi fantasma, niente IPC a raffica",
+    "url":  "https://github.com/anima-ale/koa-browser/releases/download/v1.0.20/KOA.Browser.1.0.20.exe",
+    "sha256":  "fddcd27bd818a5a00edfbc15e5f1ff8bec4a325f6d5c02353cce654606a137f7"
 }

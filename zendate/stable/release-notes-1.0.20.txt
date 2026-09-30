@@ -1,0 +1,9 @@
+### Corretto
+- Schede grigie alla riapertura: blindate le letture guest non pronto (era quello a rompere createTab), reload con backoff fino a 5 volte, badge rosso oltre, rianimazione se il guest risulta crashato
+- Crash ripetuti: avviso in sidebar che suggerisce di provare Turbo spento
+
+### Aggiunto
+- Split veloce: pannelli non a fuoco a 30fps + animazioni congelate (si riaccendono al fuoco)
+
+### Corretto
+- Sottospecie: ID modello normalizzati, niente gruppi da 1, potatura gruppi fantasma, niente IPC a raffica
