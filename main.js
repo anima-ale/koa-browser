@@ -671,6 +671,15 @@ ipcMain.handle('zen:click-tab', (_e, wcId, x, y) => {
     return { ok: true };
   } catch (e) { return { ok: false }; }
 });
+// Split veloce: il main limita i fotogrammi dei pannelli non a fuoco.
+ipcMain.handle('zen:pane-perf', (_e, wcId, hot) => {
+  try {
+    const c = webContents.fromId(Number(wcId));
+    if (!c || c.isDestroyed()) return { ok: false };
+    try { c.setFrameRate(hot ? 60 : 30); } catch (e) {}
+    return { ok: true };
+  } catch (e) { return { ok: false }; }
+});
 ipcMain.handle('zen:print-tab', (_e, id) => {
   const c = guestContents(id);
   if (c) { try { c.print({ silent: false }); } catch (e) {} }

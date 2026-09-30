@@ -583,7 +583,26 @@ function heuristicGroups(items) {
     const name = b ? b.name : 'Altro';
     (map[name] = map[name] || []).push(it.id);
   });
-  return Object.keys(map).map(k => ({ name: k, ids: map[k] }));
+  const big = [], lone = [];
+  Object.keys(map).forEach(k => { if (map[k].length >= 2) big.push({ name: k, ids: map[k] }); else lone.push(...map[k]); });
+  if (lone.length) big.push({ name: 'Altro', ids: lone });
+  return big;
+}
+// ID modello (stringhe) -> ID numerici delle schede; i singoli finiscono in Altro.
+function consolidateGroups(groups) {
+  const norm = (groups || [])
+    .filter(g => g && g.name && Array.isArray(g.ids))
+    .map(g => ({
+      name: String(g.name).slice(0, 24),
+      ids: g.ids.map(id => { const n = Number(id); return Number.isFinite(n) ? n : id; })
+        .filter(id => getTab(id))
+    }))
+    .filter(g => g.ids.length)
+    .slice(0, 6);
+  const big = [], lone = [];
+  norm.forEach(g => { if (g.ids.length >= 2) big.push(g); else lone.push(...g.ids); });
+  if (lone.length) big.push({ name: 'Altro', ids: lone });
+  return big;
 }
 async function classifyWithModel(items) {
   const sys = 'Sei un classificatore di schede browser. Rispondi SOLO JSON valido: {"groups":[{"name":"Nome breve","ids":["id1","id2"]}]}. Massimo 6 gruppi, nomi italiani corti. Ogni id in un solo gruppo.';
@@ -651,6 +670,8 @@ function renderGroupChips() {
 }
 function applyGroupFilter() {
   try {
+    tabGroups = tabGroups.filter(g => g.ids.some(id => getTab(id)));
+    if (groupFilter != null && !tabGroups.some(g => g.id === groupFilter)) groupFilter = null;
     const inSplit = (typeof splitState !== 'undefined' && splitState) ? splitState.panes : [];
     tabs.forEach((t) => {
       let show = true;
@@ -681,7 +702,7 @@ async function koaGroupTabs() {
       groups = await classifyWithModel(items);
       if (!groups.length) groups = heuristicGroups(items);
     } catch (e) { groups = heuristicGroups(items); }
-    tabGroups = groups.map((g, i) => ({ id: 'g' + (++groupSeq), name: g.name, color: GROUP_COLORS[i % GROUP_COLORS.length], ids: g.ids }));
+    tabGroups = consolidateGroups(groups).map((g, i) => ({ id: 'g' + (++groupSeq), name: g.name, color: GROUP_COLORS[i % GROUP_COLORS.length], ids: g.ids }));
     tabs.forEach((t) => { delete t.groupId; });
     tabGroups.forEach((g) => g.ids.forEach((id) => { const t = getTab(id); if (t) t.groupId = g.id; }));
     groupFilter = null;
@@ -693,6 +714,48 @@ async function koaGroupTabs() {
     autoState('fermo');
   }
   setTimeout(auraHide, 950);
+}
+
+// ---------- Split veloce: pannelli non a fuoco a 30fps + animazioni ferme ----------
+// Il fuoco cambia solo dentro applyLayout: un hook alla fine basta per tutto.
+const SPLIT_FREEZE_CSS = '*,*::before,*::after{animation-play-state:paused !important;transition-duration:.01ms !important;}';
+function applySplitPerf() {
+  try {
+    const st = (typeof splitState !== 'undefined' && splitState) ? splitState : null;
+    const panes = st ? st.panes : [];
+    const focus = st ? st.focus : null;
+    tabs.forEach((t) => {
+      const member = panes.indexOf(t.id) !== -1;
+      const hot = !panes.length || t.id === focus;
+      try {
+        if ((!member || hot) && (t._splitKey != null || t._splitPending)) {
+          t._splitPending = false;
+          const k = t._splitKey; t._splitKey = null;
+          if (k != null) {
+            try { const r = t.webview.removeCSS(k); if (r && r.catch) r.catch(() => {}); } catch (e) {}
+          }
+        }
+        if (member && !hot && t._splitKey == null && !t._splitPending) {
+          t._splitPending = true;
+          try {
+            const p = t.webview.insertCSS(SPLIT_FREEZE_CSS);
+            if (p && p.then) {
+              p.then((k) => { try { t._splitKey = k; } finally { try { t._splitPending = false; } catch (e) {} } }).catch(() => { t._splitPending = false; });
+            } else t._splitPending = false;
+          } catch (e) { t._splitPending = false; }
+        }
+      } catch (e) {}
+      try {
+        let wcId = 0;
+        try { wcId = t.webview.getWebContentsId(); } catch (e) {}
+        if (wcId && window.browserAPI && window.browserAPI.panePerf && t._perfHot !== hot) {
+          t._perfHot = hot;
+          const r = window.browserAPI.panePerf(wcId, hot);
+          if (r && r.catch) r.catch(() => {});
+        }
+      } catch (e) {}
+    });
+  } catch (e) {}
 }
 
 // ---------- Cablaggio interfaccia ----------

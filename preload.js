@@ -33,6 +33,7 @@ contextBridge.exposeInMainWorld('browserAPI', {
   inspectTab: (id, x, y) => ipcRenderer.invoke('zen:inspect', id, x, y),
   captureTab: (wcId) => ipcRenderer.invoke('zen:capture-tab', wcId),
   clickTab: (wcId, x, y) => ipcRenderer.invoke('zen:click-tab', wcId, x, y),
+  panePerf: (wcId, hot) => ipcRenderer.invoke('zen:pane-perf', wcId, !!hot),
   printTab: (id) => ipcRenderer.invoke('zen:print-tab', id),
   zoomTab: (id, mode) => ipcRenderer.invoke('zen:zoom-tab', id, mode),
   toggleFullscreen: () => ipcRenderer.invoke('zen:fullscreen'),

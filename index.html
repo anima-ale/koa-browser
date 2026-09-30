@@ -1934,6 +1934,7 @@
     }
     refreshToolbarForFocusedTab();
     closeCtxMenu();
+    try { if (typeof applySplitPerf === 'function') applySplitPerf(); } catch (e) {}
   }
 
   function refreshToolbarForFocusedTab() {

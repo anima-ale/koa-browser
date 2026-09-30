@@ -5,6 +5,14 @@ Scrivi qui la storia delle versioni: per ogni release usa
 mostrato nell'app (Impostazioni → note) va nel parametro `-Notes`
 di `zendate\make-zendate.ps1`, più il testo della Release GitHub.
 
+## [1.0.18] - 2026-09-30
+
+### Aggiunto
+- Split veloce: pannelli non a fuoco a 30fps + animazioni congelate (si riaccendono al fuoco)
+
+### Corretto
+- Sottospecie: ID modello normalizzati, niente gruppi da 1, potatura gruppi fantasma, niente IPC a raffica
+
 ## [1.0.17] - 2026-09-29
 
 ### Aggiunto
