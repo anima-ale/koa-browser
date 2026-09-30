@@ -27,6 +27,7 @@ di `zendate\make-zendate.ps1`, più il testo della Release GitHub.
 
 ### Corretto
 - Download micromodelli con 3 tentativi automatici su reti instabili (niente più loop 0-100)
+- Verifica pesi: cerca tensor-cache.json (formato attuale) oltre al vecchio ndarray
 
 ## [Non rilasciato]
 

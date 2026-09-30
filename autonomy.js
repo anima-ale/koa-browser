@@ -19,13 +19,14 @@ function autonomyReg() {
 function autonomySave(reg) {
   try { localStorage.setItem('koa.autonomy', JSON.stringify(reg)); } catch (e) {}
 }
-// Verifica reale: config + indice pesi sotto il percorso del modello.
+// Verifica reale: config + indice tensori sotto il percorso del modello.
+// (WebLLM attuale usa tensor-cache.json; ndarray-cache.json era il formato vecchio.)
 async function autonomyVerify(id) {
   try {
     if (!('caches' in window)) return false;
     const base = id.replace(/-mlc$/i, '').toLowerCase();
     const keys = await caches.keys();
-    let cfg = false, idx = false;
+    let cfg = false, wNew = false, wOld = false;
     outer:
     for (const k of keys) {
       try {
@@ -35,12 +36,13 @@ async function autonomyVerify(id) {
           const u = (r.url || '').toLowerCase();
           if (u.indexOf(base) === -1) continue;
           if (u.indexOf('mlc-chat-config.json') !== -1) cfg = true;
-          if (u.indexOf('ndarray-cache.json') !== -1) idx = true;
-          if (cfg && idx) break outer;
+          if (u.indexOf('tensor-cache.json') !== -1) wNew = true;
+          if (u.indexOf('ndarray-cache.json') !== -1) wOld = true;
+          if (cfg && (wNew || wOld)) break outer;
         }
       } catch (e) {}
     }
-    return cfg && idx;
+    return cfg && (wNew || wOld);
   } catch (e) { return false; }
 }
 async function autonomyStatus() {
@@ -216,7 +218,15 @@ async function downloadAutonomyModel(id) {
       if (els) els.fill.style.width = pct + '%';
     });
   } catch (e) {
-    try { if (els) els.sub.textContent += ' · errore: ' + (e.message || 'download'); } catch (err) {}
+    try {
+      if (els) {
+        els.sub.textContent = els.sub.textContent.replace(/ · errore:.*$/, '') + ' · errore: ' + (e.message || 'download');
+        els.dot.className = 'dot';
+        els.bar.classList.remove('on');
+        els.fill.style.width = '0%';
+        els.btn.disabled = false;
+      }
+    } catch (err) {}
     return;
   }
   renderAutonomyModels(await autonomyStatus());
