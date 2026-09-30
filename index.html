@@ -624,6 +624,10 @@
   #vault-locked[hidden], #vault-open[hidden] { display: none; }
   #vault-err { font-size: 11.5px; color: #bf616a; min-height: 0; }
   #vault-err:empty { display: none; }
+  #account-err { font-size: 11.5px; color: #bf616a; min-height: 0; }
+  #account-err:empty { display: none; }
+  #account-who { font-size: 13px; font-weight: 600; }
+  #account-sync { font-size: 11.5px; color: var(--text-muted); }
   #vault-pending:empty, #vault-list:empty { display: none; }
   #vault-pending, #vault-list { display: flex; flex-direction: column; gap: 6px; max-height: 220px; overflow-y: auto; scrollbar-width: thin; }
   .vault-pend {
@@ -1305,6 +1309,26 @@
             </div>
           </div>
           <div class="sup-note">AES-256-GCM · PIN mai salvato · autoblocco 5 min</div>
+        </section>
+        <section class="card" id="card-account">
+          <header><span class="card-dot"></span>ZEN ACCOUNT<span id="account-state"></span></header>
+          <div id="account-off">
+            <input id="account-user" type="text" placeholder="Username ZEN" autocomplete="username" />
+            <input id="account-pass" type="password" placeholder="Password" autocomplete="current-password" />
+            <div class="row">
+              <button id="account-login" class="btn primary">Accedi</button>
+            </div>
+            <div id="account-err"></div>
+          </div>
+          <div id="account-on" hidden>
+            <div id="account-who"></div>
+            <div id="account-sync"></div>
+            <div class="row">
+              <button id="account-push" class="btn">Sincronizza ora</button>
+              <button id="account-logout" class="btn">Esci</button>
+            </div>
+          </div>
+          <div class="sup-note">Stessa login del sito ZEN · password mai salvata · cassaforte solo cifrata</div>
         </section>
       </div>
     </aside>
@@ -3867,6 +3891,267 @@
         || 'Ultima verifica: ' + last.state + (last.version ? ' (v' + last.version + ')' : '');
     }
   } catch (e) {}
+
+  // ================= ZEN Account: memoria sempre sul cloud =================
+  // Login con le credenziali del sito ZEN, token persistente nel main,
+  // memoria sezioni con timestamp, merge per sezione, vault solo cifrato.
+  const ZEN_API = 'https://zenaix.netlify.app/api';
+  let zenAccount = null;
+  let zenSyncBusy = false;
+  let zenKoaOk = null;
+
+  function zenValidUser(u) {
+    u = (u || '').trim().toLowerCase();
+    return u.length >= 3 && u.length <= 24 && /^[a-z0-9_.]+$/.test(u) ? u : null;
+  }
+  async function zenApi(path, method, body, token) {
+    const r = await fetch(ZEN_API + path, {
+      method: method || 'GET',
+      headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: 'Bearer ' + token } : {}) },
+      body: body ? JSON.stringify(body) : undefined
+    });
+    let j = null;
+    try { j = await r.json(); } catch (e) {}
+    return { status: r.status, json: j };
+  }
+  function zenPaint() {
+    try {
+      const on = !!(zenAccount && zenAccount.token);
+      document.getElementById('account-off').hidden = on;
+      document.getElementById('account-on').hidden = !on;
+      document.getElementById('account-state').textContent = on ? 'ATTIVO' : '';
+      if (on) document.getElementById('account-who').textContent = 'Ciao, ' + zenAccount.username;
+    } catch (e) {}
+  }
+  function zenStatus(t) {
+    try { document.getElementById('account-sync').textContent = t || ''; } catch (e) {}
+  }
+  function zenErr(t) {
+    try { document.getElementById('account-err').textContent = t || ''; } catch (e) {}
+  }
+  function zenSections() {
+    const maxT = (arr) => arr.reduce((m, x) => Math.max(m, x && x.t ? x.t : 0), 0);
+    let settings = null;
+    try {
+      settings = {
+        turbo: localStorage.getItem('koa.turbo') || '0',
+        supervisor: localStorage.getItem('koa.supervisor') || '1',
+        channel: localStorage.getItem('koa.channel') || 'stable'
+      };
+    } catch (e) { settings = { turbo: '0', supervisor: '1', channel: 'stable' }; }
+    return {
+      bookmarks: { t: maxT(bookmarks), v: bookmarks },
+      history: { t: maxT(historyItems), v: historyItems.slice(0, 200) },
+      settings: { t: 0, v: settings },
+      autonomy: { t: 0, v: loadJSON('koa.autonomy', {}) },
+      downloads: { t: 0, v: loadJSON('koa.downloads', []) }
+    };
+  }
+  function zenSnap() { return loadJSON('koa.sync-snap', null); }
+  function zenSnapSave(sections) {
+    const snap = {};
+    for (const k of Object.keys(sections)) snap[k] = { t: sections[k].t, v: sections[k].v };
+    saveJSON('koa.sync-snap', snap);
+  }
+  function zenStamp(sections) {
+    const snap = zenSnap() || {};
+    const now = Date.now();
+    for (const k of Object.keys(sections)) {
+      const old = snap[k];
+      if (!old || JSON.stringify(old.v) !== JSON.stringify(sections[k].v)) sections[k].t = now;
+      else sections[k].t = old.t || 0;
+    }
+    return sections;
+  }
+  async function zenProbe(token) {
+    try {
+      const cached = loadJSON('koa.sync-probe', null);
+      if (cached && cached.ok && Date.now() - (cached.t || 0) < 24 * 3600 * 1000) return true;
+    } catch (e) {}
+    try {
+      const cur = zenSections();
+      const payload = { koaMemory: { updatedAt: Date.now(), probe: true, sections: cur } };
+      const p = await zenApi('/sync-data', 'POST', payload, token);
+      if (p.status !== 200) return false;
+      const g = await zenApi('/sync-data', 'GET', null, token);
+      const back = g.json && g.json.account && g.json.account.koaMemory;
+      const ok = !!(back && back.probe === true);
+      saveJSON('koa.sync-probe', { ok, t: Date.now() });
+      return ok;
+    } catch (e) { return false; }
+  }
+  async function zenPush(manual) {
+    if (!zenAccount || !zenAccount.token || zenSyncBusy) return false;
+    zenSyncBusy = true;
+    try {
+      if (zenKoaOk == null) zenKoaOk = await zenProbe(zenAccount.token);
+      if (!zenKoaOk) {
+        if (manual) zenStatus('Server senza koaMemory: memoria in locale (vedi data/zen-backend).');
+        return false;
+      }
+      const sections = zenStamp(zenSections());
+      let cipher = '';
+      try {
+        const r = await window.browserAPI.vaultCipher();
+        if (r && r.cipher) cipher = r.cipher;
+      } catch (e) {}
+      const payload = { koaMemory: { updatedAt: Date.now(), sections } };
+      if (cipher) payload.koaMemory.vaultCipher = cipher;
+      const p = await zenApi('/sync-data', 'POST', payload, zenAccount.token);
+      if (p.status === 401) { await zenLogout(true); return false; }
+      if (p.status !== 200) throw new Error('sync ' + p.status);
+      zenSnapSave(sections);
+      const d = new Date();
+      zenStatus('Sincronizzato ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'));
+      return true;
+    } catch (e) {
+      if (manual) zenStatus('Sync fallita: rete non disponibile.');
+      return false;
+    } finally { zenSyncBusy = false; }
+  }
+  function zenMergeSection(key, remote, local) {
+    if (!remote || typeof remote.t !== 'number') return local;
+    if (!local || typeof local.t !== 'number' || remote.t > local.t) return remote;
+    return local;
+  }
+  async function zenApplySettings(v) {
+    if (!v) return;
+    try {
+      if (v.turbo === '1' || v.turbo === '0') await setTurbo(v.turbo === '1');
+    } catch (e) {}
+    try {
+      if (v.supervisor === '1' || v.supervisor === '0') {
+        supervisorOn = v.supervisor === '1';
+        try { localStorage.setItem('koa.supervisor', v.supervisor); } catch (e) {}
+        renderSupervisor(null);
+        if (window.browserAPI && window.browserAPI.setSupervisor) {
+          const r = window.browserAPI.setSupervisor(supervisorOn);
+          if (r && typeof r.then === 'function') r.then(renderSupervisor).catch(() => {});
+        }
+      }
+    } catch (e) {}
+    try {
+      if (['stable', 'beta', 'alpha'].includes(v.channel) && v.channel !== updateChannel) {
+        updateChannel = v.channel;
+        paintChannel(updateChannel);
+        try { localStorage.setItem('koa.channel', updateChannel); } catch (e) {}
+        if (window.browserAPI && window.browserAPI.setChannel) window.browserAPI.setChannel(updateChannel);
+      }
+    } catch (e) {}
+  }
+  async function zenPull() {
+    if (!zenAccount || !zenAccount.token) return false;
+    try {
+      const g = await zenApi('/sync-data', 'GET', null, zenAccount.token);
+      if (g.status === 401) { await zenLogout(true); return false; }
+      if (g.status !== 200 || !g.json || !g.json.account) throw new Error('sync ' + g.status);
+      const remote = g.json.account.koaMemory;
+      if (!remote || !remote.sections) { zenStatus('Cloud vuoto: usa Sincronizza ora.'); return true; }
+      const snap = zenSnap() || {};
+      const merged = {};
+      for (const k of ['bookmarks', 'history', 'settings', 'autonomy', 'downloads']) {
+        const loc = (() => {
+          try {
+            if (k === 'bookmarks') return { t: (snap.bookmarks || {}).t || 0, v: bookmarks };
+            if (k === 'history') return { t: (snap.history || {}).t || 0, v: historyItems };
+            return { t: (snap[k] || {}).t || 0, v: loadJSON(k === 'settings' ? 'koa.sync-snap' : 'koa.' + k, null) };
+          } catch (e) { return { t: 0, v: null }; }
+        })();
+        const locFixed = (k === 'settings')
+          ? { t: loc.t, v: (() => { try { return { turbo: localStorage.getItem('koa.turbo') || '0', supervisor: localStorage.getItem('koa.supervisor') || '1', channel: localStorage.getItem('koa.channel') || 'stable' }; } catch (e) { return {}; } })() }
+          : (k === 'autonomy' ? { t: loc.t, v: loadJSON('koa.autonomy', {}) }
+          : (k === 'downloads' ? { t: loc.t, v: loadJSON('koa.downloads', []) } : loc));
+        merged[k] = zenMergeSection(k, remote.sections[k], locFixed.t || loc.t ? locFixed : { t: 0, v: locFixed.v });
+        if (k === 'bookmarks' && Array.isArray(merged[k].v)) {
+          bookmarks = merged[k].v.filter(x => x && x.url);
+          saveJSON('koa.bookmarks', bookmarks);
+          renderFavs();
+        }
+        if (k === 'history' && Array.isArray(merged[k].v)) {
+          historyItems = merged[k].v.filter(x => x && x.url).slice(0, 200);
+          saveJSON('koa.history', historyItems);
+          renderHistory();
+        }
+        if (k === 'settings' && merged[k].v) await zenApplySettings(merged[k].v);
+        if ((k === 'autonomy' || k === 'downloads') && merged[k].v) {
+          saveJSON(k === 'autonomy' ? 'koa.autonomy' : 'koa.downloads', merged[k].v);
+        }
+      }
+      zenSnapSave(merged);
+      try {
+        if (remote.vaultCipher) {
+          const st = await window.browserAPI.vaultStatus();
+          if (st && !st.exists) {
+            const rr = await window.browserAPI.vaultRestore(remote.vaultCipher);
+            if (rr && rr.ok) zenStatus('Cassaforte ripristinata dal cloud (serve il tuo PIN).');
+          }
+        }
+      } catch (e) {}
+      zenStatus('Cloud applicato.');
+      return true;
+    } catch (e) {
+      zenStatus('Pull fallita: rete non disponibile.');
+      return false;
+    }
+  }
+  async function zenLogin() {
+    zenErr('');
+    const u = zenValidUser(document.getElementById('account-user').value);
+    const p = document.getElementById('account-pass').value || '';
+    if (!u) { zenErr('Username 3-24: lettere, numeri, punto, underscore.'); return; }
+    if (p.length < 6) { zenErr('Password minimo 6 caratteri.'); return; }
+    zenStatus('Accesso…');
+    try {
+      const r = await zenApi('/auth-login', 'POST', { username: u, password: p });
+      if (r.status !== 200 || !r.json || !r.json.token) {
+        zenErr((r.json && r.json.error) || 'Credenziali non valide.');
+        zenStatus('');
+        return;
+      }
+      await window.browserAPI.accountSet({ username: u, token: r.json.token });
+      zenAccount = { username: u, token: r.json.token };
+      try { document.getElementById('account-pass').value = ''; } catch (e) {}
+      zenPaint();
+      zenKoaOk = null;
+      zenStatus('Verifico cloud…');
+      await zenPull();
+      await zenPush(false);
+    } catch (e) {
+      zenErr('Rete non disponibile.');
+      zenStatus('');
+    }
+  }
+  async function zenLogout(silent) {
+    try { await window.browserAPI.accountClear(); } catch (e) {}
+    zenAccount = null;
+    zenKoaOk = null;
+    zenPaint();
+    if (!silent) zenStatus('Disconnesso: memoria in locale.');
+    else zenStatus('Sessione scaduta: accedi di nuovo.');
+  }
+  try {
+    document.getElementById('account-login').addEventListener('click', zenLogin);
+    document.getElementById('account-logout').addEventListener('click', () => zenLogout(false));
+    document.getElementById('account-push').addEventListener('click', async () => {
+      zenStatus('Sincronizzo…');
+      await zenPush(true);
+    });
+    document.getElementById('account-pass').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') zenLogin();
+    });
+  } catch (e) {}
+  (async () => {
+    try {
+      const r = await window.browserAPI.accountGet();
+      if (r && r.ok && r.account) {
+        zenAccount = r.account;
+        zenPaint();
+        zenStatus('Verifico cloud…');
+        await zenPull();
+      } else zenPaint();
+    } catch (e) { zenPaint(); }
+    setInterval(() => { if (zenAccount) zenPush(false); }, 45000);
+  })();
 
   createTab();
 </script>

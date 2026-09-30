@@ -1177,6 +1177,45 @@ ipcMain.handle('zen:vault-list', () => {
   } catch (e) { return { ok: false, error: e.message }; }
 });
 
+// ZEN Account: token+username persistenti (mai la password). File separato dal vault.
+const ACCOUNT_FILE = path.join(app.getPath('userData'), 'koa-account.json');
+function accountRead() {
+  try { return JSON.parse(fs.readFileSync(ACCOUNT_FILE, 'utf8')); }
+  catch (e) { return null; }
+}
+ipcMain.handle('zen:account-get', () => {
+  try {
+    const a = accountRead();
+    return { ok: true, account: a && a.token ? { username: a.username || '', token: a.token } : null };
+  } catch (e) { return { ok: false }; }
+});
+ipcMain.handle('zen:account-set', (_e, rec = {}) => {
+  try {
+    if (!rec || !rec.token) throw new Error('token mancante');
+    fs.writeFileSync(ACCOUNT_FILE, JSON.stringify({ username: rec.username || '', token: rec.token }));
+    return { ok: true };
+  } catch (e) { return { ok: false }; }
+});
+ipcMain.handle('zen:account-clear', () => {
+  try { fs.unlinkSync(ACCOUNT_FILE); } catch (e) {}
+  return { ok: true };
+});
+// Vault cifrato grezzo per la sync (solo ciphertext: il PIN non esce mai).
+ipcMain.handle('zen:vault-cipher', () => {
+  try { return { ok: true, cipher: fs.readFileSync(VAULT_FILE, 'utf8') }; }
+  catch (e) { return { ok: true, cipher: '' }; }
+});
+ipcMain.handle('zen:vault-restore', (_e, cipher) => {
+  try {
+    if (typeof cipher !== 'string' || !cipher) throw new Error('vuoto');
+    const parsed = JSON.parse(cipher);
+    if (!parsed || typeof parsed !== 'object' || !parsed.salt || !parsed.verifier) throw new Error('formato');
+    fs.writeFileSync(VAULT_FILE, JSON.stringify(parsed));
+    vaultKey = null;
+    return { ok: true };
+  } catch (e) { return { ok: false, error: 'cipher non valido' }; }
+});
+
 ipcMain.handle('zen:vault-reveal', (_e, id) => {
   try {
     vaultNeedUnlock();
@@ -1364,6 +1403,20 @@ async function applyUiUpdate(ui) {
 
 app.whenReady().then(() => {
     koaLog('boot', 'ready safe=' + SAFE_MODE);
+    // Pulizia resti di update precedenti: backup .bak orfani e .bat temporanei vecchi.
+    // La memoria (userData) non si tocca mai: è per-percorso, non per-exe.
+    try {
+      const bak = realExePath() + '.bak';
+      if (fs.existsSync(bak)) { try { fs.unlinkSync(bak); } catch (e) {} }
+      const day = 24 * 3600 * 1000, now = Date.now();
+      for (const f of fs.readdirSync(os.tmpdir())) {
+        if (!/^koa-(zendate|uninstall)-.*\.bat$/.test(f)) continue;
+        try {
+          const p = path.join(os.tmpdir(), f);
+          if (now - fs.statSync(p).mtimeMs > day) fs.unlinkSync(p);
+        } catch (e) {}
+      }
+    } catch (e) {}
     // Heartbeat ogni 10s: se l'app freeza, l'ora del file dice se il main gira ancora.
     setInterval(() => {
       try { fs.writeFileSync(path.join(app.getPath('userData'), 'koa-alive.txt'), new Date().toISOString()); } catch (e) {}

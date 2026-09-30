@@ -1,0 +1,15 @@
+[build]
+  # Se il tuo index.html sta nella root del repo, lascia vuoto/"." 
+  # Se invece sta in una sottocartella (es. "public"), scrivi quella qui.
+  publish = "."
+  functions = "netlify/functions"
+
+[functions]
+  node_bundler = "esbuild"
+
+# Redirect: tutte le chiamate a /api/xxx vengono girate alla function corrispondente
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+  force = true

@@ -55,5 +55,11 @@ contextBridge.exposeInMainWorld('browserAPI', {
   vaultPending: () => ipcRenderer.invoke('zen:vault-pending'),
   vaultSavePending: (idx) => ipcRenderer.invoke('zen:vault-save-pending', idx),
   vaultDiscardPending: (idx) => ipcRenderer.invoke('zen:vault-discard-pending', idx),
-  vaultCapture: (rec) => ipcRenderer.invoke('zen:vault-capture', rec)
+  vaultCapture: (rec) => ipcRenderer.invoke('zen:vault-capture', rec),
+  // ZEN Account: token persistente + cipher vault per la sync (PIN mai in rete)
+  accountGet: () => ipcRenderer.invoke('zen:account-get'),
+  accountSet: (rec) => ipcRenderer.invoke('zen:account-set', rec),
+  accountClear: () => ipcRenderer.invoke('zen:account-clear'),
+  vaultCipher: () => ipcRenderer.invoke('zen:vault-cipher'),
+  vaultRestore: (cipher) => ipcRenderer.invoke('zen:vault-restore', cipher)
 });
