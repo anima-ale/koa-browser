@@ -1,6 +1,6 @@
 {
-    "version":  "1.0.17",
-    "notes":  "### Aggiunto\n- KOA omni-agentic assistant: micromodelli locali (pianificatore, italiano, azioni, occhi) con finestra Modelli che scarica, verifica e installa i pesi sul PC\n- Agente autonomo: scompone il comando, apre fino a 40 schede, legge le pagine con alone rosso pulsante sul bordo e risponde con sintesi\n- Occhi e tocco vero: modello vision locale che vede lo screenshot, localizza gli elementi e li preme con clic nativi (screenshot + coordinate + sendInputEvent)\n- Setup con scelta micromodelli: pagina custom NSIS che scrive la preferenza; al primo comando KOA li scarica da solo, altrimenti chiede con box Scarica/Più tardi\n- Sottospecie: tasto Raggruppa con animazione aura, classificazione automatica e chip filtro per topic\n\n### Rimosso\n- moon.html e ponte ZEN MOON (sostituiti dal sistema Autonomia)\n\n### Corretto\n- Download micromodelli con 3 tentativi automatici su reti instabili (niente più loop 0-100)\n\n## [Non rilasciato]\n\n### Aggiunto\n-\n### Cambiato\n-\n### Corretto\n-",
-    "url":  "https://github.com/anima-ale/koa-browser/releases/download/v1.0.17/KOA.Browser.1.0.17.exe",
-    "sha256":  "7d676089163713cc4553794630de1452b32a8aa2d28f791decf855a8d860c62d"
+    "version":  "1.0.18",
+    "notes":  "### Aggiunto\n- Split veloce: pannelli non a fuoco a 30fps + animazioni congelate (si riaccendono al fuoco)\n\n### Corretto\n- Sottospecie: ID modello normalizzati, niente gruppi da 1, potatura gruppi fantasma, niente IPC a raffica",
+    "url":  "https://github.com/anima-ale/koa-browser/releases/download/v1.0.18/KOA.Browser.1.0.18.exe",
+    "sha256":  "97cc307fbdb89697a6be8024472d75aaf1078c48762218e76138126f0add3ebd"
 }

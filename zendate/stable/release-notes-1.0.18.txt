@@ -1,0 +1,5 @@
+### Aggiunto
+- Split veloce: pannelli non a fuoco a 30fps + animazioni congelate (si riaccendono al fuoco)
+
+### Corretto
+- Sottospecie: ID modello normalizzati, niente gruppi da 1, potatura gruppi fantasma, niente IPC a raffica
