@@ -452,16 +452,58 @@ async function agentTouch(tab, target) {
     let wcId = 0;
     try { wcId = tab.webview.getWebContentsId(); } catch (e) { return 'id webview mancante'; }
     if (!window.browserAPI || !window.browserAPI.clickTab) return 'clic non supportato da questa build';
+    try { await agentCursorMove(tab.webview, pt.x, pt.y); } catch (e) {}
+    await new Promise(r => setTimeout(r, 650));
     let ok = false;
     try {
       const r = await window.browserAPI.clickTab(wcId, Math.round(pt.x), Math.round(pt.y));
       ok = !!(r && r.ok);
     } catch (e) {}
+    await agentCursorDone(tab.webview);
     await waitLoad(tab.webview, 8000);
     if (ok) return 'toccato ' + Math.round(pt.x) + ',' + Math.round(pt.y);
+    try { await agentCursorDone(tab.webview); } catch (e) {}
     return 'tocco fallito';
-  } finally { try { await agentGlow(tab.webview, false); } catch (e) {} }
+  } finally { try { await agentGlow(tab.webview, false); } catch (e) {} try { await agentCursorDone(tab.webview); } catch (e) {} }
 }
+  // Link dei risultati: entra nei siti veri invece di fermarsi alla ricerca.
+  async function agentLinks(tab, maxN) {
+    maxN = maxN || 6;
+    try {
+      const code = ['(function(){try{var out=[],seen={},N=' + maxN + ';',
+        'function push(u){try{u=String(u||"");if(!/^https?:\\/\\//i.test(u))return;if(seen[u])return;seen[u]=1;out.push(u)}catch(e){}}',
+        'var host="";try{host=location.hostname}catch(e){}',
+        'var sels=["li.b_algo h2 a",".b_algo h2 a","#b_results h2 a","article a[href^=http]","main a[href^=http]"];',
+        'for(var s=0;s<sels.length&&out.length<N;s++){try{var els=document.querySelectorAll(sels[s]);',
+        'for(var i=0;i<els.length&&out.length<N;i++){var h=els[i].href||"";if(!h)continue;',
+        'var hh="";try{hh=new URL(h).hostname}catch(e){}if(hh===host)continue;',
+        'if(/login|signin|signup|register|account|cookie|privacy|terms/i.test(h))continue;push(h)}}catch(e){}}',
+        'return out.slice(0,N)}catch(e){return[]}})()'].join('');
+      const r = await tab.webview.executeJavaScript(code, true);
+      if (Array.isArray(r)) return r.filter(u => typeof u === 'string').slice(0, maxN);
+    } catch (e) {}
+    return [];
+  }
+  // Mouse rosso stilizzato: si sposta sul bersaglio, preme, svanisce.
+  async function agentCursorMove(wv, x, y) {
+    try {
+      const xx = Math.round(x), yy = Math.round(y);
+      const code = '(function(x,y){try{var id="koa-agent-cursor";var d=document.getElementById(id);'
+        + 'if(!d){d=document.createElement("div");d.id=id;'
+        + 'd.setAttribute("style","position:fixed;z-index:2147483647;pointer-events:none;width:18px;height:18px;margin:-9px 0 0 -9px;border-radius:50%;background:radial-gradient(circle,#ff5a3c 0%,#c41e1e 70%);box-shadow:0 0 14px 4px rgba(255,60,40,.8),0 0 3px 1px #fff;transition:left .55s ease-out,top .55s ease-out,opacity .3s;");'
+        + '(document.documentElement||document.body).appendChild(d);'
+        + 'd.style.left=(x)+"px";d.style.top=((y)-170)+"px";d.style.opacity="1";}'
+        + 'void d.offsetWidth;'
+        + 'd.style.left=(x)+"px";d.style.top=(y)+"px";'
+        + 'return "go"}catch(e){return "err"}})(' + xx + ',' + yy + ')';
+      await wv.executeJavaScript(code, true);
+    } catch (e) {}
+  }
+  async function agentCursorDone(wv) {
+    try {
+      await wv.executeJavaScript('(function(){try{var d=document.getElementById("koa-agent-cursor");if(!d)return "no";d.style.transform="scale(.6)";d.style.opacity="0";setTimeout(function(){try{d.remove()}catch(e){}},350);return "ok"}catch(e){return "err"}})()', true);
+    } catch (e) {}
+  }
 async function agentPageAct(tab, page, cmd) {
   if (!koaHasGpu) return false;
   try { await ensureAutonomyModels(['azioni']); }
@@ -499,11 +541,11 @@ function heuristicPlan(cmd) {
     queries.push('voli economici Roma ' + new Date().getFullYear());
     queries.push('aeroporto piu vicino a me');
   }
-  if (queries.length === 1) queries.push(cmd + ' prezzo');
+  if (queries.length === 1) queries.push('migliore ' + cmd.slice(0, 60));
   return { tabs: queries.slice(0, 300), note: 'euristica' };
 }
 async function planWithModel(cmd) {
-  const sys = 'Sei il pianificatore di un browser. Rispondi SOLO con JSON valido, senza testo fuori: {"tabs":["URL https://... oppure query di ricerca", "..."]}. Apri quante schede servono davvero, fino a 300, in sequenza. Per ricerche usa query brevi in italiano.';
+  const sys = 'Sei il pianificatore di un browser. Rispondi SOLO con JSON valido, senza testo fuori: {"tabs":["URL https://... oppure query di ricerca", "..."]}. Apri quante schede servono davvero, fino a 300, in sequenza. Proponi query di ricerca, non articoli: KOA entra da solo nei link dei risultati. Per ricerche usa query brevi in italiano.';
   const raw = await koaLocalChat(koaModelByRole('planner'), [
     { role: 'system', content: sys },
     { role: 'user', content: cmd.slice(0, 500) }
@@ -511,7 +553,7 @@ async function planWithModel(cmd) {
   return { tabs: parsePlanJson(raw), note: 'modello' };
 }
 async function planWithCloud(cmd) {
-  const sys = 'Sei il pianificatore di un browser. Rispondi SOLO con JSON valido, senza testo fuori: {"tabs":["URL https://... oppure query di ricerca", "..."]}. Apri quante schede servono davvero, fino a 300, in sequenza. Per ricerche usa query brevi in italiano.';
+  const sys = 'Sei il pianificatore di un browser. Rispondi SOLO con JSON valido, senza testo fuori: {"tabs":["URL https://... oppure query di ricerca", "..."]}. Apri quante schede servono davvero, fino a 300, in sequenza. Proponi query di ricerca, non articoli: KOA entra da solo nei link dei risultati. Per ricerche usa query brevi in italiano.';
   const raw = await koaCloudChat([
     { role: 'system', content: sys },
     { role: 'user', content: cmd.slice(0, 500) }
@@ -558,9 +600,16 @@ function autoAnswer(text) {
 }
 // Voce neurale locale (Piper, italiano): setup una tantum, sintesi, play.
 let lastTtsFile = null;
+let ttsApiWarned = false;
 async function ensureTts() {
   try {
-    if (!window.browserAPI || !window.browserAPI.ttsStatus) return false;
+    if (!window.browserAPI || !window.browserAPI.ttsStatus) {
+      if (!ttsApiWarned) {
+        ttsApiWarned = true;
+        autoLog('Voce', 'manca il supporto vocale: ricompila con ricrea-exe', 'error');
+      }
+      return false;
+    }
     const s = await window.browserAPI.ttsStatus();
     if (s && s.ok) return true;
     autoLog('Voce', 'scarico la voce neurale italiana…', '');
@@ -662,10 +711,16 @@ async function koaAutonomyRun(cmd) {
       } catch (e) {}
     };
     let n = 0;
-    for (const item of plan.tabs) {
+    const queue = plan.tabs.slice(0, 300);
+    const seenUrls = new Set();
+    let qi = 0;
+    while (qi < queue.length) {
       if (Date.now() > deadline) { autoLog('Tempo', 'scaduto: chiudo con quanto raccolto', 'error'); break; }
       if (++n > 300) break;
+      const item = queue[qi++];
       const url = /^https?:\/\//i.test(item) ? item : AGENT_SEARCH + encodeURIComponent(item);
+      if (seenUrls.has(url)) continue;
+      seenUrls.add(url);
       let tabId;
       try { tabId = createTab(url); }
       catch (e) { autoLog('Scheda', 'apertura fallita: ' + item, 'error'); continue; }
@@ -683,6 +738,21 @@ async function koaAutonomyRun(cmd) {
       try { await agentGlow(tab.webview, false); } catch (e) {}
       if (page.text) collected.push('FONTE ' + n + ' (' + (page.title || url).slice(0, 80) + '):\n' + page.text.slice(0, 2500));
       else autoLog('Lettura', 'pagina vuota o protetta (' + page.text.length + ' caratteri)', 'error');
+      // Era una ricerca: entra nei siti dei risultati.
+      if (page.text && !/^https?:\/\//i.test(item) && queue.length < 300) {
+        try {
+          const links = await agentLinks(tab, 6);
+          let added = 0;
+          for (const lu of links) {
+            if (seenUrls.has(lu) || queue.indexOf(lu) !== -1) continue;
+            if (queue.length >= 300) break;
+            queue.push(lu);
+            seenUrls.add(lu);
+            added++;
+          }
+          if (added) autoLog('Link', added + ' risultati da aprire', '');
+        } catch (e) {}
+      }
       // Giri di mani finché serve (max 5): tocca, rileggi, continua.
       if (page.text && Date.now() < deadline) {
         for (let round = 0; round < 5; round++) {
