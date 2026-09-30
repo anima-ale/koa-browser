@@ -1,6 +1,6 @@
 {
-    "version":  "1.0.21",
+    "version":  "1.0.22",
     "notes":  "### Aggiunto\n- ZEN Account: login con le credenziali del sito, memoria (preferiti, cronologia, impostazioni, cassaforte cifrata) sempre sul cloud con merge per sezione\n- Backend ecosistema in data/zen-backend (functions + src + netlify.toml) con campo koaMemory: da redeployare per attivare la sync\n\n### Cambiato\n- ZENdate: a ogni update pulizia resti .bak/.bat vecchi all\u0027avvio; la memoria resta perché userData è per-percorso, e il rilancio parte sempre dal nuovo exe",
-    "url":  "https://github.com/anima-ale/koa-browser/releases/download/v1.0.21/KOA.Browser.1.0.21.exe",
-    "sha256":  "d93dd8fa3580d1f3d4b61a5e7d528055d78450c5f6e8c50553d7cfef587a251b"
+    "url":  "https://github.com/anima-ale/koa-browser/releases/download/v1.0.22/KOA.Browser.1.0.22.exe",
+    "sha256":  "49e00982fb8d307581b3b5d1fd5a2048e18a87a52d63b7ade34f79499196074d"
 }
