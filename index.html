@@ -824,6 +824,8 @@
   }
   #turbo-state { margin-left: auto; font-size: 10px; letter-spacing: 0.08em; color: var(--text-muted); }
   /* ---------- KOA Autonomia: modelli locali + agente + aura ---------- */
+  .tab.crashed .tab-title { color: #e14b4b; font-style: italic; }
+  .tab.crashed { border-bottom: 2px solid #e14b4b; }
   #auto-form { display: flex; gap: 8px; }
   #auto-input {
     flex: 1; min-width: 0;
@@ -1431,6 +1433,7 @@
     catch (e) { return 'https://www.google.com'; }
   })();
   let tabs = [];              // { id, tabEl, paneEl, webview, title }
+  let koaCrashTotal = 0;      // processi pagina morti in sessione (suggerisce Turbo spento oltre 3)
 
   // ================= ZEN Turbo =================
   // App: niente animazioni/blur/ombre (più FPS). Web: CSS leggero iniettato
@@ -1655,16 +1658,26 @@
         } catch (err) {}
       }
     });
-    // Se il processo della pagina muore, ricarica (max 2 volte di fila).
+    // Se il processo della pagina muore, ricarica con backoff; oltre → badge rosso.
     webview.addEventListener('render-process-gone', () => {
       try {
         tab.crashCount = (tab.crashCount || 0) + 1;
-        if (tab.crashCount <= 2) webview.reload();
+        koaCrashTotal = (typeof koaCrashTotal === 'number' ? koaCrashTotal : 0) + 1;
+        tab.tabEl.classList.add('crashed');
+        tab.tabEl.title = 'Scheda bloccata: ricaricala con F5 o dal menu';
+        if (tab.crashCount <= 5) {
+          const wait = 400 * tab.crashCount;
+          setTimeout(() => { try { tab.webview.reload(); } catch (e) {} }, wait);
+        }
+        if (koaCrashTotal === 3 && typeof autoLog === 'function') {
+          try { autoLog('Schede', 'blocchi ripetuti: se hai Turbo attivo, provalo spento', 'error'); } catch (e) {}
+        }
       } catch (e) {}
     });
     // Scrollbar liquida su ogni pagina (anche SPA / navigazioni interne)
     webview.addEventListener('did-finish-load', () => {
       tab.crashCount = 0;
+      try { tab.tabEl.classList.remove('crashed'); tab.tabEl.title = ''; } catch (e) {}
       injectKoaScrollbar(webview);
       if (turboOn) applyTurboToWebview(webview, tab);
       if (isFocused(id)) updateSiteTint();
@@ -1941,10 +1954,17 @@
     const tab = getFocusedTab();
     if (!tab) return;
     const wv = tab.webview;
-    const url = wv.getURL ? (wv.getURL() || '') : '';
+    let url = '';
+    try { url = (wv.getURL && wv.getURL()) || ''; } catch (e) {}
+    // Guest morto o mai partito: prova a farlo rivivere subito.
+    try {
+      if (wv.isCrashed && wv.isCrashed()) { try { wv.reload(); } catch (e) {} }
+    } catch (e) {}
     urlBar.value = url;
     setProtocol(url);
-    setLoading(wv.isLoading ? wv.isLoading() : false);
+    let loading = false;
+    try { loading = wv.isLoading ? !!wv.isLoading() : false; } catch (e) {}
+    setLoading(loading);
     updateNavButtons();
     updateStar();
     updateSiteTint();
