@@ -1,6 +1,6 @@
 {
-    "version":  "1.0.20",
-    "notes":  "### Corretto\n- Schede grigie alla riapertura: blindate le letture guest non pronto (era quello a rompere createTab), reload con backoff fino a 5 volte, badge rosso oltre, rianimazione se il guest risulta crashato\n- Crash ripetuti: avviso in sidebar che suggerisce di provare Turbo spento\n\n### Aggiunto\n- Split veloce: pannelli non a fuoco a 30fps + animazioni congelate (si riaccendono al fuoco)\n\n### Corretto\n- Sottospecie: ID modello normalizzati, niente gruppi da 1, potatura gruppi fantasma, niente IPC a raffica",
-    "url":  "https://github.com/anima-ale/koa-browser/releases/download/v1.0.20/KOA.Browser.1.0.20.exe",
-    "sha256":  "fddcd27bd818a5a00edfbc15e5f1ff8bec4a325f6d5c02353cce654606a137f7"
+    "version":  "1.0.21",
+    "notes":  "### Aggiunto\n- ZEN Account: login con le credenziali del sito, memoria (preferiti, cronologia, impostazioni, cassaforte cifrata) sempre sul cloud con merge per sezione\n- Backend ecosistema in data/zen-backend (functions + src + netlify.toml) con campo koaMemory: da redeployare per attivare la sync\n\n### Cambiato\n- ZENdate: a ogni update pulizia resti .bak/.bat vecchi all\u0027avvio; la memoria resta perché userData è per-percorso, e il rilancio parte sempre dal nuovo exe",
+    "url":  "https://github.com/anima-ale/koa-browser/releases/download/v1.0.21/KOA.Browser.1.0.21.exe",
+    "sha256":  "d93dd8fa3580d1f3d4b61a5e7d528055d78450c5f6e8c50553d7cfef587a251b"
 }
