@@ -5,7 +5,7 @@ Scrivi qui la storia delle versioni: per ogni release usa
 mostrato nell'app (Impostazioni → note) va nel parametro `-Notes`
 di `zendate\make-zendate.ps1`, più il testo della Release GitHub.
 
-## [1.0.18] - 2026-09-30
+## [1.0.19] - 2026-09-30
 
 ### Aggiunto
 - Split veloce: pannelli non a fuoco a 30fps + animazioni congelate (si riaccendono al fuoco)
