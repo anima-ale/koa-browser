@@ -444,10 +444,10 @@ function heuristicPlan(cmd) {
     queries.push('aeroporto piu vicino a me');
   }
   if (queries.length === 1) queries.push(cmd + ' prezzo');
-  return { tabs: queries.slice(0, 40), note: 'euristica' };
+  return { tabs: queries.slice(0, 300), note: 'euristica' };
 }
 async function planWithModel(cmd) {
-  const sys = 'Sei il pianificatore di un browser. Rispondi SOLO con JSON valido, senza testo fuori: {"tabs":["URL https://... oppure query di ricerca", "..."]}. Massimo 40 schede. Per ricerche usa query brevi in italiano.';
+  const sys = 'Sei il pianificatore di un browser. Rispondi SOLO con JSON valido, senza testo fuori: {"tabs":["URL https://... oppure query di ricerca", "..."]}. Apri quante schede servono davvero, fino a 300, in sequenza. Per ricerche usa query brevi in italiano.';
   const raw = await koaLocalChat(koaModelByRole('planner'), [
     { role: 'system', content: sys },
     { role: 'user', content: cmd.slice(0, 500) }
@@ -457,7 +457,7 @@ async function planWithModel(cmd) {
   if (start === -1 || end === -1) throw new Error('piano illeggibile');
   const plan = JSON.parse(clean.slice(start, end + 1));
   if (!plan || !Array.isArray(plan.tabs) || !plan.tabs.length) throw new Error('piano vuoto');
-  return { tabs: plan.tabs.filter(t => typeof t === 'string' && t.trim()).slice(0, 40), note: 'modello' };
+  return { tabs: plan.tabs.filter(t => typeof t === 'string' && t.trim()).slice(0, 300), note: 'modello' };
 }
 function autoLog(title, body, cls) {
   try {
@@ -479,15 +479,59 @@ function autoLog(title, body, cls) {
   } catch (e) {}
 }
 function autoAnswer(text) {
+  let btn = null;
   try {
     const box = document.getElementById('auto-log');
-    if (!box) return;
+    if (!box) return null;
     const d = document.createElement('div');
     d.className = 'auto-answer';
     d.textContent = text;
+    btn = document.createElement('button');
+    btn.className = 'btn';
+    btn.textContent = 'Ascolta';
+    btn.addEventListener('click', () => { btn.disabled = true; speakAnswer(text, btn); });
+    d.appendChild(document.createElement('br'));
+    d.appendChild(btn);
     box.appendChild(d);
     box.scrollTop = box.scrollHeight;
   } catch (e) {}
+  return btn;
+}
+// Voce neurale locale (Piper, italiano): setup una tantum, sintesi, play.
+let lastTtsFile = null;
+async function ensureTts() {
+  try {
+    if (!window.browserAPI || !window.browserAPI.ttsStatus) return false;
+    const s = await window.browserAPI.ttsStatus();
+    if (s && s.ok) return true;
+    autoLog('Voce', 'scarico la voce neurale italiana…', '');
+    const f = await window.browserAPI.ttsFetch();
+    return !!(f && f.ok);
+  } catch (e) {
+    autoLog('Voce', 'non disponibile: ' + ((e && e.message) || 'errore'), 'error');
+    return false;
+  }
+}
+async function speakAnswer(text, btn) {
+  const t = String(text || '').slice(0, 900);
+  if (!t) return;
+  try {
+    if (!await ensureTts()) { if (btn) btn.disabled = false; return; }
+    try {
+      if (lastTtsFile && window.browserAPI && window.browserAPI.ttsClean) {
+        await window.browserAPI.ttsClean();
+      }
+    } catch (e) {}
+    const r = await window.browserAPI.ttsSpeak(t);
+    if (!r || !r.ok || !r.file) throw new Error('sintesi fallita');
+    lastTtsFile = r.file;
+    const url = 'file:///' + String(r.file).replace(/\\/g, '/').replace(/ /g, '%20');
+    const a = new Audio(url);
+    await a.play();
+  } catch (e) {
+    autoLog('Voce', 'premi Ascolta per riprovare', 'error');
+    if (btn) btn.disabled = false;
+  }
 }
 function autoState(t) {
   try { document.getElementById('auto-state').textContent = t; } catch (e) {}
@@ -499,7 +543,7 @@ async function koaAutonomyRun(cmd) {
   if (!cmd) return;
   autoRunning = true;
   autoState('al lavoro…');
-  const deadline = Date.now() + 1200000;
+  const deadline = Date.now() + 1800000;
   try {
     autoLog('Comando', cmd);
     const need = await missingAutonomyModels(['planner', 'italiano']);
@@ -536,10 +580,19 @@ async function koaAutonomyRun(cmd) {
     catch (e) { plan = heuristicPlan(cmd); }
     autoLog('Piano (' + plan.note + ')', plan.tabs.join('  ·  '));
     const collected = [];
+    const doneIds = [];
+    const closeDone = (keep) => {
+      try {
+        while (doneIds.length > keep) {
+          const cid = doneIds.shift();
+          try { if (getTab(cid)) closeTab(cid); } catch (e) {}
+        }
+      } catch (e) {}
+    };
     let n = 0;
     for (const item of plan.tabs) {
       if (Date.now() > deadline) { autoLog('Tempo', 'scaduto: chiudo con quanto raccolto', 'error'); break; }
-      if (++n > 40) break;
+      if (++n > 300) break;
       const url = /^https?:\/\//i.test(item) ? item : AGENT_SEARCH + encodeURIComponent(item);
       let tabId;
       try { tabId = createTab(url); }
@@ -558,26 +611,33 @@ async function koaAutonomyRun(cmd) {
       try { await agentGlow(tab.webview, false); } catch (e) {}
       if (page.text) collected.push('FONTE ' + n + ' (' + (page.title || url).slice(0, 80) + '):\n' + page.text.slice(0, 2500));
       else autoLog('Lettura', 'pagina vuota o protetta (' + page.text.length + ' caratteri)', 'error');
-      // Un giro di mani: il modello azioni decide se toccare/cliccare, poi rileggo.
+      // Giri di mani finché serve (max 5): tocca, rileggi, continua.
       if (page.text && Date.now() < deadline) {
-        try {
-          const acted = await agentPageAct(tab, page, cmd);
-          if (acted) {
-            const page2 = await agentRead(tab);
-            if (page2.text && page2.text !== page.text) {
-              collected.push('FONTE ' + n + 'b (' + (page2.title || url).slice(0, 80) + ', dopo azione):\n' + page2.text.slice(0, 2500));
-            }
-          }
-        } catch (e) {}
+        for (let round = 0; round < 5; round++) {
+          if (Date.now() > deadline) break;
+          let acted = false;
+          try { acted = await agentPageAct(tab, page, cmd); } catch (e) {}
+          if (!acted) break;
+          const page2 = await agentRead(tab);
+          if (page2.text && page2.text !== page.text) {
+            collected.push('FONTE ' + n + 'b' + (round + 1) + ' (' + (page2.title || url).slice(0, 80) + ', dopo azione):\n' + page2.text.slice(0, 2200));
+            page = page2;
+          } else break;
+        }
       }
+      // Libera RAM: tiene al massimo le ultime 2 lette.
+      doneIds.push(tab.id);
+      closeDone(2);
     }
+    closeDone(1);
     if (!collected.length) { autoLog('Risultato', 'nessuna pagina leggibile', 'error'); autoState('fermo'); autoRunning = false; return; }
     autoLog('Sintesi', 'unisco i risultati…');
     const ans = await koaLocalChat(koaModelByRole('italiano'), [
       { role: 'system', content: 'Sei KOA. Rispondi in italiano, conciso e completo, con cifre e fatti dalle fonti. Niente emoji.' },
       { role: 'user', content: 'DOMANDA: ' + cmd.slice(0, 400) + '\n\n' + collected.join('\n\n').slice(0, 6000) }
     ], 1024);
-    autoAnswer(ans);
+    const ab = autoAnswer(ans);
+    speakAnswer(ans, ab);
     autoLog('Fatto', collected.length + ' schede lette', 'done');
     autoState('pronto');
   } catch (e) {

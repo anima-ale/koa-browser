@@ -1569,6 +1569,10 @@
 
   function createTab(url = HOME_URL) {
     const id = ++tabCounter;
+    if (tabs.length >= 300) {
+      try { if (typeof autoLog === 'function') autoLog('Schede', 'limite 300 raggiunto', 'error'); } catch (e) {}
+      return activeTabId;
+    }
 
     // ---- tab strip entry ----
     const tabEl = document.createElement('div');

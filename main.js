@@ -680,6 +680,90 @@ ipcMain.handle('zen:pane-perf', (_e, wcId, hot) => {
     return { ok: true };
   } catch (e) { return { ok: false }; }
 });
+// Voce neurale locale (Piper): controllo, download, sintesi. Tutto sul PC.
+function ttsDir() {
+  try { return path.join(app.getPath('userData'), 'koa-tts'); } catch (e) { return null; }
+}
+function findFileDeep(dir, name) {
+  try {
+    const es = fs.readdirSync(dir, { withFileTypes: true });
+    for (const e of es) {
+      const p = path.join(dir, e.name);
+      if (e.isFile() && e.name.toLowerCase() === name.toLowerCase()) return p;
+      if (e.isDirectory()) { const f = findFileDeep(p, name); if (f) return f; }
+    }
+  } catch (e) {}
+  return null;
+}
+ipcMain.handle('zen:tts-status', () => {
+  try {
+    const d = ttsDir();
+    if (!d) return { ok: false };
+    const ok = fs.existsSync(path.join(d, 'piper', 'piper.exe')) &&
+      fs.existsSync(path.join(d, 'it_IT-riccardo-x_low.onnx')) &&
+      fs.existsSync(path.join(d, 'it_IT-riccardo-x_low.onnx.json'));
+    return { ok };
+  } catch (e) { return { ok: false }; }
+});
+ipcMain.handle('zen:tts-fetch', async () => {
+  try {
+    const d = ttsDir();
+    if (!d) throw new Error('cartella indisponibile');
+    fs.mkdirSync(path.join(d, 'piper'), { recursive: true });
+    const exe = path.join(d, 'piper', 'piper.exe');
+    if (!fs.existsSync(exe)) {
+      const zip = path.join(d, 'piper.zip');
+      await downloadFile('https://github.com/rhasspy/piper/releases/download/2023.11.14-2/piper_windows_amd64.zip', zip);
+      const tmp = path.join(d, 'piper-dl');
+      try { fs.rmSync(tmp, { recursive: true, force: true }); } catch (e) {}
+      execSync('powershell -NoProfile -Command "Expand-Archive -Force \'' + zip + '\' \'' + tmp + '\'"', { stdio: ['ignore', 'ignore', 'ignore'] });
+      const found = findFileDeep(tmp, 'piper.exe');
+      if (!found) throw new Error('piper.exe non trovato nel pacchetto');
+      fs.copyFileSync(found, exe);
+      try { fs.rmSync(zip, { force: true }); } catch (e) {}
+      try { fs.rmSync(tmp, { recursive: true, force: true }); } catch (e) {}
+    }
+    const voice = path.join(d, 'it_IT-riccardo-x_low.onnx');
+    if (!fs.existsSync(voice)) {
+      await downloadFile('https://huggingface.co/rhasspy/piper-voices/resolve/v1.0.0/it/it_IT/riccardo/x_low/it_IT-riccardo-x_low.onnx', voice);
+    }
+    if (!fs.existsSync(voice + '.json')) {
+      await downloadFile('https://huggingface.co/rhasspy/piper-voices/resolve/v1.0.0/it/it_IT/riccardo/x_low/it_IT-riccardo-x_low.onnx.json', voice + '.json');
+    }
+    return { ok: true };
+  } catch (e) { return { ok: false, error: (e && e.message) || 'download voce' }; }
+});
+ipcMain.handle('zen:tts-speak', async (_e, text) => {
+  try {
+    const d = ttsDir();
+    const exe = path.join(d, 'piper', 'piper.exe');
+    const voice = path.join(d, 'it_IT-riccardo-x_low.onnx');
+    if (!fs.existsSync(exe) || !fs.existsSync(voice)) throw new Error('voce non installata');
+    const out = path.join(d, 'koa-tts-' + Date.now() + '.wav');
+    await new Promise((resolve, reject) => {
+      try {
+        const p = spawn(exe, ['--model', voice, '--output_file', out], { windowsHide: true });
+        let err = '';
+        try { p.stderr.on('data', dd => { err += dd.toString(); }); } catch (e) {}
+        p.on('error', reject);
+        p.on('close', (code) => code === 0 ? resolve() : reject(new Error('piper ' + code + ' ' + String(err || '').slice(0, 200))));
+        try { p.stdin.write(String(text || '').slice(0, 900)); } catch (e) {}
+        try { p.stdin.end(); } catch (e) {}
+      } catch (e) { reject(e); }
+    });
+    return { ok: true, file: out };
+  } catch (e) { return { ok: false, error: (e && e.message) || 'sintesi' }; }
+});
+ipcMain.handle('zen:tts-clean', () => {
+  try {
+    const d = ttsDir();
+    if (!d) return { ok: true };
+    for (const f of fs.readdirSync(d)) {
+      if (/^koa-tts-.*\.wav$/.test(f)) { try { fs.unlinkSync(path.join(d, f)); } catch (e) {} }
+    }
+  } catch (e) {}
+  return { ok: true };
+});
 ipcMain.handle('zen:print-tab', (_e, id) => {
   const c = guestContents(id);
   if (c) { try { c.print({ silent: false }); } catch (e) {} }

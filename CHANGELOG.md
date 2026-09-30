@@ -14,6 +14,8 @@ di `zendate\make-zendate.ps1`, più il testo della Release GitHub.
 
 ### Aggiunto
 - Split veloce: pannelli non a fuoco a 30fps + animazioni congelate (si riaccendono al fuoco)
+- Agente instancabile: fino a 300 schede in sequenza secondo bisogno, fino a 5 giri di tocco per pagina, chiude le lette tenendo l'ultima (RAM sotto controllo, tetto 300 schede totali)
+- Occhi e mani vere: screenshot, coordinate dal modello vision e clic nativi; voce neurale italiana locale (Piper) che legge la soluzione con tasto Ascolta
 
 ### Corretto
 - Sottospecie: ID modello normalizzati, niente gruppi da 1, potatura gruppi fantasma, niente IPC a raffica
