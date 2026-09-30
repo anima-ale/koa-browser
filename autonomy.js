@@ -288,6 +288,23 @@ function waitLoad(wv, ms) {
     setTimeout(fin, ms || 20000);
   });
 }
+// Attende che la pagina abbia davvero testo (siti JS-idratati come Bing).
+function waitContent(wv, ms) {
+  ms = ms || 12000;
+  const t0 = Date.now();
+  return new Promise((resolve) => {
+    const tick = async () => {
+      try {
+        if (Date.now() - t0 > ms) { resolve(0); return; }
+        let n = 0;
+        try { n = await wv.executeJavaScript('try{document.body?document.body.innerText.length:0}catch(e){0}', true) || 0; } catch (e) {}
+        if (n > 200) { resolve(n); return; }
+        setTimeout(tick, 800);
+      } catch (e) { resolve(0); }
+    };
+    tick();
+  });
+}
 async function agentRead(tab) {
   try {
     const r = await tab.webview.executeJavaScript('(' + koaExtractPage.toString() + ')()', true);
@@ -532,10 +549,15 @@ async function koaAutonomyRun(cmd) {
       autoLog('Scheda ' + n, url);
       await waitLoad(tab.webview);
       try { await agentGlow(tab.webview, true); } catch (e) {}
-      const page = await agentRead(tab);
+      await waitContent(tab.webview);
+      let page = await agentRead(tab);
+      if (!page.text) {
+        await new Promise(r => setTimeout(r, 3000));
+        page = await agentRead(tab);
+      }
       try { await agentGlow(tab.webview, false); } catch (e) {}
       if (page.text) collected.push('FONTE ' + n + ' (' + (page.title || url).slice(0, 80) + '):\n' + page.text.slice(0, 2500));
-      else autoLog('Lettura', 'pagina vuota o protetta', 'error');
+      else autoLog('Lettura', 'pagina vuota o protetta (' + page.text.length + ' caratteri)', 'error');
       // Un giro di mani: il modello azioni decide se toccare/cliccare, poi rileggo.
       if (page.text && Date.now() < deadline) {
         try {

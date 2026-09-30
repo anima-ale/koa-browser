@@ -10,6 +10,7 @@ di `zendate\make-zendate.ps1`, più il testo della Release GitHub.
 ### Corretto
 - Schede grigie alla riapertura: blindate le letture guest non pronto (era quello a rompere createTab), reload con backoff fino a 5 volte, badge rosso oltre, rianimazione se il guest risulta crashato
 - Crash ripetuti: avviso in sidebar che suggerisce di provare Turbo spento
+- Agente: attende il testo vero delle pagine idratate (Bing) + rilettura, con conteggio caratteri in caso di blocco
 
 ### Aggiunto
 - Split veloce: pannelli non a fuoco a 30fps + animazioni congelate (si riaccendono al fuoco)
