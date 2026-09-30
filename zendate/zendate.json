@@ -1,6 +1,6 @@
 {
-    "version":  "1.0.18",
+    "version":  "1.0.19",
     "notes":  "### Aggiunto\n- Split veloce: pannelli non a fuoco a 30fps + animazioni congelate (si riaccendono al fuoco)\n\n### Corretto\n- Sottospecie: ID modello normalizzati, niente gruppi da 1, potatura gruppi fantasma, niente IPC a raffica",
-    "url":  "https://github.com/anima-ale/koa-browser/releases/download/v1.0.18/KOA.Browser.1.0.18.exe",
-    "sha256":  "97cc307fbdb89697a6be8024472d75aaf1078c48762218e76138126f0add3ebd"
+    "url":  "https://github.com/anima-ale/koa-browser/releases/download/v1.0.19/KOA.Browser.1.0.19.exe",
+    "sha256":  "d50314763861a6af3c9d37e39ba5fb7418bc3ecc3f066454cf14b813bb266ddf"
 }
