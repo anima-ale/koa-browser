@@ -24,9 +24,11 @@ function turboBootOn() {
 if (turboBootOn()) {
   app.commandLine.appendSwitch('ignore-gpu-blocklist');
   app.commandLine.appendSwitch('enable-gpu-rasterization');
+  app.commandLine.appendSwitch('enable-unsafe-swiftshader');
 } else {
   app.commandLine.appendSwitch('disable-gpu-shader-disk-cache');
   app.commandLine.appendSwitch('disable-http-cache');
+  app.commandLine.appendSwitch('enable-unsafe-swiftshader');
   app.disableHardwareAcceleration();
 }
 

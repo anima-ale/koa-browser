@@ -84,6 +84,37 @@ function koaModelByRole(role) {
   const m = KOA_MODELS.find(x => x.role === role);
   return m ? m.id : KOA_MODELS[0].id;
 }
+function isGpuError(e) {
+  return /gpu|webgpu|compatible/i.test(String((e && e.message) || e || ''));
+}
+// Ripiego cloud (solo testo) quando la GPU locale manca: l'agente risponde comunque.
+async function koaCloudChat(messages, maxTokens) {
+  const body = {
+    messages: messages.map(m => (typeof m.content === 'string'
+      ? { role: m.role, content: m.content.slice(0, 2000) }
+      : { role: m.role, content: 'immagine non supportata dal ripiego cloud' })),
+    model: 'openai'
+  };
+  try {
+    const r = await fetch('https://text.pollinations.ai/', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+    });
+    if (r.ok) { const t = await r.text(); if (t.trim()) return t.trim(); }
+  } catch (e) {}
+  const last = [...messages].reverse().find(m => typeof m.content === 'string' && m.content.trim());
+  const r2 = await fetch('https://text.pollinations.ai/' + encodeURIComponent((last ? last.content : 'ciao').slice(0, 500)));
+  const t2 = await r2.text();
+  if (!t2.trim()) throw new Error('cloud senza risposta');
+  return t2.trim();
+}
+function parsePlanJson(raw) {
+  const clean = raw.replace(/```json|```/g, '').trim();
+  const start = clean.indexOf('{'), end = clean.lastIndexOf('}');
+  if (start === -1 || end === -1) throw new Error('piano illeggibile');
+  const plan = JSON.parse(clean.slice(start, end + 1));
+  if (!plan || !Array.isArray(plan.tabs) || !plan.tabs.length) throw new Error('piano vuoto');
+  return plan.tabs.filter(t => typeof t === 'string' && t.trim()).slice(0, 300);
+}
 async function ensureAutonomyModels(roles) {
   const missing = await missingAutonomyModels(roles);
   if (missing.length) throw new Error('manca ' + missing.map(m => m.label).join(', ') + ': apri Modelli e scaricali');
@@ -389,6 +420,7 @@ async function agentLocate(tab, target) {
   return { x: x / 1000 * rect.width, y: y / 1000 * rect.height };
 }
 async function agentTouch(tab, target) {
+  if (!koaHasGpu) return 'niente WebGPU';
   try { await agentGlow(tab.webview, true); } catch (e) {}
   try {
     try { await ensureAutonomyModels(['occhi']); }
@@ -408,6 +440,7 @@ async function agentTouch(tab, target) {
   } finally { try { await agentGlow(tab.webview, false); } catch (e) {} }
 }
 async function agentPageAct(tab, page, cmd) {
+  if (!koaHasGpu) return false;
   try { await ensureAutonomyModels(['azioni']); }
   catch (e) { return false; }
   let raw;
@@ -452,12 +485,15 @@ async function planWithModel(cmd) {
     { role: 'system', content: sys },
     { role: 'user', content: cmd.slice(0, 500) }
   ], 512);
-  const clean = raw.replace(/```json|```/g, '').trim();
-  const start = clean.indexOf('{'), end = clean.lastIndexOf('}');
-  if (start === -1 || end === -1) throw new Error('piano illeggibile');
-  const plan = JSON.parse(clean.slice(start, end + 1));
-  if (!plan || !Array.isArray(plan.tabs) || !plan.tabs.length) throw new Error('piano vuoto');
-  return { tabs: plan.tabs.filter(t => typeof t === 'string' && t.trim()).slice(0, 300), note: 'modello' };
+  return { tabs: parsePlanJson(raw), note: 'modello' };
+}
+async function planWithCloud(cmd) {
+  const sys = 'Sei il pianificatore di un browser. Rispondi SOLO con JSON valido, senza testo fuori: {"tabs":["URL https://... oppure query di ricerca", "..."]}. Apri quante schede servono davvero, fino a 300, in sequenza. Per ricerche usa query brevi in italiano.';
+  const raw = await koaCloudChat([
+    { role: 'system', content: sys },
+    { role: 'user', content: cmd.slice(0, 500) }
+  ], 512);
+  return { tabs: parsePlanJson(raw), note: 'cloud' };
 }
 function autoLog(title, body, cls) {
   try {
@@ -537,6 +573,7 @@ function autoState(t) {
   try { document.getElementById('auto-state').textContent = t; } catch (e) {}
 }
 let autoRunning = false;
+let koaHasGpu = false;
 async function koaAutonomyRun(cmd) {
   if (autoRunning) return;
   cmd = (cmd || '').trim();
@@ -544,10 +581,15 @@ async function koaAutonomyRun(cmd) {
   autoRunning = true;
   autoState('al lavoro…');
   const deadline = Date.now() + 1800000;
+  koaHasGpu = false;
+  try { koaHasGpu = !!navigator.gpu; } catch (e) {}
   try {
     autoLog('Comando', cmd);
     const need = await missingAutonomyModels(['planner', 'italiano']);
     if (need.length) {
+      if (!koaHasGpu) {
+        autoLog('GPU', 'WebGPU assente: salto i download inutili, lavoro via cloud.', '');
+      } else {
       let pre = false;
       try {
         if (prefetchChecked == null && window.browserAPI && window.browserAPI.modelsPrefetch) {
@@ -573,11 +615,18 @@ async function koaAutonomyRun(cmd) {
         autoRunning = false;
         return;
       }
+      }
     }
     autoLog('Piano', 'scompongo la richiesta…');
     let plan;
     try { plan = await planWithModel(cmd); }
-    catch (e) { plan = heuristicPlan(cmd); }
+    catch (e) {
+      if (isGpuError(e) || !koaHasGpu) {
+        autoLog('Piano', 'piano dal cloud…', '');
+        try { plan = await planWithCloud(cmd); }
+        catch (e2) { plan = heuristicPlan(cmd); }
+      } else plan = heuristicPlan(cmd);
+    }
     autoLog('Piano (' + plan.note + ')', plan.tabs.join('  ·  '));
     const collected = [];
     const doneIds = [];
@@ -632,10 +681,22 @@ async function koaAutonomyRun(cmd) {
     closeDone(1);
     if (!collected.length) { autoLog('Risultato', 'nessuna pagina leggibile', 'error'); autoState('fermo'); autoRunning = false; return; }
     autoLog('Sintesi', 'unisco i risultati…');
-    const ans = await koaLocalChat(koaModelByRole('italiano'), [
-      { role: 'system', content: 'Sei KOA. Rispondi in italiano, conciso e completo, con cifre e fatti dalle fonti. Niente emoji.' },
-      { role: 'user', content: 'DOMANDA: ' + cmd.slice(0, 400) + '\n\n' + collected.join('\n\n').slice(0, 6000) }
-    ], 1024);
+    const sumSys = 'Sei KOA. Rispondi in italiano, conciso e completo, con cifre e fatti dalle fonti. Niente emoji.';
+    const sumUsr = 'DOMANDA: ' + cmd.slice(0, 400) + '\n\n' + collected.join('\n\n').slice(0, 6000);
+    let ans;
+    try {
+      ans = await koaLocalChat(koaModelByRole('italiano'), [
+        { role: 'system', content: sumSys },
+        { role: 'user', content: sumUsr }
+      ], 1024);
+    } catch (e) {
+      if (!isGpuError(e)) throw e;
+      autoLog('Sintesi', 'niente GPU locale: sintesi dal cloud…', '');
+      ans = await koaCloudChat([
+        { role: 'system', content: sumSys },
+        { role: 'user', content: sumUsr }
+      ], 1024);
+    }
     const ab = autoAnswer(ans);
     speakAnswer(ans, ab);
     autoLog('Fatto', collected.length + ' schede lette', 'done');
