@@ -88,6 +88,7 @@
     <span class="kicker">KOA · chat</span>
     <span class="badge">ZEN 7.5 MAX</span>
     <span class="spacer"></span>
+    <a href="#" id="keys-link" title="Imposta chiavi API gratuite (Gemini / Pollen)">Chiavi</a>
     <a href="start.html">Home</a>
   </header>
   <div id="msgs"></div>
@@ -144,19 +145,125 @@
     try { localStorage.setItem('koa.zenchat-hist', JSON.stringify(h.slice(-50))); } catch (e) {}
   }
   var busy = false;
-  async function askZen(messages) {
-    const body = { messages: messages, model: 'openai' };
+  function zenKeys() {
     try {
-      const r = await fetch('https://text.pollinations.ai/', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+      return {
+        pollen: (localStorage.getItem('koa.pollen-key') || '').trim(),
+        gemini: (localStorage.getItem('koa.gemini-key') || '').trim()
+      };
+    } catch (e) { return { pollen: '', gemini: '' }; }
+  }
+  function zenPickText(t) {
+    t = String(t == null ? '' : t).trim();
+    if (!t || t === '{}' || t === '[]') throw new Error('empty');
+    if (t.charAt(0) === '{' && t.charAt(t.length - 1) === '}') {
+      try {
+        var j = JSON.parse(t);
+        var c = j && j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content;
+        if (c && String(c).trim() && String(c).trim() !== '{}') return String(c).trim();
+        if (j.text && String(j.text).trim() && String(j.text).trim() !== '{}') return String(j.text).trim();
+      } catch (e) {
+        if (e && (e.message === 'empty')) throw e;
+      }
+      throw new Error('empty');
+    }
+    return t;
+  }
+  async function zenViaGemini(messages, apiKey) {
+    var contents = [];
+    messages.forEach(function (m) {
+      var role = m.role === 'assistant' ? 'model' : 'user';
+      var text = String((m && m.content) || '').slice(0, 4000);
+      if (!text.trim()) return;
+      contents.push({ role: role, parts: [{ text: text }] });
+    });
+    if (!contents.length) throw new Error('empty');
+    var r = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + encodeURIComponent(apiKey), {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contents: contents, generationConfig: { temperature: 0.7, maxOutputTokens: 2048 } })
+    });
+    if (!r.ok) throw new Error('gemini ' + r.status);
+    var j = await r.json();
+    var out = j && j.candidates && j.candidates[0] && j.candidates[0].content && j.candidates[0].content.parts && j.candidates[0].content.parts[0] && j.candidates[0].content.parts[0].text;
+    if (!out || !String(out).trim()) throw new Error('empty');
+    return String(out).trim();
+  }
+  async function zenViaPollenGen(messages, apiKey) {
+    var r = await fetch('https://gen.pollinations.ai/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiKey },
+      body: JSON.stringify({ model: 'openai/gpt-5.4-nano', messages: messages, stream: false })
+    });
+    if (!r.ok) throw new Error('pollen ' + r.status);
+    var t = await r.text();
+    return zenPickText(t);
+  }
+  async function zenViaLLM7(messages) {
+    var models = ['default', 'DeepSeek-V4-Flash-0731', 'GLM-5.3-Flash', 'minimax-m2.7', 'mistral-Nemo-Instruct-2407', 'codestral-latest'];
+    var lastErr = null, limited = false;
+    for (var i = 0; i < models.length; i++) {
+      try {
+        var r = await fetch('https://api.llm7.io/v1/chat/completions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer unused' },
+          body: JSON.stringify({ model: models[i], messages: messages, stream: false })
+        });
+        if (r.status === 429) { limited = true; lastErr = new Error('429'); continue; }
+        if (!r.ok) { lastErr = new Error('llm7 ' + r.status); continue; }
+        return zenPickText(await r.text());
+      } catch (e) { lastErr = e; }
+    }
+    if (limited) throw new Error('limite richieste (riprova tra ~20s)');
+    throw lastErr || new Error('llm7');
+  }
+  async function askZen(messages) {
+    messages = (messages || []).filter(function (m) { return m && typeof m.content === 'string' && m.content.trim(); });
+    if (!messages.length) throw new Error('vuoto');
+    var keys = zenKeys();
+    var errs = [];
+    if (keys.gemini) {
+      try { return await zenViaGemini(messages, keys.gemini); }
+      catch (e) { errs.push('gemini: ' + ((e && e.message) || 'errore')); }
+    }
+    if (keys.pollen) {
+      try { return await zenViaPollenGen(messages, keys.pollen); }
+      catch (e) { errs.push('pollen: ' + ((e && e.message) || 'errore')); }
+    }
+    try { return await zenViaLLM7(messages); }
+    catch (e) { errs.push('gratis: ' + ((e && e.message) || 'errore')); }
+    try {
+      var r = await fetch('https://text.pollinations.ai/', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: messages })
       });
-      if (r.ok) { const t = await r.text(); if (t.trim()) return t.trim(); }
-    } catch (e) {}
-    const last = messages.filter(m => typeof m.content === 'string').pop();
-    const r2 = await fetch('https://text.pollinations.ai/' + encodeURIComponent(((last && last.content) || 'ciao').slice(0, 500)));
-    const t2 = await r2.text();
-    if (!t2.trim()) throw new Error('vuoto');
-    return t2.trim();
+      if (r.ok) {
+        var t = await r.text();
+        return zenPickText(t);
+      } else if (r.status === 402) {
+        errs.push('pollinations: pagamento richiesto (402) per nuove richieste');
+      } else {
+        errs.push('pollinations: HTTP ' + r.status);
+      }
+    } catch (e) {
+      if (e && e.message === 'empty') errs.push('pollinations: risposta vuota ({})');
+      else if (e) errs.push('pollinations: ' + (e.message || 'rete'));
+    }
+    try {
+      var last = messages.filter(function (m) { return typeof m.content === 'string'; }).pop();
+      var prompt = ((last && last.content) || 'ciao').slice(0, 500);
+      var r2 = await fetch('https://text.pollinations.ai/' + encodeURIComponent(prompt));
+      if (r2.ok) {
+        var t2 = await r2.text();
+        return zenPickText(t2);
+      } else if (r2.status === 402) {
+        errs.push('pollinations-get: pagamento richiesto (402)');
+      } else {
+        errs.push('pollinations-get: HTTP ' + r2.status);
+      }
+    } catch (e) {
+      if (e && e.message === 'empty') errs.push('pollinations-get: risposta vuota ({})');
+    }
+    throw new Error(errs.length ? errs.join(' · ') : 'vuoto');
   }
   async function sendText(q) {
     q = (q || '').trim();
@@ -178,7 +285,14 @@
       bubble.innerHTML = renderCode(a);
     } catch (e) {
       bubble.parentNode.classList.remove('loading');
-      bubble.textContent = 'ZEN non risponde: controlla la rete e riprova.';
+      var msg = (e && e.message) || 'rete';
+      if (/limite richieste/i.test(msg)) {
+        bubble.innerHTML = renderCode('ZEN è al limite gratuito (10 richieste/minuto): aspetta ~20 secondi e riprova.');
+      } else if (/402|pagamento|empty|vuota|\(\{\}\)/i.test(msg)) {
+        bubble.innerHTML = renderCode('ZEN non risponde (' + msg + '). Riprova tra poco: la via gratuita primaria è attiva, Pollinations legacy è a pagamento per le nuove richieste.');
+      } else {
+        bubble.textContent = 'ZEN non risponde (' + msg + '): controlla la rete e riprova.';
+      }
     }
     msgs.scrollTop = msgs.scrollHeight;
     busy = false;
@@ -186,6 +300,28 @@
     input.focus();
   }
   hist().forEach(m => addMsg(m.who === 'ai' ? 'ai' : 'user', m.text, false));
+  try {
+    var kl = document.getElementById('keys-link');
+    if (kl) kl.addEventListener('click', function (e) {
+      e.preventDefault();
+      try {
+        var curG = localStorage.getItem('koa.gemini-key') || '';
+        var curP = localStorage.getItem('koa.pollen-key') || '';
+        var g = window.prompt('Gemini API key (gratis da Google AI Studio, lascia vuoto per non cambiare):', curG);
+        if (g != null) {
+          g = (g || '').trim();
+          if (g) localStorage.setItem('koa.gemini-key', g);
+          else localStorage.removeItem('koa.gemini-key');
+        }
+        var p = window.prompt('Pollen API key (da enter.pollinations.ai, lascia vuoto per non cambiare):', curP);
+        if (p != null) {
+          p = (p || '').trim();
+          if (p) localStorage.setItem('koa.pollen-key', p);
+          else localStorage.removeItem('koa.pollen-key');
+        }
+      } catch (err) {}
+    });
+  } catch (e) {}
   form.addEventListener('submit', function (e) {
     e.preventDefault();
     sendText(input.value);

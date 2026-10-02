@@ -88,24 +88,85 @@ function isGpuError(e) {
   return /gpu|webgpu|compatible/i.test(String((e && e.message) || e || ''));
 }
 // Ripiego cloud (solo testo) quando la GPU locale manca: l'agente risponde comunque.
+// Pollinations legacy ora risponde 402/{} per nuove richieste: niente più "{}" in UI,
+// prima le chiavi BYOK (Gemini/Pollen), poi legacy con parsing JSON corretto.
 async function koaCloudChat(messages, maxTokens) {
-  const body = {
-    messages: messages.map(m => (typeof m.content === 'string'
-      ? { role: m.role, content: m.content.slice(0, 2000) }
-      : { role: m.role, content: 'immagine non supportata dal ripiego cloud' })),
-    model: 'openai'
-  };
+  const clean = messages.map(m => (typeof m.content === 'string'
+    ? { role: m.role, content: m.content.slice(0, 2000) }
+    : { role: m.role, content: 'immagine non supportata dal ripiego cloud' }))
+    .filter(m => m.content && m.content.trim());
+  if (!clean.length) throw new Error('cloud senza risposta');
+  function pick(t) {
+    t = String(t == null ? '' : t).trim();
+    if (!t || t === '{}' || t === '[]') throw new Error('cloud senza risposta');
+    if (t.charAt(0) === '{' && t.charAt(t.length - 1) === '}') {
+      try {
+        const j = JSON.parse(t);
+        const c = j && j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content;
+        if (c && String(c).trim() && String(c).trim() !== '{}') return String(c).trim().slice(0, maxTokens ? maxTokens * 4 : 8000);
+        if (j.text && String(j.text).trim()) return String(j.text).trim();
+      } catch (e) { if (e && /402|pagamento/.test(e.message)) throw e; }
+      throw new Error('cloud senza risposta');
+    }
+    return t;
+  }
+  let gemKey = '', polKey = '';
+  try {
+    gemKey = (localStorage.getItem('koa.gemini-key') || '').trim();
+    polKey = (localStorage.getItem('koa.pollen-key') || '').trim();
+  } catch (e) {}
+  if (gemKey) {
+    try {
+      const contents = clean.map(m => ({ role: m.role === 'assistant' ? 'model' : 'user', parts: [{ text: m.content.slice(0, 4000) }] }));
+      const r = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + encodeURIComponent(gemKey), {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents, generationConfig: { temperature: 0.3, maxOutputTokens: Math.min(maxTokens || 1024, 4096) } })
+      });
+      if (r.ok) {
+        const j = await r.json();
+        const out = j && j.candidates && j.candidates[0] && j.candidates[0].content && j.candidates[0].content.parts && j.candidates[0].content.parts[0] && j.candidates[0].content.parts[0].text;
+        if (out && String(out).trim()) return String(out).trim();
+      }
+    } catch (e) {}
+  }
+  if (polKey) {
+    try {
+      const r = await fetch('https://gen.pollinations.ai/v1/chat/completions', {
+        method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + polKey },
+        body: JSON.stringify({ model: 'openai/gpt-5.4-nano', messages: clean, stream: false })
+      });
+      if (r.ok) return pick(await r.text());
+    } catch (e) { if (e && /402|pagamento/.test(e.message)) throw e; }
+  }
+  for (const m of ['default', 'DeepSeek-V4-Flash-0731', 'GLM-5.3-Flash', 'minimax-m2.7', 'mistral-Nemo-Instruct-2407', 'codestral-latest']) {
+    try {
+      const r = await fetch('https://api.llm7.io/v1/chat/completions', {
+        method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer unused' },
+        body: JSON.stringify({ model: m, messages: clean, stream: false })
+      });
+      if (r.status === 429) throw new Error('cloud limite richieste (riprova tra ~20s)');
+      if (r.ok) {
+        const out = pick(await r.text());
+        return maxTokens ? out.slice(0, maxTokens * 4) : out;
+      }
+    } catch (e) {
+      if (e && /limite richieste/.test(e.message)) throw e;
+    }
+  }
   try {
     const r = await fetch('https://text.pollinations.ai/', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ messages: clean })
     });
-    if (r.ok) { const t = await r.text(); if (t.trim()) return t.trim(); }
-  } catch (e) {}
-  const last = [...messages].reverse().find(m => typeof m.content === 'string' && m.content.trim());
+    if (r.ok) return pick(await r.text());
+    if (r.status === 402) throw new Error('cloud senza risposta');
+  } catch (e) {
+    if (e && /402|pagamento/.test(e.message)) throw e;
+  }
+  const last = [...clean].reverse().find(m => typeof m.content === 'string' && m.content.trim());
   const r2 = await fetch('https://text.pollinations.ai/' + encodeURIComponent((last ? last.content : 'ciao').slice(0, 500)));
+  if (!r2.ok && r2.status === 402) throw new Error('cloud senza risposta');
   const t2 = await r2.text();
-  if (!t2.trim()) throw new Error('cloud senza risposta');
-  return t2.trim();
+  return pick(t2);
 }
 function parsePlanJson(raw) {
   const clean = raw.replace(/```json|```/g, '').trim();

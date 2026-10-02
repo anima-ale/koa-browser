@@ -69,54 +69,107 @@ async function callGemini(prompt, model, systemPrompt, history, attachments) {
 
 const POLLINATIONS_CASCADE = ['openai', 'mistral', 'qwen', 'llama', 'deepseek'];
 
+async function callLLM7Text(messages) {
+  const models = ['default', 'DeepSeek-V4-Flash-0731', 'GLM-5.3-Flash', 'minimax-m2.7', 'mistral-Nemo-Instruct-2407', 'codestral-latest'];
+  let lastErr = null;
+  for (const model of models) {
+    try {
+      const res = await fetch('https://api.llm7.io/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer unused' },
+        body: JSON.stringify({ model, messages, stream: false })
+      });
+      if (res.status === 429) { lastErr = new Error('LLM7 429 limite richieste'); continue; }
+      if (!res.ok) { lastErr = new Error('LLM7 ' + res.status); continue; }
+      const data = await res.json();
+      const c = data.choices?.[0]?.message?.content;
+      if (c && String(c).trim() && String(c).trim() !== '{}') return String(c).trim();
+      lastErr = new Error('LLM7 risposta vuota');
+    } catch (err) {
+      lastErr = err;
+    }
+  }
+  throw lastErr || new Error('LLM7 non disponibile');
+}
+
 async function callPollinationsText(messages) {
   const systemMsg = messages.find(m => m.role === 'system');
   const history = messages.filter(m => m.role !== 'system');
   const formattedMessages = systemMsg ? [systemMsg, ...history] : history;
+  function pickReply(text) {
+    let reply = String(text == null ? '' : text).trim();
+    if (!reply || reply === '{}' || reply === '[]') throw new Error('empty');
+    if (reply.startsWith('{') && reply.endsWith('}')) {
+      try {
+        const data = JSON.parse(reply);
+        const c = data.choices?.[0]?.message?.content;
+        if (c && String(c).trim() && String(c).trim() !== '{}') return String(c).trim();
+        if (data.text && String(data.text).trim() && String(data.text).trim() !== '{}') return String(data.text).trim();
+      } catch (_) {}
+      throw new Error('empty');
+    }
+    return reply;
+  }
+
+  // Via gratuita primaria: LLM7 anonimo (nessuna chiave).
+  try {
+    return await callLLM7Text(formattedMessages);
+  } catch (e) {
+    console.warn('LLM7 fallito, provo Pollinations:', e.message);
+  }
 
   for (const model of POLLINATIONS_CASCADE) {
     try {
       const body = {
         messages: formattedMessages,
-        model,
         seed: Math.floor(Math.random() * 99999),
         stream: false
       };
+      if (model && model !== 'default') body.model = model;
       const res = await fetch('https://text.pollinations.ai/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body)
       });
+      if (res.status === 402) {
+        console.warn(`Pollinations model ${model} 402 pagamento richiesto, provo il prossimo`);
+        continue;
+      }
       if (res.ok) {
         const text = await res.text();
-        let reply = text.trim();
-        if (reply.startsWith('{') && reply.endsWith('}')) {
-          try {
-            const data = JSON.parse(reply);
-            reply = data.choices?.[0]?.message?.content || data.text || reply;
-          } catch (_) {}
-        }
-        if (reply && reply.length > 0 && !reply.includes('rate limit') && !reply.includes('Service Unavailable')) {
-          return reply;
-        }
+        try {
+          const reply = pickReply(text);
+          if (reply && reply.length > 0 && !reply.includes('rate limit') && !reply.includes('Service Unavailable')) {
+            return reply;
+          }
+        } catch (_) { /* vuoto/{}: prova modello successivo */ }
       }
     } catch (err) {
       console.warn(`Pollinations model ${model} error, trying next:`, err.message);
     }
   }
 
-  // Backup GET se POST non ha restituito nulla
+  // Backup GET se POST non ha restituito nulla (senza model= per restare sul tier anonimo)
   const lastUser = [...messages].reverse().find(m => m.role === 'user');
   const promptText = typeof lastUser?.content === 'string' ? lastUser.content : 'Ciao';
   try {
-    const res = await fetch(`https://text.pollinations.ai/${encodeURIComponent(promptText)}?model=openai`);
+    const res = await fetch(`https://text.pollinations.ai/${encodeURIComponent(promptText.slice(0, 500))}`);
+    if (res.status === 402) throw new Error('402 pagamento richiesto');
     if (res.ok) {
       const txt = await res.text();
-      if (txt && txt.trim()) return txt.trim();
+      try { return pickReply(txt); } catch (_) {}
     }
   } catch (_) {}
 
-  return 'Sono pronto ad aiutarti. Come posso esserti utile?';
+  // Poi Gemini se configurato, altrimenti errore chiaro (mai "{}").
+  if (GEMINI_API_KEY) {
+    try {
+      const last = typeof lastUser?.content === 'string' ? lastUser.content : 'Ciao';
+      const sys = systemMsg?.content || 'Sei ZEN, rispondi in italiano.';
+      return await callGemini(last, 'gemini-2.0-flash', sys, history.filter(m => m !== lastUser).slice(-8), []);
+    } catch (e) { /* sotto: errore chiaro */ }
+  }
+  throw new Error('Tutte le vie gratuite hanno fallito. Aggiungi GEMINI_API_KEY su Netlify.');
 }
 
 async function callPollinationsImage(prompt, count = 1) {

@@ -1,6 +1,6 @@
 {
-    "version":  "1.0.24",
-    "notes":  "### Aggiunto\n- ZEN Account: login con le credenziali del sito, memoria (preferiti, cronologia, impostazioni, cassaforte cifrata) sempre sul cloud con merge per sezione\n- Backend ecosistema in data/zen-backend (functions + src + netlify.toml) con campo koaMemory: da redeployare per attivare la sync\n- Start page stile AI Mode: il bordo della barra si accende seguendo il mouse e svanisce allontanandosi\n- Glow dinamico che segue il mouse su quasi tutti i bottoni e la barra indirizzi (tinta sito rimossa dalla barra)\n- Scrittura fluida: ogni lettera si materializza sfumata al caret, cancellare dissolve, micro-blur sull\u0027input\n\n### Cambiato\n- ZENdate: a ogni update pulizia resti .bak/.bat vecchi all\u0027avvio; la memoria resta perché userData è per-percorso, e il rilancio parte sempre dal nuovo exe",
-    "url":  "https://github.com/anima-ale/koa-browser/releases/download/v1.0.24/KOA.Browser.1.0.24.exe",
-    "sha256":  "b214469ecf8e665706db5fc06ce55c4a9a5bd5aa02740b4264fb4b135fd3e478"
+    "version":  "1.0.26",
+    "notes":  "### Corretto\n- ZEN rispondeva sempre `{}`: Pollinations legacy ora chiede pagamento (402) per le nuove richieste, e il `{}` veniva mostrato come risposta\n- Via gratuita primaria senza chiavi: LLM7 anonimo (nessuna registrazione) con fallback Pollinations, mai più `{}` in chat, home, sidebar e agente cloud\n\n### Cambiato\n- Home in stile NEO 1: via glow/gradienti/pill, barra dritta simmetrica, tasto ZEN mode come `#send` di zenchat",
+    "url":  "https://github.com/anima-ale/koa-browser/releases/download/v1.0.26/KOA.Browser.1.0.26.exe",
+    "sha256":  "2a33ea38822a8c9bad4bfed8af6f825c3af3b6f807fd7f48b4f87f77507e17f0"
 }

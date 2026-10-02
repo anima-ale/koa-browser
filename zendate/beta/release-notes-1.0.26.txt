@@ -1,0 +1,6 @@
+### Corretto
+- ZEN rispondeva sempre `{}`: Pollinations legacy ora chiede pagamento (402) per le nuove richieste, e il `{}` veniva mostrato come risposta
+- Via gratuita primaria senza chiavi: LLM7 anonimo (nessuna registrazione) con fallback Pollinations, mai più `{}` in chat, home, sidebar e agente cloud
+
+### Cambiato
+- Home in stile NEO 1: via glow/gradienti/pill, barra dritta simmetrica, tasto ZEN mode come `#send` di zenchat
