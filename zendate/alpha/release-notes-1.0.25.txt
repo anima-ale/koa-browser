@@ -1,0 +1,2 @@
+### Corretto
+- Tinta sito eliminata del tutto: nessun colore pagina in barra, tab e divider

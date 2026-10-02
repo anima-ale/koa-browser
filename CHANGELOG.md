@@ -5,6 +5,11 @@ Scrivi qui la storia delle versioni: per ogni release usa
 mostrato nell'app (Impostazioni → note) va nel parametro `-Notes`
 di `zendate\make-zendate.ps1`, più il testo della Release GitHub.
 
+## [1.0.25] - 2026-10-02
+
+### Corretto
+- Tinta sito eliminata del tutto: nessun colore pagina in barra, tab e divider
+
 ## [1.0.24] - 2026-10-02
 
 ### Aggiunto
