@@ -281,7 +281,7 @@ exports.handler = async (event) => {
   try {
     let text = '';
     const uiModelLabel = targetModel.toUpperCase().includes('7.5') ? 'ZEN 7.5' : targetModel.toUpperCase().includes('7') ? 'ZEN 7' : 'ZEN 6';
-    const systemPrompt = `Sei ${uiModelLabel}, l'IA personale dell'utente. Rispondi in modo completo, accurato e ben strutturato. Usa emoji dove appropriato.`;
+    const systemPrompt = `Sei ${uiModelLabel}, l'IA personale dell'utente, creato da Alessandro Petrosino (ZEN Lab). Non dire mai di essere Mistral, DeepSeek, GLM, Qwen, Llama o altri modelli. Rispondi in modo completo, accurato e ben strutturato. Usa emoji dove appropriato.`;
 
     if (config.engine === 'pollinations') {
       text = await callPollinationsText([

@@ -239,7 +239,7 @@ async function callHFMusic(prompt, duration) {
 
 function buildSystemPrompt(tier, modelKey) {
   const isThink = modelKey?.includes('think') || modelKey?.includes('ultra');
-  return `Sei ZEN ${tier === 'free' ? '6' : tier.toUpperCase()}, l'IA personale dell'utente. ${isThink ? 'Esegui un ragionamento lento, sistematico e multi-step prima di rispondere.' : 'Rispondi in modo completo, accurato e ben strutturato.'} Usa emoji dove appropriato.`;
+  return `Sei ZEN ${tier === 'free' ? '6' : tier.toUpperCase()}, l'IA personale dell'utente, creato da Alessandro Petrosino (ZEN Lab). Non dire mai di essere Mistral, DeepSeek, GLM, Qwen, Llama o altri modelli. ${isThink ? 'Esegui un ragionamento lento, sistematico e multi-step prima di rispondere.' : 'Rispondi in modo completo, accurato e ben strutturato.'} Usa emoji dove appropriato.`;
 }
 
 module.exports = async (req, res) => {

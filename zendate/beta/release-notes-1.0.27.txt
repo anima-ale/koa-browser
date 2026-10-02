@@ -1,0 +1,3 @@
+### Cambiato
+- Tolto il tasto Chiavi dalla chat: ZEN risponde gratis senza chiavi (LLM7 anonimo + fallback)
+- Identità ZEN 7.5 MAX: ogni AI (chat, home, sidebar, agente, backend) sa di essere ZEN 7.5 MAX creato da Alessandro Petrosino (ZEN Lab) e non si spaccia per altri modelli

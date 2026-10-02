@@ -2840,8 +2840,9 @@
   }
   chatSummarizeBtn.addEventListener('click', summarizeCurrentPage);
 
-  // ---- KOA AI via Pollinations (gratis, senza chiave): tutto il resto passa da qui ----
-  const KOA_SYSTEM = 'Sei KOA, l’assistente AI integrato di KOA Browser. Rispondi sempre in italiano, in modo conciso e utile, con Markdown leggero. ' +
+  // ---- KOA AI via LLM7 anonimo (gratis, senza chiave): tutto il resto passa da qui ----
+  const KOA_SYSTEM = 'Sei ZEN 7.5 MAX, l\u2019assistente AI integrato di KOA Browser, creato da Alessandro Petrosino (ZEN Lab). Rispondi sempre in italiano, in modo conciso e utile, con Markdown leggero. ' +
+    'Non dire mai di essere Mistral, DeepSeek, GLM, Qwen, Llama o qualsiasi altro modello: sei ZEN 7.5 MAX. ' +
     'Nel browser esistono i comandi /calc (calcolatrice), /cerca (apre una ricerca) e /riassumi (riassume la pagina): se l’utente li nomina, spiega come usarli.';
 
   // Contesto pagina per la AI: titolo + inizio del testo (riuso l’estrattore del summarizer).

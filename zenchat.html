@@ -88,7 +88,6 @@
     <span class="kicker">KOA · chat</span>
     <span class="badge">ZEN 7.5 MAX</span>
     <span class="spacer"></span>
-    <a href="#" id="keys-link" title="Imposta chiavi API gratuite (Gemini / Pollen)">Chiavi</a>
     <a href="start.html">Home</a>
   </header>
   <div id="msgs"></div>
@@ -216,9 +215,11 @@
     if (limited) throw new Error('limite richieste (riprova tra ~20s)');
     throw lastErr || new Error('llm7');
   }
+  var ZEN_SYS = 'Sei ZEN 7.5 MAX, l\u2019assistente AI di KOA Browser, creato da Alessandro Petrosino (ZEN Lab). Rispondi sempre in italiano. Non dire mai di essere Mistral, DeepSeek, GLM, Qwen, Llama o qualsiasi altro modello: sei ZEN 7.5 MAX.';
   async function askZen(messages) {
     messages = (messages || []).filter(function (m) { return m && typeof m.content === 'string' && m.content.trim(); });
     if (!messages.length) throw new Error('vuoto');
+    messages = [{ role: 'system', content: ZEN_SYS }].concat(messages);
     var keys = zenKeys();
     var errs = [];
     if (keys.gemini) {
@@ -300,28 +301,6 @@
     input.focus();
   }
   hist().forEach(m => addMsg(m.who === 'ai' ? 'ai' : 'user', m.text, false));
-  try {
-    var kl = document.getElementById('keys-link');
-    if (kl) kl.addEventListener('click', function (e) {
-      e.preventDefault();
-      try {
-        var curG = localStorage.getItem('koa.gemini-key') || '';
-        var curP = localStorage.getItem('koa.pollen-key') || '';
-        var g = window.prompt('Gemini API key (gratis da Google AI Studio, lascia vuoto per non cambiare):', curG);
-        if (g != null) {
-          g = (g || '').trim();
-          if (g) localStorage.setItem('koa.gemini-key', g);
-          else localStorage.removeItem('koa.gemini-key');
-        }
-        var p = window.prompt('Pollen API key (da enter.pollinations.ai, lascia vuoto per non cambiare):', curP);
-        if (p != null) {
-          p = (p || '').trim();
-          if (p) localStorage.setItem('koa.pollen-key', p);
-          else localStorage.removeItem('koa.pollen-key');
-        }
-      } catch (err) {}
-    });
-  } catch (e) {}
   form.addEventListener('submit', function (e) {
     e.preventDefault();
     sendText(input.value);

@@ -5,6 +5,12 @@ Scrivi qui la storia delle versioni: per ogni release usa
 mostrato nell'app (Impostazioni → note) va nel parametro `-Notes`
 di `zendate\make-zendate.ps1`, più il testo della Release GitHub.
 
+## [1.0.27] - 2026-10-02
+
+### Cambiato
+- Tolto il tasto Chiavi dalla chat: ZEN risponde gratis senza chiavi (LLM7 anonimo + fallback)
+- Identità ZEN 7.5 MAX: ogni AI (chat, home, sidebar, agente, backend) sa di essere ZEN 7.5 MAX creato da Alessandro Petrosino (ZEN Lab) e non si spaccia per altri modelli
+
 ## [1.0.26] - 2026-10-02
 
 ### Corretto

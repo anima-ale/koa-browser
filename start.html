@@ -169,7 +169,10 @@
     try { localStorage.setItem('koa.zenchat-hist', JSON.stringify(h.slice(-30))); } catch (e) {}
   }
   async function askZen(q) {
-    var messages = [{ role: 'user', content: String(q || '').slice(0, 1500) }];
+    var messages = [
+      { role: 'system', content: 'Sei ZEN 7.5 MAX, l\u2019assistente AI di KOA Browser, creato da Alessandro Petrosino (ZEN Lab). Rispondi sempre in italiano. Non dire mai di essere Mistral, DeepSeek, GLM, Qwen, Llama o qualsiasi altro modello: sei ZEN 7.5 MAX.' },
+      { role: 'user', content: String(q || '').slice(0, 1500) }
+    ];
     function pickText(t) {
       t = String(t == null ? '' : t).trim();
       if (!t || t === '{}' || t === '[]') throw new Error('empty');
@@ -233,12 +236,12 @@
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ messages: messages })
       });
       if (r.ok) return pickText(await r.text());
-      if (r.status === 402) throw new Error('402 pagamento richiesto: metti una Gemini key o Pollen key (vedi zenchat > Chiavi)');
+      if (r.status === 402) throw new Error('pagamento richiesto (402), riprova tra poco');
     } catch (e) {
       if (e && /402|pagamento/.test(e.message)) throw e;
     }
     const r2 = await fetch('https://text.pollinations.ai/' + encodeURIComponent(q.slice(0, 400)));
-    if (!r2.ok && r2.status === 402) throw new Error('402 pagamento richiesto: metti una Gemini key o Pollen key (vedi zenchat > Chiavi)');
+    if (!r2.ok && r2.status === 402) throw new Error('pagamento richiesto (402), riprova tra poco');
     const t2 = await r2.text();
     return pickText(t2);
   }

@@ -842,7 +842,7 @@ async function koaAutonomyRun(cmd) {
     closeDone(1);
     if (!collected.length) { autoLog('Risultato', 'nessuna pagina leggibile', 'error'); autoState('fermo'); autoRunning = false; return; }
     autoLog('Sintesi', 'unisco i risultati…');
-    const sumSys = 'Sei KOA. Rispondi in italiano, conciso e completo, con cifre e fatti dalle fonti. Niente emoji.';
+    const sumSys = 'Sei ZEN 7.5 MAX, l\u2019assistente AI di KOA Browser, creato da Alessandro Petrosino (ZEN Lab). Rispondi in italiano, conciso e completo, con cifre e fatti dalle fonti. Non dire mai di essere altri modelli. Niente emoji.';
     const sumUsr = 'DOMANDA: ' + cmd.slice(0, 400) + '\n\n' + collected.join('\n\n').slice(0, 6000);
     let ans;
     try {
