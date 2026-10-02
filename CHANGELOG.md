@@ -14,6 +14,7 @@ di `zendate\make-zendate.ps1`, più il testo della Release GitHub.
 - Home chatbot: barra grande, tasto ZEN mode che allunga la barra con la risposta di ZEN 7.5 MAX, poi Continua (nuova pagina NEO 1) o Cerca su Google
 - Glow dinamico che segue il mouse su quasi tutti i bottoni e la barra indirizzi (tinta sito rimossa dalla barra)
 - Scrittura fluida: ogni lettera si materializza sfumata al caret, cancellare dissolve, micro-blur sull'input
+- Tinta sito eliminata del tutto: niente più colori pagina in barra, tab e divider (tutto arancione fisso)
 - Rimossa completamente la versione Mobile (solo desktop)
 
 ### Cambiato

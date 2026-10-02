@@ -256,10 +256,10 @@
     box-shadow: var(--glow-soft);
     vertical-align: 1px;
   }
-  /* La tinta del sito colora indicatore scheda, URL focus e divider */
+  /* Dettagli hanko: arancione fisso ovunque, nessuna tinta sito */
   .tab.active::before { background: linear-gradient(100deg, #E86A2C, var(--amber)); box-shadow: var(--glow); }
   #url-bar-wrap:focus-within { border-color: #E86A2C; }
-  #split-divider:hover, #split-divider.dragging { background: linear-gradient(180deg, var(--site, #E86A2C), var(--amber)); }
+  #split-divider:hover, #split-divider.dragging { background: linear-gradient(180deg, #E86A2C, var(--amber)); }
 
   /* ---------- KOA · cronologia ---------- */
   #hist-count { margin-left: auto; font-size: 10px; color: var(--text-muted); }
@@ -1740,7 +1740,6 @@
       try { tab.tabEl.classList.remove('crashed'); tab.tabEl.title = ''; } catch (e) {}
       injectKoaScrollbar(webview);
       if (turboOn) applyTurboToWebview(webview, tab);
-      if (isFocused(id)) updateSiteTint();
     });
     webview.addEventListener('did-navigate-in-page', () => injectKoaScrollbar(webview));
     // Menu contestuale custom (tasto destro nella pagina).
@@ -2027,7 +2026,6 @@
     setLoading(loading);
     updateNavButtons();
     updateStar();
-    updateSiteTint();
   }
 
   // Chiamate webview a prova di guest non pronto (metodi mancanti o non attached).
@@ -3613,42 +3611,6 @@
     } catch (err) {}
   });
   renderDl();
-
-  // ================= Tinta adattiva: la barra prende il colore del sito =================
-  let siteTintToken = 0;
-  function hexToRgb(hex) {
-    let h = hex.replace('#', '');
-    if (h.length === 3) h = h.split('').map(c => c + c).join('');
-    const n = parseInt(h, 16);
-    return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
-  }
-  function luminance([r, g, b]) {
-    const f = (c) => { c /= 255; return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); };
-    return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
-  }
-  function applySiteTint(hex) {
-    const root = document.documentElement.style;
-    if (!hex) { root.removeProperty('--site'); root.removeProperty('--site-glow'); return; }
-    const [r, g, b] = hexToRgb(hex);
-    root.setProperty('--site', hex);
-    root.setProperty('--site-glow', '0 0 18px rgba(' + r + ', ' + g + ', ' + b + ', 0.35)');
-  }
-  async function updateSiteTint() {
-    const t = getFocusedTab();
-    const my = ++siteTintToken;
-    if (!t) { applySiteTint(null); return; }
-    try {
-      const c = await t.webview.executeJavaScript(
-        '(function(){var m=document.querySelector(\'meta[name="theme-color"]\');return m?(m.getAttribute("content")||""):null;})()', true);
-      if (my !== siteTintToken) return;
-      const hex = String(c || '').trim();
-      if (!/^#([0-9a-f]{6}|[0-9a-f]{3})$/i.test(hex)) { applySiteTint(null); return; }
-      const full = hex.length === 4 ? '#' + hex.slice(1).split('').map(x => x + x).join('') : hex;
-      const lum = luminance(hexToRgb(full));
-      if (lum < 0.12 || lum > 0.92) { applySiteTint(null); return; }
-      applySiteTint(full);
-    } catch (e) { if (my === siteTintToken) applySiteTint(null); }
-  }
 
   // ================= ZENdate MAX · impostazioni + aggiornamenti =================
   const settingsBtn = document.getElementById('settings-btn');
