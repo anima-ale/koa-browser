@@ -233,12 +233,19 @@ async function openAutonomyModels() {
   try {
     const g = await koaGpuInfo();
     try {
+      let boot = '';
+      try {
+        if (window.browserAPI && window.browserAPI.gpuState) {
+          const s = await window.browserAPI.gpuState();
+          if (s) boot = ' Boot: turbo ' + (s.turbo ? 'ON' : 'OFF') + ', Chromium ' + (s.chrome || '?') + '.';
+        }
+      } catch (e) {}
       const sub = document.getElementById('models-sub');
       if (sub) {
         if (!sub.dataset.base) sub.dataset.base = sub.textContent;
         sub.textContent = sub.dataset.base + (g.ok
-          ? ' GPU rilevata: ' + [g.vendor, g.arch, g.device, g.desc].filter(x => x && x !== '?').join(' ') + '.'
-          : ' GPU non vista (' + g.why + ').');
+          ? ' GPU rilevata: ' + [g.vendor, g.arch, g.device, g.desc].filter(x => x && x !== '?').join(' ') + '.' + boot
+          : ' GPU non vista (' + g.why + ').' + boot);
       }
     } catch (e) {}
   } catch (e) {}

@@ -34,6 +34,7 @@ contextBridge.exposeInMainWorld('browserAPI', {
   captureTab: (wcId) => ipcRenderer.invoke('zen:capture-tab', wcId),
   clickTab: (wcId, x, y) => ipcRenderer.invoke('zen:click-tab', wcId, x, y),
   panePerf: (wcId, hot) => ipcRenderer.invoke('zen:pane-perf', wcId, !!hot),
+  gpuState: () => ipcRenderer.invoke('zen:gpu-state'),
   ttsStatus: () => ipcRenderer.invoke('zen:tts-status'),
   ttsFetch: () => ipcRenderer.invoke('zen:tts-fetch'),
   ttsSpeak: (text) => ipcRenderer.invoke('zen:tts-speak', text),

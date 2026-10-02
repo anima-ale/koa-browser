@@ -21,7 +21,9 @@ function turboBootOn() {
     return fs.existsSync(path.join(app.getPath('userData'), 'zen-turbo.on'));
   } catch (e) { return false; }
 }
+let gpuBootTurbo = false;
 if (turboBootOn()) {
+  gpuBootTurbo = true;
   app.commandLine.appendSwitch('ignore-gpu-blocklist');
   app.commandLine.appendSwitch('enable-gpu-rasterization');
   app.commandLine.appendSwitch('enable-unsafe-swiftshader');
@@ -31,6 +33,18 @@ if (turboBootOn()) {
   app.commandLine.appendSwitch('enable-unsafe-swiftshader');
   app.disableHardwareAcceleration();
 }
+
+// Diagnostica GPU reale: cosa ha deciso il boot (niente supposizioni in UI).
+ipcMain.handle('zen:gpu-state', () => {
+  try {
+    return {
+      turbo: !!gpuBootTurbo,
+      swift: true,
+      chrome: (process.versions && process.versions.chrome) || '',
+      electron: (process.versions && process.versions.electron) || ''
+    };
+  } catch (e) { return { turbo: false, swift: false }; }
+});
 
 // Log persistente: se il main inciampa, resta scritto qui (niente più misteri).
 function koaLog(tag, msg) {
