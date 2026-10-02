@@ -257,8 +257,8 @@
     vertical-align: 1px;
   }
   /* La tinta del sito colora indicatore scheda, URL focus e divider */
-  .tab.active::before { background: linear-gradient(100deg, var(--site, #E86A2C), var(--amber)); box-shadow: var(--site-glow, var(--glow)); }
-  #url-bar-wrap:focus-within { border-color: var(--site, #E86A2C); }
+  .tab.active::before { background: linear-gradient(100deg, #E86A2C, var(--amber)); box-shadow: var(--glow); }
+  #url-bar-wrap:focus-within { border-color: #E86A2C; }
   #split-divider:hover, #split-divider.dragging { background: linear-gradient(180deg, var(--site, #E86A2C), var(--amber)); }
 
   /* ---------- KOA · cronologia ---------- */
@@ -830,6 +830,38 @@
   /* ---------- KOA Autonomia: modelli locali + agente + aura ---------- */
   .tab.crashed .tab-title { color: #e14b4b; font-style: italic; }
   .tab.crashed { border-bottom: 2px solid #e14b4b; }
+  /* ---------- Glow che segue il mouse (bottoni + barra indirizzi) ---------- */
+  .mglow { position: relative; }
+  .mglow::after {
+    content: ""; position: absolute; inset: -1px; border-radius: inherit;
+    pointer-events: none; z-index: 5; padding: 1.5px;
+    background: radial-gradient(circle 70px at var(--mx, 50%) var(--my, 50%),
+      rgba(255, 170, 80, calc(0.95 * var(--mglow, 0))) 0%,
+      rgba(232, 106, 44, calc(0.5 * var(--mglow, 0))) 55%,
+      rgba(232, 106, 44, 0) 72%);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: var(--mglow, 0);
+  }
+  body.turbo .mglow::after { display: none; }
+  /* ---------- Fantasmi di scrittura (una lettera si scioglie nell'altra) ---------- */
+  .typing-ghost {
+    position: fixed; z-index: 9999; pointer-events: none;
+    opacity: 0; white-space: pre;
+    animation: ghost-pop 380ms var(--ease);
+  }
+  @keyframes ghost-pop {
+    0% { opacity: 0; transform: translate(-50%, -50%) translateY(4px) scale(0.7); filter: blur(5px); }
+    35% { opacity: 1; filter: blur(1px); }
+    100% { opacity: 0; transform: translate(-50%, -50%) translateY(-7px) scale(1.06); filter: blur(2px); }
+  }
+  .typing-ghost.out { animation: ghost-out 320ms var(--ease); }
+  @keyframes ghost-out {
+    0% { opacity: 0.9; transform: translate(-50%, -50%) scale(1); filter: blur(1px); }
+    100% { opacity: 0; transform: translate(-50%, -50%) translateY(6px) scale(0.85); filter: blur(4px); }
+  }
+  body.turbo .typing-ghost { display: none; }
   #auto-form { display: flex; gap: 8px; }
   #auto-input {
     flex: 1; min-width: 0;
@@ -4152,6 +4184,121 @@
     } catch (e) { zenPaint(); }
     setInterval(() => { if (zenAccount) zenPush(false); }, 45000);
   })();
+
+  // ---------- Glow che segue il mouse ----------
+  const MGLOW_SEL = '.btn, .tab-close, .mini-btn, .dl-act, #find-bar button, .ctx-item, .gchip, #url-bar-wrap';
+  let mglowEls = [];
+  let mglowRaf = 0, mMx = -9999, mMy = -9999;
+  function mglowCollect() {
+    try {
+      const found = [...document.querySelectorAll(MGLOW_SEL)];
+      found.forEach(el => { if (!el.classList.contains('mglow')) el.classList.add('mglow'); });
+      mglowEls = found.filter(el => {
+        try { const r = el.getBoundingClientRect(); return r.width > 0 && r.height > 0; }
+        catch (e) { return false; }
+      });
+    } catch (e) { mglowEls = []; }
+  }
+  function mglowTick() {
+    mglowRaf = 0;
+    try {
+      const R = 140;
+      for (const el of mglowEls) {
+        let r;
+        try { r = el.getBoundingClientRect(); } catch (e) { continue; }
+        if (!r.width) continue;
+        const dx = mMx - (r.left + r.width / 2), dy = mMy - (r.top + r.height / 2);
+        const d = Math.sqrt(dx * dx + dy * dy);
+        const p = Math.max(0, 1 - d / R);
+        const px = Math.min(100, Math.max(0, ((mMx - r.left) / (r.width || 1)) * 100));
+        const py = Math.min(100, Math.max(0, ((mMy - r.top) / (r.height || 1)) * 100));
+        try {
+          el.style.setProperty('--mx', px.toFixed(1) + '%');
+          el.style.setProperty('--my', py.toFixed(1) + '%');
+          el.style.setProperty('--mglow', (p * p).toFixed(3));
+        } catch (e) {}
+      }
+    } catch (e) {}
+  }
+  document.addEventListener('mousemove', (e) => {
+    mMx = e.clientX; mMy = e.clientY;
+    if (!mglowRaf) mglowRaf = requestAnimationFrame(mglowTick);
+  }, { passive: true });
+  document.addEventListener('mouseleave', () => {
+    try { mglowEls.forEach(el => el.style.setProperty('--mglow', '0')); } catch (e) {}
+  });
+  setInterval(mglowCollect, 1200);
+  mglowCollect();
+  // ---------- Fantasmi di scrittura ----------
+  const ghostMeas = document.createElement('canvas').getContext('2d');
+  function ghostSpawn(input, ch, textBefore, isOut) {
+    try {
+      const r = input.getBoundingClientRect();
+      if (!r.width || !ch) return;
+      let font = '13px sans-serif', color = '#fff', size = '13px';
+      try {
+        const cs = getComputedStyle(input);
+        font = cs.font || (cs.fontSize + ' ' + cs.fontFamily);
+        color = cs.color;
+        size = cs.fontSize;
+      } catch (e) {}
+      let x = 8;
+      try {
+        ghostMeas.font = font;
+        const cs2 = getComputedStyle(input);
+        const padL = parseFloat(cs2.paddingLeft) || 0;
+        x = r.left + padL + ghostMeas.measureText(textBefore || '').width - (input.scrollLeft || 0);
+        x = Math.min(r.right - 8, Math.max(r.left + 4, x));
+      } catch (e) {}
+      let y = r.top + r.height / 2;
+      const s = document.createElement('span');
+      s.className = 'typing-ghost' + (isOut ? ' out' : '');
+      s.textContent = ch;
+      s.style.left = x + 'px';
+      s.style.top = y + 'px';
+      s.style.font = font;
+      s.style.fontSize = size;
+      s.style.color = color;
+      document.body.appendChild(s);
+      setTimeout(() => { try { s.remove(); } catch (e) {} }, 430);
+      try {
+        input.animate(
+          [{ filter: 'blur(0)' }, { filter: 'blur(1.5px)' }, { filter: 'blur(0)' }],
+          { duration: 180 }
+        );
+      } catch (e) {}
+    } catch (e) {}
+  }
+  function koaTypingFx(input) {
+    if (!input || input.dataset.typingFx) return;
+    try { input.dataset.typingFx = '1'; } catch (e) { return; }
+    let lastVal = input.value || '';
+    input.addEventListener('beforeinput', () => {
+      try {
+        lastVal = input.value || '';
+        const st = input.selectionStart || 0;
+        input._ghostCaret = st;
+        input._ghostText = lastVal.slice(0, st);
+      } catch (e) {}
+    });
+    input.addEventListener('input', () => {
+      try {
+        const v = input.value || '';
+        const st = input.selectionStart || 0;
+        if (v.length >= lastVal.length) {
+          const added = v.slice(input._ghostCaret || 0, st) || v.slice(-1);
+          if (added) ghostSpawn(input, added.slice(-1), (input._ghostText || '') + added.slice(0, -1));
+        } else {
+          const ch = lastVal.slice(st, st + 1) || ' ';
+          ghostSpawn(input, ch, (input._ghostText || '').slice(0, st), true);
+        }
+        lastVal = v;
+      } catch (e) {}
+    });
+  }
+  ['url-bar', 'chat-input', 'auto-input', 'find-input', 'hist-search'].forEach(id => {
+    try { const el = document.getElementById(id); if (el) koaTypingFx(el); } catch (e) {}
+  });
 
   createTab();
 </script>

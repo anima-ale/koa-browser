@@ -11,6 +11,8 @@ di `zendate\make-zendate.ps1`, più il testo della Release GitHub.
 - ZEN Account: login con le credenziali del sito, memoria (preferiti, cronologia, impostazioni, cassaforte cifrata) sempre sul cloud con merge per sezione
 - Backend ecosistema in data/zen-backend (functions + src + netlify.toml) con campo koaMemory: da redeployare per attivare la sync
 - Start page stile AI Mode: il bordo della barra si accende seguendo il mouse e svanisce allontanandosi
+- Glow dinamico che segue il mouse su quasi tutti i bottoni e la barra indirizzi (tinta sito rimossa dalla barra)
+- Scrittura fluida: ogni lettera si materializza sfumata al caret, cancellare dissolve, micro-blur sull'input
 
 ### Cambiato
 - ZENdate: a ogni update pulizia resti .bak/.bat vecchi all'avvio; la memoria resta perché userData è per-percorso, e il rilancio parte sempre dal nuovo exe
