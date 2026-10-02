@@ -1,6 +1,6 @@
 {
-    "version":  "1.0.29",
-    "notes":  "### Aggiunto\n- Test update 1.0.29: verifica flusso aggiornamento alpha",
-    "url":  "https://github.com/anima-ale/koa-browser/releases/download/v1.0.29/KOA.Browser.1.0.29.exe",
-    "sha256":  "61d312d65637baf1f2289244ab2a1781fd5354684ee0f34b7b71423c6fa7c519"
+    "version":  "1.0.30",
+    "notes":  "### Aggiunto\n- Home page rinnovata: sfondo gradiente arancione dai bordi al centro, barra chatbot grande con glow mouse-following, ZEN Mode con espansione animata e typewriter\n- Pagina aggiornamenti ZENdate completamente rifatta: design glassmorphic, anello progress circolare animato, step visuali, dialog interattivi, note di rilascio\n- Tutorial primo avvio (4 slide): benvenuto, ZEN Account, aggiornamenti, scorciatoie â€” non si ripete\n- ZEN Account espanso: profilo con avatar e email automatici, stato sincronizzazione per sezione (preferiti, cronologia, impostazioni, autonomia, download), indicatore visivo sync\n\n### Cambiato\n- Rimosso branding \"KOA OMNI-AGENTIC\" dall\u0027interfaccia (backend invariato) â†’ ora \"Autonomia â€” Modelli Locali\"\n- Tinta sito eliminata ovunque: barra indirizzi, schede, divider usano solo arancione fisso\n\n### Corretto\n- Riflesso colore sito nella barra indirizzi: rimosso sistema tinta adattiva (theme-color)",
+    "url":  "https://github.com/anima-ale/koa-browser/releases/download/v1.0.30/KOA.Browser.1.0.30.exe",
+    "sha256":  "6bdd6421df99d82612667f3f8c79d984cb12e613006069097a545f126e231e35"
 }
