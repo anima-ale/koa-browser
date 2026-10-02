@@ -15,10 +15,10 @@
   }
   img { width: 84px; height: 84px; }
   h1 { font-size: 30px; letter-spacing: 0.28em; font-weight: 700; }
-  form { width: min(560px, 92vw); display: flex; }
+  form { width: min(640px, 94vw); display: flex; }
   .aiwrap {
     --mx: 50%; --my: 50%; --glow: 0;
-    flex: 1; border-radius: 99px; padding: 1.5px;
+    flex: 1; border-radius: 24px; padding: 1.5px;
     background:
       radial-gradient(circle 130px at var(--mx) var(--my),
         rgba(255, 170, 80, calc(0.95 * var(--glow))) 0%,
@@ -27,12 +27,55 @@
       #1f130c;
     box-shadow: 0 0 26px rgba(232, 106, 44, calc(0.35 * var(--glow)));
   }
-  input {
-    width: 100%; height: 44px; border-radius: 99px;
-    border: none; background: rgba(0, 0, 0, 0.55); color: #F5EDE0;
-    font-size: 15px; padding: 0 22px; outline: none;
+  .aiwrap.zen-on {
+    background:
+      radial-gradient(circle 175px at var(--mx) var(--my),
+        rgba(255, 190, 110, calc(1 * var(--glow))) 0%,
+        rgba(232, 106, 44, calc(0.75 * var(--glow))) 45%,
+        rgba(232, 106, 44, 0) 75%),
+      #241610;
+    box-shadow: 0 0 44px rgba(232, 106, 44, calc(0.55 * var(--glow)));
   }
-  input:focus { box-shadow: 0 0 0 3px rgba(232, 106, 44, 0.16); }
+  .bar-row { display: flex; align-items: center; gap: 10px; padding: 6px 6px 6px 0; }
+  .bar-row input {
+    flex: 1; min-width: 0; height: 52px;
+    border: none; background: rgba(0, 0, 0, 0.55); color: #F5EDE0;
+    font-size: 16.5px; padding: 0 22px; outline: none; border-radius: 20px;
+  }
+  .bar-row input:focus { box-shadow: 0 0 0 3px rgba(232, 106, 44, 0.16); }
+  #zenmode {
+    flex-shrink: 0; height: 52px; padding: 0 22px;
+    border-radius: 18px; border: 1px solid rgba(232, 106, 44, 0.65);
+    background: linear-gradient(180deg, #E86A2C, #C63F1B);
+    color: #2A1C12; font-family: inherit; font-size: 13.5px; font-weight: 800;
+    letter-spacing: 0.08em; cursor: pointer; white-space: nowrap;
+  }
+  #zenmode:disabled { opacity: 0.55; cursor: default; }
+  #zen-answer {
+    max-height: 0; opacity: 0; overflow: hidden;
+    transition: max-height 0.55s ease, opacity 0.4s ease, margin 0.4s ease;
+    margin: 0 8px;
+  }
+  #zen-answer.open { max-height: 340px; opacity: 1; margin: 2px 8px 8px 8px; }
+  #zen-answer .who {
+    font-size: 10.5px; font-weight: 800; letter-spacing: 0.14em;
+    color: #E8A83C; margin-bottom: 6px;
+  }
+  #zen-text {
+    font-size: 14px; line-height: 1.6; color: #F5EDE0;
+    max-height: 190px; overflow-y: auto; white-space: pre-wrap;
+  }
+  #zen-text .caret::after { content: "▍"; color: #E86A2C; animation: blink 0.8s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+  #zen-err { font-size: 13px; color: #bf616a; margin-top: 6px; }
+  #zen-err:empty { display: none; }
+  .zen-actions { display: flex; gap: 8px; margin-top: 10px; }
+  .zen-actions button {
+    flex: 1; height: 38px; border-radius: 10px; cursor: pointer;
+    font-family: inherit; font-size: 12.5px; font-weight: 700;
+  }
+  #zen-continue { background: #E86A2C; border: none; color: #2A1C12; }
+  #zen-google { background: transparent; border: 1px solid #6B4A2E; color: #F5EDE0; }
   .tiles { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
   .tiles a {
     color: #B9A58C; text-decoration: none; font-size: 13px; font-weight: 600;
@@ -45,8 +88,22 @@
 <body>
   <img src="assets/logo.png" alt="KOA" />
   <h1>KOA</h1>
-  <form action="https://www.google.com/search" method="GET">
-    <div class="aiwrap"><input name="q" placeholder="Cerca con Google" autocomplete="off" autofocus /></div>
+  <form id="zoa-form" action="https://www.google.com/search" method="GET">
+    <div class="aiwrap" id="aiwrap">
+      <div class="bar-row">
+        <input id="zoa-input" name="q" placeholder="Chiedi a ZEN o cerca…" autocomplete="off" autofocus />
+        <button id="zenmode" type="button" title="Chiedi a ZEN 7.5 MAX">ZEN mode</button>
+      </div>
+      <div id="zen-answer">
+        <div class="who">ZEN 7.5 MAX</div>
+        <div id="zen-text"></div>
+        <div id="zen-err"></div>
+        <div class="zen-actions" id="zen-actions" hidden>
+          <button id="zen-continue" type="button">Continua conversazione</button>
+          <button id="zen-google" type="button">Cerca su Google</button>
+        </div>
+      </div>
+    </div>
   </form>
   <div class="tiles">
     <a href="https://www.google.com">Google</a>
@@ -56,9 +113,16 @@
   </div>
 <script>
 (function () {
-  var w = document.querySelector('.aiwrap');
-  var inp = document.querySelector('.aiwrap input');
+  var w = document.getElementById('aiwrap');
+  var inp = document.getElementById('zoa-input');
+  var form = document.getElementById('zoa-form');
+  var zm = document.getElementById('zenmode');
+  var box = document.getElementById('zen-answer');
+  var txt = document.getElementById('zen-text');
+  var err = document.getElementById('zen-err');
+  var acts = document.getElementById('zen-actions');
   if (!w || !inp) return;
+  // --- Glow che segue il mouse (come AI Mode) ---
   var R = 320, tx = 0.5, ty = 0.5, x = 0.5, y = 0.5;
   var tglow = 0, glow = 0, focused = false, idle = 99;
   function track(e) {
@@ -93,6 +157,81 @@
     w.style.setProperty('--glow', Math.max(0, Math.min(1, g)).toFixed(3));
     requestAnimationFrame(loop);
   })();
+  // --- ZEN mode: chiede a ZEN 7.5 MAX, la barra si allunga con la risposta ---
+  var busy = false, lastQ = '', lastA = '';
+  function hist() {
+    try { return JSON.parse(localStorage.getItem('koa.zenchat-hist') || '[]'); } catch (e) { return []; }
+  }
+  function saveHist(h) {
+    try { localStorage.setItem('koa.zenchat-hist', JSON.stringify(h.slice(-30))); } catch (e) {}
+  }
+  async function askZen(q) {
+    const body = { messages: [{ role: 'user', content: q.slice(0, 1500) }], model: 'openai' };
+    try {
+      const r = await fetch('https://text.pollinations.ai/', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+      });
+      if (r.ok) { const t = await r.text(); if (t.trim()) return t.trim(); }
+    } catch (e) {}
+    const r2 = await fetch('https://text.pollinations.ai/' + encodeURIComponent(q.slice(0, 400)));
+    const t2 = await r2.text();
+    if (!t2.trim()) throw new Error('vuoto');
+    return t2.trim();
+  }
+  var typeTimer = 0;
+  function typewrite(text, done) {
+    clearInterval(typeTimer);
+    txt.innerHTML = '';
+    var span = document.createElement('span');
+    span.className = 'caret';
+    txt.appendChild(span);
+    var i = 0;
+    typeTimer = setInterval(function () {
+      i += 3;
+      span.textContent = text.slice(0, i);
+      if (i >= text.length) { clearInterval(typeTimer); span.classList.remove('caret'); if (done) done(); }
+    }, 14);
+  }
+  zm.addEventListener('click', async function () {
+    if (busy) return;
+    const q = inp.value.trim();
+    if (!q) { inp.focus(); return; }
+    busy = true;
+    zm.disabled = true;
+    err.textContent = '';
+    acts.hidden = true;
+    document.getElementById('zen-continue').disabled = false;
+    box.classList.add('open');
+    w.classList.add('zen-on');
+    txt.innerHTML = '';
+    var wait = document.createElement('div');
+    wait.textContent = 'ZEN 7.5 MAX sta pensando…';
+    wait.style.cssText = 'font-size:12px;letter-spacing:.1em;color:#E8A83C;';
+    txt.appendChild(wait);
+    try {
+      const a = await askZen(q);
+      lastQ = q; lastA = a;
+      typewrite(a, function () { acts.hidden = false; });
+    } catch (e) {
+      err.textContent = 'ZEN non risponde: controlla la rete o cerca su Google.';
+      acts.hidden = false;
+      document.getElementById('zen-continue').disabled = true;
+      lastQ = q; lastA = '';
+    }
+    busy = false;
+    zm.disabled = false;
+  });
+  document.getElementById('zen-continue').addEventListener('click', function () {
+    if (!lastQ) return;
+    const h = hist();
+    h.push({ who: 'user', text: lastQ });
+    if (lastA) h.push({ who: 'ai', text: lastA });
+    saveHist(h);
+    window.open('zenchat.html', '_blank');
+  });
+  document.getElementById('zen-google').addEventListener('click', function () {
+    form.submit();
+  });
 })();
 </script>
 </body>

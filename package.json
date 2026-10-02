@@ -33,6 +33,7 @@
     "files": [
       "index.html",
       "start.html",
+      "zenchat.html",
       "autonomy.js",
       "main.js",
       "preload.js",
