@@ -1,6 +1,6 @@
 {
-    "version":  "1.0.31",
-    "notes":  "### Corretto\n- Home page rifatta in stile NEO 1 rigoroso: piatta, monocroma, appuntita, istantanea. Zero bordi arrotondati, zero glow, zero gradienti decorativi. Solo grigi + oro funzionale (#e8b04b). Input traslucido, bottoni sharp, transizioni 0.12s.",
-    "url":  "https://github.com/anima-ale/koa-browser/releases/download/v1.0.31/KOA.Browser.1.0.31.exe",
-    "sha256":  "d61702cd43b1cb7e4a8d96cb3cc392b7a395e26dc8d2a8a51010b1df7971a79b"
+    "version":  "1.0.32",
+    "notes":  "### Corretto\n- Exe mostrava pagina vuota: dichiarazioni JS duplicate dopo il rifacimento ZENdate bloccavano tutto lo script dell\u0027interfaccia (ora rimosse, canale update inizializzato prima dell\u0027uso)",
+    "url":  "https://github.com/anima-ale/koa-browser/releases/download/v1.0.32/KOA.Browser.1.0.32.exe",
+    "sha256":  "5a2959097b8863009e0b9261ab5dd2f9a1210183df9f2a722bc8f5e642aed255"
 }
