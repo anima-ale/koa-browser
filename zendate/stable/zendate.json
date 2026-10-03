@@ -1,6 +1,6 @@
 {
-    "version":  "1.0.32",
-    "notes":  "### Corretto\n- Exe mostrava pagina vuota: dichiarazioni JS duplicate dopo il rifacimento ZENdate bloccavano tutto lo script dell\u0027interfaccia (ora rimosse, canale update inizializzato prima dell\u0027uso)",
-    "url":  "https://github.com/anima-ale/koa-browser/releases/download/v1.0.32/KOA.Browser.1.0.32.exe",
-    "sha256":  "5a2959097b8863009e0b9261ab5dd2f9a1210183df9f2a722bc8f5e642aed255"
+    "version":  "1.0.33",
+    "notes":  "### Aggiunto\n- Windows vede KOA come browser vero: protocolli http/https e tipi .html/.pdf registrati (registro Capabilities + installer NSIS), PDF aperto in scheda, impostabile come predefinito da Impostazioni Windows e dal tasto in-app",
+    "url":  "https://github.com/anima-ale/koa-browser/releases/download/v1.0.33/KOA.Browser.1.0.33.exe",
+    "sha256":  "7f9998092878d258d62cc298e54f9b08535edc410cdcc27dad40f8785aebe836"
 }
