@@ -26,6 +26,7 @@ di `zendate\make-zendate.ps1`, più il testo della Release GitHub.
 - Tutorial al primo avvio ora è un overlay vero e centrato (prima il foglio poteva comparire nel flusso della pagina)
 - Il pannello Impostazioni si chiude con un'animazione e non lascia lo stato `open` appeso al riavvio
 - Rimosso il caricamento della libreria liquidGL (297 KB) non più necessaria: avvio più rapido
+- Sicurezza: rimossa la chiave Groq hardcoded dal client (e dall'exe); il fallback Groq ora usa il proxy ZEN con la chiave solo lato server
 
 ## [1.0.33] - 2026-10-03
 

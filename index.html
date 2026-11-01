@@ -4194,21 +4194,19 @@
           if (e && e.message === '429') throw e;
         }
       }
-      // Groq fallback on 429
+      // Groq fallback via proxy ZEN: la chiave resta solo lato server.
       try {
-        const key = (localStorage.getItem('koa.groq-key') || '').trim();
-        if (!key) throw new Error('Groq non configurato');
-        const models = ['llama-3.3-70b-versatile', 'llama-3.1-8b-instant', 'gemma2-9b-it'];
+        const models = ['openai/gpt-oss-120b', 'openai/gpt-oss-20b', 'llama-3.3-70b-versatile'];
         for (const model of models) {
           try {
-            const rg = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-              method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
-              body: JSON.stringify({ model, messages: msgs, stream: false })
+            const rg = await fetch('https://zenaix.netlify.app/.netlify/functions/groq-chat', {
+              method: 'POST', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ model, messages: msgs, max_tokens: 4096 })
             });
-            if (rg.status === 429) continue;
+            if (rg.status === 429 || rg.status === 404) continue;
             if (rg.ok) {
               const data = await rg.json();
-              const c = data.choices?.[0]?.message?.content;
+              const c = data.text || data.choices?.[0]?.message?.content;
               if (c && String(c).trim()) return String(c).trim();
             }
           } catch (e2) {}

@@ -153,21 +153,20 @@ async function koaCloudChat(messages, maxTokens) {
       if (e && /limite richieste/.test(e.message)) throw e;
     }
   }
-  // Groq fallback on 429
+  // Groq fallback via proxy ZEN: la chiave resta solo lato server.
   try {
-    const key = (localStorage.getItem('koa.groq-key') || '').trim();
-    if (!key) throw new Error('Groq non configurato');
-    const models = ['llama-3.3-70b-versatile', 'llama-3.1-8b-instant', 'gemma2-9b-it'];
+    const models = ['openai/gpt-oss-120b', 'openai/gpt-oss-20b', 'llama-3.3-70b-versatile'];
     for (const model of models) {
       try {
-        const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-          method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
-          body: JSON.stringify({ model, messages: clean, stream: false })
+        const r = await fetch('https://zenaix.netlify.app/.netlify/functions/groq-chat', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ model, messages: clean, max_tokens: 4096 })
         });
-        if (r.status === 429) continue;
+        if (r.status === 429 || r.status === 404) continue;
         if (r.ok) {
-          const out = pick(await r.text());
-          return maxTokens ? out.slice(0, maxTokens * 4) : out;
+          const data = await r.json();
+          const out = String(data.text || data.choices?.[0]?.message?.content || '').trim();
+          if (out) return maxTokens ? out.slice(0, maxTokens * 4) : out;
         }
       } catch (e2) {}
     }
