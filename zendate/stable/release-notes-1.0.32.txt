@@ -1,0 +1,2 @@
+### Corretto
+- Exe mostrava pagina vuota: dichiarazioni JS duplicate dopo il rifacimento ZENdate bloccavano tutto lo script dell'interfaccia (ora rimosse, canale update inizializzato prima dell'uso)

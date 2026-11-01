@@ -1,0 +1,12 @@
+### Aggiunto
+- Home page rinnovata: sfondo gradiente arancione dai bordi al centro, barra chatbot grande con glow mouse-following, ZEN Mode con espansione animata e typewriter
+- Pagina aggiornamenti ZENdate completamente rifatta: design glassmorphic, anello progress circolare animato, step visuali, dialog interattivi, note di rilascio
+- Tutorial primo avvio (4 slide): benvenuto, ZEN Account, aggiornamenti, scorciatoie — non si ripete
+- ZEN Account espanso: profilo con avatar e email automatici, stato sincronizzazione per sezione (preferiti, cronologia, impostazioni, autonomia, download), indicatore visivo sync
+
+### Cambiato
+- Rimosso branding "KOA OMNI-AGENTIC" dall'interfaccia (backend invariato) → ora "Autonomia — Modelli Locali"
+- Tinta sito eliminata ovunque: barra indirizzi, schede, divider usano solo arancione fisso
+
+### Corretto
+- Riflesso colore sito nella barra indirizzi: rimosso sistema tinta adattiva (theme-color)

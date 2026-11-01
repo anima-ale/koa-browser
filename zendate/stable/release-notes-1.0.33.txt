@@ -1,0 +1,2 @@
+### Aggiunto
+- Windows vede KOA come browser vero: protocolli http/https e tipi .html/.pdf registrati (registro Capabilities + installer NSIS), PDF aperto in scheda, impostabile come predefinito da Impostazioni Windows e dal tasto in-app

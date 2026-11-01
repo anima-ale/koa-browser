@@ -1,0 +1,2 @@
+### Corretto
+- Home page rifatta in stile NEO 1 rigoroso: piatta, monocroma, appuntita, istantanea. Zero bordi arrotondati, zero glow, zero gradienti decorativi. Solo grigi + oro funzionale (#e8b04b). Input traslucido, bottoni sharp, transizioni 0.12s.

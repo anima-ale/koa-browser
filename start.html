@@ -2,154 +2,291 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>KOA</title>
 <style>
+  /* KOA 1.0.34 · Nuova scheda — Apple HIG */
+  :root {
+    color-scheme: dark light;
+    --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display",
+            "Segoe UI Variable Text", "Segoe UI", Inter, system-ui, sans-serif;
+    --label: #ffffff;
+    --label-2: rgba(235, 235, 245, 0.62);
+    --label-3: rgba(235, 235, 245, 0.36);
+    --bg: #0c0c0e;
+    --bg-elevated: #161618;
+    --fill: rgba(120, 120, 128, 0.24);
+    --fill-2: rgba(120, 120, 128, 0.16);
+    --fill-3: rgba(120, 120, 128, 0.10);
+    --hairline: rgba(255, 255, 255, 0.08);
+    --hairline-strong: rgba(255, 255, 255, 0.15);
+    --material: rgba(26, 26, 29, 0.72);
+    --material-thick: rgba(22, 22, 25, 0.88);
+    --tint: #ff8a5b;
+    --tint-strong: #ff9d74;
+    --tint-fill: rgba(255, 138, 91, 0.16);
+    --tint-ring: rgba(255, 138, 91, 0.30);
+    --on-tint: #1b0e08;
+    --red: #ff453a;
+    --shadow: 0 2px 10px rgba(0, 0, 0, 0.28), 0 18px 50px rgba(0, 0, 0, 0.32);
+    --spring: linear(0, 0.018 1.5%, 0.075 3.4%, 0.23 6.2%, 0.52 10%, 0.79 14%,
+              0.94 18%, 1.01 23%, 1.02 27%, 1.008 34%, 1 46%, 1);
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --label: #000000;
+      --label-2: rgba(60, 60, 67, 0.62);
+      --label-3: rgba(60, 60, 67, 0.38);
+      --bg: #f5f5f7;
+      --bg-elevated: #ffffff;
+      --fill: rgba(118, 118, 128, 0.16);
+      --fill-2: rgba(118, 118, 128, 0.11);
+      --fill-3: rgba(118, 118, 128, 0.07);
+      --hairline: rgba(0, 0, 0, 0.08);
+      --hairline-strong: rgba(0, 0, 0, 0.14);
+      --material: rgba(255, 255, 255, 0.76);
+      --material-thick: rgba(255, 255, 255, 0.92);
+      --tint: #cf4f1d;
+      --tint-strong: #b9410f;
+      --tint-fill: rgba(207, 79, 29, 0.10);
+      --tint-ring: rgba(207, 79, 29, 0.24);
+      --on-tint: #ffffff;
+      --red: #d70015;
+      --shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 16px 40px rgba(0, 0, 0, 0.10);
+    }
+  }
+
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { height: 100%; }
+  html, body { min-height: 100%; }
   body {
-    background: #0a0a09; color: #f0f0f0;
-    font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
-    display: flex; justify-content: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     min-height: 100vh;
+    padding: 40px 20px;
+    font-family: var(--font);
+    font-size: 14px;
+    line-height: 1.45;
+    letter-spacing: -0.08px;
+    background: var(--bg);
+    color: var(--label);
+    -webkit-font-smoothing: antialiased;
   }
-  .wrap {
-    width: min(760px, 100vw); min-height: 100vh;
-    display: flex; flex-direction: column;
-    border-left: 1px solid #2a2a2a; border-right: 1px solid #2a2a2a;
-    animation: neo1In 0.2s ease-out;
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(680px 320px at 50% -140px, var(--tint-fill), transparent 70%);
   }
-  @keyframes neo1In { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
-  header {
-    display: flex; align-items: center; gap: 10px;
-    padding: 8px 12px; background: #141414;
-    border-bottom: 1px solid #2a2a2a;
+  ::selection { background: rgba(255, 138, 91, 0.28); color: var(--label); }
+  ::-webkit-scrollbar { width: 10px; }
+  ::-webkit-scrollbar-thumb { background: var(--fill); border: 3px solid transparent; border-radius: 99px; background-clip: content-box; }
+
+  .center-wrap {
+    position: relative;
+    z-index: 1;
+    width: min(620px, 96vw);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
   }
-  header .kicker {
-    font-family: ui-monospace, monospace; font-size: 10px; letter-spacing: 0.08em;
-    text-transform: uppercase; color: #9a9a9a;
+  body > .center-wrap > img {
+    width: 58px;
+    height: 58px;
+    border-radius: 15px;
+    box-shadow: var(--shadow);
+    animation: rise 520ms var(--spring) both;
   }
-  header .badge {
-    font-family: ui-monospace, monospace; font-size: 10px; font-weight: 700;
-    letter-spacing: 0.08em; text-transform: uppercase;
-    background: #e8b04b; color: #0a0a09;
-    border-radius: 4px; padding: 2px 8px;
-  }
-  header .spacer { flex: 1; }
-  main {
-    flex: 1; display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    gap: 16px; padding: 24px 14px;
-  }
-  img { width: 72px; height: 72px; }
   h1 {
-    font-size: 22px; font-weight: 700; letter-spacing: 0.28em;
-    color: #f0f0f0; margin-left: 0.28em;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.34em;
+    text-transform: uppercase;
+    color: var(--label-2);
+    animation: rise 520ms var(--spring) 40ms both;
   }
-  .sub {
-    font-family: ui-monospace, monospace; font-size: 10px; letter-spacing: 0.08em;
-    text-transform: uppercase; color: #9a9a9a;
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(12px) scale(0.96); }
+    to { opacity: 1; transform: none; }
   }
-  form { width: 100%; display: flex; }
+
+  form {
+    width: 100%;
+    animation: rise 560ms var(--spring) 80ms both;
+  }
   .aiwrap {
-    flex: 1; min-width: 0;
-    background: #141414; border: 1px solid #2a2a2a;
-    border-radius: 2px 8px 8px 8px;
-    animation: msgIn 0.22s ease-out;
+    width: 100%;
+    background: var(--material);
+    -webkit-backdrop-filter: blur(34px) saturate(180%);
+    backdrop-filter: blur(34px) saturate(180%);
+    border: 1px solid var(--hairline);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    transition: border-color 160ms ease, box-shadow 240ms ease, background-color 160ms ease;
   }
-  @keyframes msgIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
-  .bar-row { display: flex; gap: 8px; padding: 10px; }
+  .aiwrap:focus-within {
+    border-color: var(--tint);
+    box-shadow: 0 0 0 4px var(--tint-ring), var(--shadow);
+  }
+  .bar-row { display: flex; align-items: center; gap: 8px; padding: 7px 7px 7px 16px; }
   .bar-row input {
-    flex: 1; min-width: 0; background: #0a0a09; color: #f0f0f0;
-    border: 1px solid #2a2a2a; border-radius: 6px;
-    caret-color: #e8b04b; font-size: 15px; padding: 11px 13px; outline: none;
-    font-family: inherit;
+    flex: 1;
+    min-width: 0;
+    height: 40px;
+    border: none;
+    background: transparent;
+    color: var(--label);
+    font-family: var(--font);
+    font-size: 15px;
+    letter-spacing: -0.15px;
+    caret-color: var(--tint);
+    outline: none;
   }
-  .bar-row input:focus { border-color: #e8b04b; }
+  .bar-row input::placeholder { color: var(--label-3); }
+
   #zenmode {
     flex-shrink: 0;
-    background: #e8b04b; border: 1px solid #e8b04b; color: #0a0a09;
-    border-radius: 6px; font-family: ui-monospace, monospace;
-    font-size: 11px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase;
-    padding: 0 18px; cursor: pointer; white-space: nowrap;
+    height: 38px;
+    padding: 0 17px;
+    border: none;
+    border-radius: 11px;
+    background: var(--tint);
+    color: var(--on-tint);
+    font-family: var(--font);
+    font-size: 12.5px;
+    font-weight: 600;
+    letter-spacing: -0.05px;
+    white-space: nowrap;
+    cursor: default;
+    transition: background-color 140ms ease, transform 100ms ease, opacity 140ms ease;
   }
-  #zenmode:hover { background: #f0c06a; }
-  #zenmode:disabled { opacity: 0.5; cursor: default; }
+  #zenmode:hover { background: var(--tint-strong); }
+  #zenmode:active { transform: scale(0.96); }
+  #zenmode:focus-visible { outline: 2px solid var(--tint); outline-offset: 2px; }
+  #zenmode:disabled { opacity: 0.55; }
+  #zenmode.zen-active { opacity: 0.62; }
+
   #zen-answer {
-    max-height: 0; opacity: 0; overflow: hidden;
-    transition: max-height 0.55s ease, opacity 0.4s ease;
-    margin: 0 10px;
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    margin: 0;
+    padding: 0 18px;
+    border-top: 1px solid transparent;
+    transition: max-height 420ms var(--spring), opacity 220ms ease,
+                padding 300ms var(--spring), margin 300ms var(--spring),
+                border-color 200ms ease;
   }
-  #zen-answer.open { max-height: 340px; opacity: 1; margin: 0 10px 10px 10px; }
+  #zen-answer.open {
+    max-height: 420px;
+    opacity: 1;
+    margin: 0 0 6px;
+    padding: 12px 18px 16px;
+    border-top-color: var(--hairline);
+  }
   #zen-answer .who {
-    font-family: ui-monospace, monospace; font-size: 10px; letter-spacing: 0.08em;
-    text-transform: uppercase; color: #e8b04b; margin-bottom: 6px;
+    margin-bottom: 7px;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--tint);
   }
   #zen-text {
-    font-size: 0.92rem; line-height: 1.6; color: #f0f0f0;
-    max-height: 190px; overflow-y: auto; white-space: pre-wrap; word-break: break-word;
+    max-height: 220px;
+    overflow-y: auto;
+    font-size: 13.5px;
+    line-height: 1.6;
+    color: var(--label);
+    white-space: pre-wrap;
   }
-  #zen-text .caret::after { content: "▍"; color: #e8b04b; animation: blink 0.8s steps(1) infinite; }
+  #zen-text .caret::after { content: "▍"; color: var(--tint); animation: blink 0.9s steps(1) infinite; }
   @keyframes blink { 50% { opacity: 0; } }
-  #zen-err { font-size: 13px; color: #bf616a; margin-top: 6px; }
+  #zen-err { margin-top: 7px; font-size: 12px; color: var(--red); }
   #zen-err:empty { display: none; }
-  .zen-actions { display: flex; gap: 8px; margin-top: 10px; }
+  .zen-actions { display: flex; gap: 8px; margin-top: 12px; }
   .zen-actions button {
-    flex: 1; height: 38px; border-radius: 6px; cursor: pointer;
-    font-family: ui-monospace, monospace; font-size: 11px; font-weight: 600;
-    letter-spacing: 0.05em; text-transform: uppercase;
+    flex: 1;
+    height: 34px;
+    border-radius: 9px;
+    border: 1px solid transparent;
+    cursor: default;
+    font-family: var(--font);
+    font-size: 12.5px;
+    font-weight: 500;
+    transition: background-color 140ms ease, border-color 140ms ease,
+                color 140ms ease, transform 100ms ease;
   }
-  #zen-continue { background: #e8b04b; border: 1px solid #e8b04b; color: #0a0a09; }
-  #zen-continue:hover { background: #f0c06a; }
-  #zen-continue:disabled { opacity: 0.5; cursor: default; }
-  #zen-google { background: transparent; border: 1px solid #2a2a2a; color: #f0f0f0; }
-  #zen-google:hover { border-color: #e8b04b; }
-  .tiles { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+  .zen-actions button:active { transform: scale(0.97); }
+  #zen-continue { background: var(--tint); border-color: transparent; color: var(--on-tint); font-weight: 600; }
+  #zen-continue:hover { background: var(--tint-strong); }
+  #zen-continue:disabled { opacity: 0.45; }
+  #zen-google { background: var(--fill-3); border-color: var(--hairline); color: var(--label); }
+  #zen-google:hover { background: var(--fill-2); }
+
+  .tiles {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    animation: rise 560ms var(--spring) 140ms both;
+  }
   .tiles a {
-    font-family: ui-monospace, monospace; font-size: 10px; letter-spacing: 0.08em;
-    text-transform: uppercase; text-decoration: none;
-    color: #9a9a9a; border: 1px solid #2a2a2a; border-radius: 6px;
-    padding: 8px 14px; background: #141414;
+    display: flex;
+    align-items: center;
+    height: 34px;
+    padding: 0 16px;
+    border: 1px solid var(--hairline);
+    border-radius: 10px;
+    background: var(--fill-3);
+    color: var(--label-2);
+    text-decoration: none;
+    font-size: 12.5px;
+    font-weight: 500;
+    transition: background-color 140ms ease, border-color 140ms ease,
+                color 140ms ease, transform 100ms ease;
   }
-  .tiles a:hover { color: #f0f0f0; border-color: #e8b04b; }
-  ::selection { background: #2e2c29; color: #f0f0f0; }
+  .tiles a:hover { background: var(--fill-2); border-color: var(--hairline-strong); color: var(--label); }
+  .tiles a:active { transform: scale(0.96); }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  }
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <span class="kicker">KOA · home</span>
-    <span class="badge">ZEN 7.5 MAX</span>
-    <span class="spacer"></span>
-  </header>
-  <main>
-  <img src="assets/logo.png" alt="KOA" />
-  <h1>KOA</h1>
-  <div class="sub">Chiedi a ZEN o cerca</div>
-  <form id="zoa-form" action="https://www.google.com/search" method="GET">
-    <div class="aiwrap" id="aiwrap">
-      <div class="bar-row">
-        <input id="zoa-input" name="q" placeholder="Continua a chiedere…" autocomplete="off" autofocus />
-        <button id="zenmode" type="button" title="Chiedi a ZEN 7.5 MAX">ZEN mode</button>
-      </div>
-      <div id="zen-answer">
-        <div class="who">ZEN 7.5 MAX</div>
-        <div id="zen-text"></div>
-        <div id="zen-err"></div>
-        <div class="zen-actions" id="zen-actions" hidden>
-          <button id="zen-continue" type="button">Continua conversazione</button>
-          <button id="zen-google" type="button">Cerca su Google</button>
+  <div class="center-wrap">
+    <img src="assets/logo.png" alt="KOA" />
+    <h1>KOA</h1>
+    <form id="zoa-form" action="https://www.google.com/search" method="GET">
+      <div class="aiwrap" id="aiwrap">
+        <div class="bar-row">
+          <input id="zoa-input" name="q" placeholder="Cerca o chiedi a ZEN…" autocomplete="off" autofocus />
+          <button id="zenmode" type="button" title="Chiedi a ZEN 7.5 MAX">ZEN</button>
+        </div>
+        <div id="zen-answer">
+          <div class="who">ZEN 7.5 MAX</div>
+          <div id="zen-text"></div>
+          <div id="zen-err"></div>
+          <div class="zen-actions" id="zen-actions" hidden>
+            <button id="zen-continue" type="button">Continua la conversazione</button>
+            <button id="zen-google" type="button">Cerca su Google</button>
+          </div>
         </div>
       </div>
+    </form>
+    <div class="tiles">
+      <a href="https://www.google.com">Google</a>
+      <a href="https://www.youtube.com">YouTube</a>
+      <a href="https://github.com">GitHub</a>
+      <a href="https://www.wikipedia.org">Wikipedia</a>
     </div>
-  </form>
-  <div class="tiles">
-    <a href="https://www.google.com">Google</a>
-    <a href="https://www.youtube.com">YouTube</a>
-    <a href="https://github.com">GitHub</a>
-    <a href="https://www.wikipedia.org">Wikipedia</a>
   </div>
-  </main>
-</div>
 <script>
 (function () {
   var inp = document.getElementById('zoa-input');
@@ -160,7 +297,7 @@
   var err = document.getElementById('zen-err');
   var acts = document.getElementById('zen-actions');
   if (!inp) return;
-  // --- ZEN mode: chiede a ZEN 7.5 MAX, la barra si allunga con la risposta ---
+  // --- ZEN mode ---
   var busy = false, lastQ = '', lastA = '';
   function hist() {
     try { return JSON.parse(localStorage.getItem('koa.zenchat-hist') || '[]'); } catch (e) { return []; }
@@ -169,81 +306,17 @@
     try { localStorage.setItem('koa.zenchat-hist', JSON.stringify(h.slice(-30))); } catch (e) {}
   }
   async function askZen(q) {
-    var messages = [
-      { role: 'system', content: 'Sei ZEN 7.5 MAX, l\u2019assistente AI di KOA Browser, creato da Alessandro Petrosino (ZEN Lab). Rispondi sempre in italiano. Non dire mai di essere Mistral, DeepSeek, GLM, Qwen, Llama o qualsiasi altro modello: sei ZEN 7.5 MAX.' },
-      { role: 'user', content: String(q || '').slice(0, 1500) }
-    ];
-    function pickText(t) {
-      t = String(t == null ? '' : t).trim();
-      if (!t || t === '{}' || t === '[]') throw new Error('empty');
-      if (t.charAt(0) === '{' && t.charAt(t.length - 1) === '}') {
-        try {
-          var j = JSON.parse(t);
-          var c = j && j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content;
-          if (c && String(c).trim() && String(c).trim() !== '{}') return String(c).trim();
-          if (j.text && String(j.text).trim()) return String(j.text).trim();
-        } catch (e) { if (e && e.message === 'empty') throw e; }
-        throw new Error('empty');
-      }
-      return t;
-    }
-    var gemKey = '', polKey = '';
-    try {
-      gemKey = (localStorage.getItem('koa.gemini-key') || '').trim();
-      polKey = (localStorage.getItem('koa.pollen-key') || '').trim();
-    } catch (e) {}
-    if (gemKey) {
-      try {
-        var r = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + encodeURIComponent(gemKey), {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ contents: [{ role: 'user', parts: [{ text: messages[0].content }] }], generationConfig: { temperature: 0.7, maxOutputTokens: 2048 } })
-        });
-        if (r.ok) {
-          var j = await r.json();
-          var out = j && j.candidates && j.candidates[0] && j.candidates[0].content && j.candidates[0].content.parts && j.candidates[0].content.parts[0] && j.candidates[0].content.parts[0].text;
-          if (out && String(out).trim()) return String(out).trim();
-        }
-      } catch (e) {}
-    }
-    if (polKey) {
-      try {
-        var rp = await fetch('https://gen.pollinations.ai/v1/chat/completions', {
-          method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + polKey },
-          body: JSON.stringify({ model: 'openai/gpt-5.4-nano', messages: messages, stream: false })
-        });
-        if (rp.ok) return pickText(await rp.text());
-      } catch (e) {}
-    }
-    try {
-      var models = ['default', 'DeepSeek-V4-Flash-0731', 'GLM-5.3-Flash', 'minimax-m2.7', 'mistral-Nemo-Instruct-2407', 'codestral-latest'];
-      for (var i = 0; i < models.length; i++) {
-        try {
-          var rl = await fetch('https://api.llm7.io/v1/chat/completions', {
-            method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer unused' },
-            body: JSON.stringify({ model: models[i], messages: messages, stream: false })
-          });
-          if (rl.status === 429) throw new Error('limite richieste (riprova tra ~20s)');
-          if (rl.ok) return pickText(await rl.text());
-        } catch (e) {
-          if (e && /limite richieste/.test(e.message)) throw e;
-        }
-      }
-    } catch (e) {
-      if (e && /limite richieste/.test(e.message)) throw e;
-    }
+    const body = { messages: [{ role: 'user', content: q.slice(0, 1500) }], model: 'openai' };
     try {
       const r = await fetch('https://text.pollinations.ai/', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ messages: messages })
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
       });
-      if (r.ok) return pickText(await r.text());
-      if (r.status === 402) throw new Error('pagamento richiesto (402), riprova tra poco');
-    } catch (e) {
-      if (e && /402|pagamento/.test(e.message)) throw e;
-    }
+      if (r.ok) { const t = await r.text(); if (t.trim()) return t.trim(); }
+    } catch (e) {}
     const r2 = await fetch('https://text.pollinations.ai/' + encodeURIComponent(q.slice(0, 400)));
-    if (!r2.ok && r2.status === 402) throw new Error('pagamento richiesto (402), riprova tra poco');
     const t2 = await r2.text();
-    return pickText(t2);
+    if (!t2.trim()) throw new Error('vuoto');
+    return t2.trim();
   }
   var typeTimer = 0;
   function typewrite(text, done) {
@@ -265,6 +338,7 @@
     if (!q) { inp.focus(); return; }
     busy = true;
     zm.disabled = true;
+    zm.classList.add('zen-active');
     err.textContent = '';
     acts.hidden = true;
     document.getElementById('zen-continue').disabled = false;
@@ -272,25 +346,21 @@
     txt.innerHTML = '';
     var wait = document.createElement('div');
     wait.textContent = 'ZEN 7.5 MAX sta pensando…';
-    wait.style.cssText = 'font-family:ui-monospace,monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#9a9a9a;';
+    wait.style.cssText = 'font-family:ui-monospace,monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#9a9a9a;';
     txt.appendChild(wait);
     try {
       const a = await askZen(q);
       lastQ = q; lastA = a;
       typewrite(a, function () { acts.hidden = false; });
     } catch (e) {
-      var em = (e && e.message) || '';
-      err.textContent = /limite richieste/.test(em)
-        ? 'ZEN è al limite gratuito (10 richieste/minuto): aspetta ~20 secondi e riprova.'
-        : /402|pagamento|empty/.test(em)
-        ? 'ZEN non risponde (' + em + '). Riprova tra poco.'
-        : 'ZEN non risponde: controlla la rete o cerca su Google.';
+      err.textContent = 'ZEN non risponde: controlla la rete o cerca su Google.';
       acts.hidden = false;
       document.getElementById('zen-continue').disabled = true;
       lastQ = q; lastA = '';
     }
     busy = false;
     zm.disabled = false;
+    zm.classList.remove('zen-active');
   });
   document.getElementById('zen-continue').addEventListener('click', function () {
     if (!lastQ) return;

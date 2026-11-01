@@ -5,13 +5,73 @@ Scrivi qui la storia delle versioni: per ogni release usa
 mostrato nell'app (Impostazioni → note) va nel parametro `-Notes`
 di `zendate\make-zendate.ps1`, più il testo della Release GitHub.
 
-## [1.0.27] - 2026-10-02
+## [1.0.34] - 2026-11-01
+
+### Aggiunto
+- Nuova interfaccia Apple HIG: materiali traslucidi (frosted glass), tipografia SF Pro di sistema, angoli a superellisse, livelli e ombre morbide, tema chiaro/scuro automatico
+- Motion & Interaction DNA: risposta immediata al pointer-down, molle fisiche (spring) per fogli, schede, switch e pannelli, animazioni interrompibili che ripartono sempre dal valore visivo corrente
+- Favicon reale nelle schede, con icona globo di riserva; icone ridisegnate con tratto arrotondato stile SF Symbols
+- Pannello Impostazioni e tutorial come veri sheet macOS: apertura/chiusura animata, corpo scrollabile, header in materiale
+- Riga di ricerca della nuova scheda e chat ZEN ridisegnate nello stesso linguaggio visivo (vetro, tipografia SF, controlli a pillola)
 
 ### Cambiato
-- Tolto il tasto Chiavi dalla chat: ZEN risponde gratis senza chiavi (LLM7 anonimo + fallback)
+- Toolbar e barra schede unificate in stile Safari: schede attive in rilievo, controlli compatti 30px, barra indirizzi a pillola con focus ring semantico
+- Sidebar a pannello flottante con schede raggruppate, separatori hairline e switch iOS; apertura/chiusura con molla
+- Download: pannello in vetro nativo con animazione dal bordo superiore, al posto della rifrazione WebGL (più leggero e più vicino alle HIG)
+- Split: divisore hairline che si ispessisce al passaggio, pannello a fuoco con ring discreto, apertura con fisica a molla
+- Menu contestuale, trova nella pagina, modelli locali e chip dei gruppi allineati al nuovo sistema (blur, raggi, hover fill, focus visibile)
+- Turbo continua a disattivare animazioni, blur e ombre; aggiunto rispetto di `prefers-reduced-motion`
+
+### Corretto
+- Tutorial al primo avvio ora è un overlay vero e centrato (prima il foglio poteva comparire nel flusso della pagina)
+- Il pannello Impostazioni si chiude con un'animazione e non lascia lo stato `open` appeso al riavvio
+- Rimosso il caricamento della libreria liquidGL (297 KB) non più necessaria: avvio più rapido
+
+## [1.0.33] - 2026-10-03
+
+### Aggiunto
+- Windows vede KOA come browser vero: protocolli http/https e tipi .html/.pdf registrati (registro Capabilities + installer NSIS), PDF aperto in scheda, impostabile come predefinito da Impostazioni Windows e dal tasto in-app
+
+## [1.0.32] - 2026-10-03
+
+### Corretto
+- Exe mostrava pagina vuota: dichiarazioni JS duplicate dopo il rifacimento ZENdate bloccavano tutto lo script dell'interfaccia (ora rimosse, canale update inizializzato prima dell'uso)
+
+## [1.0.31] - 2026-10-02
+
+### Corretto
+- Home page rifatta in stile NEO 1 rigoroso: piatta, monocroma, appuntita, istantanea. Zero bordi arrotondati, zero glow, zero gradienti decorativi. Solo grigi + oro funzionale (#e8b04b). Input traslucido, bottoni sharp, transizioni 0.12s.
+
+## [1.0.30] - 2026-10-02
+
+### Aggiunto
+- Home page rinnovata: sfondo gradiente arancione dai bordi al centro, barra chatbot grande con glow mouse-following, ZEN Mode con espansione animata e typewriter
+- Pagina aggiornamenti ZENdate completamente rifatta: design glassmorphic, anello progress circolare animato, step visuali, dialog interattivi, note di rilascio
+- Tutorial primo avvio (4 slide): benvenuto, ZEN Account, aggiornamenti, scorciatoie — non si ripete
+- ZEN Account espanso: profilo con avatar e email automatici, stato sincronizzazione per sezione (preferiti, cronologia, impostazioni, autonomia, download), indicatore visivo sync
+
+### Cambiato
+- Rimosso branding "KOA OMNI-AGENTIC" dall'interfaccia (backend invariato) → ora "Autonomia — Modelli Locali"
+- Tinta sito eliminata ovunque: barra indirizzi, schede, divider usano solo arancione fisso
+
+### Corretto
+- Riflesso colore sito nella barra indirizzi: rimosso sistema tinta adattiva (theme-color)
+
+## [1.0.29] - 2026-10-02
+
+### Aggiunto
+- Test update 1.0.29: verifica flusso aggiornamento alpha
+
+## [1.0.28] - 2026-10-02
+
+### Aggiunto
+- Fallback Groq (gratis, veloce) quando LLM7 è al limite (429): modelli llama-3.3-70b, llama-3.1-8b, gemma2-9b
+
+### Cambiato
+- Tolto il tasto Chiavi dalla chat: ZEN risponde gratis senza chiavi (LLM7 anonimo + fallback Groq)
 - Identità ZEN 7.5 MAX: ogni AI (chat, home, sidebar, agente, backend) sa di essere ZEN 7.5 MAX creato da Alessandro Petrosino (ZEN Lab) e non si spaccia per altri modelli
 
-## [1.0.26] - 2026-10-02
+## [1.0.27] - 2026-10-02
 
 ### Corretto
 - ZEN rispondeva sempre `{}`: Pollinations legacy ora chiede pagamento (402) per le nuove richieste, e il `{}` veniva mostrato come risposta

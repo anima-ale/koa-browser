@@ -1,6 +1,6 @@
 {
-    "version":  "1.0.27",
-    "notes":  "### Cambiato\n- Tolto il tasto Chiavi dalla chat: ZEN risponde gratis senza chiavi (LLM7 anonimo + fallback)\n- Identità ZEN 7.5 MAX: ogni AI (chat, home, sidebar, agente, backend) sa di essere ZEN 7.5 MAX creato da Alessandro Petrosino (ZEN Lab) e non si spaccia per altri modelli",
-    "url":  "https://github.com/anima-ale/koa-browser/releases/download/v1.0.27/KOA.Browser.1.0.27.exe",
-    "sha256":  "03595f5964bfb1261d33cb67ee07ebd1bd9c539d3ac4fe8f8ea50eb34a2ffffa"
+    "version":  "1.0.28",
+    "notes":  "### Aggiunto\n- Fallback Groq (gratis, veloce) quando LLM7 è al limite (429): modelli llama-3.3-70b, llama-3.1-8b, gemma2-9b\n\n### Cambiato\n- Tolto il tasto Chiavi dalla chat: ZEN risponde gratis senza chiavi (LLM7 anonimo + fallback Groq)\n- Identità ZEN 7.5 MAX: ogni AI (chat, home, sidebar, agente, backend) sa di essere ZEN 7.5 MAX creato da Alessandro Petrosino (ZEN Lab) e non si spaccia per altri modelli",
+    "url":  "https://github.com/anima-ale/koa-browser/releases/download/v1.0.28/KOA.Browser.1.0.28.exe",
+    "sha256":  "4939cc3b1b1304af47d3f01cab80c682e8229aee044a1c9d17d1f56d4a101b38"
 }

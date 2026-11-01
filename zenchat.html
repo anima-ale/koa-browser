@@ -5,87 +5,245 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>ZEN 7.5 MAX · KOA</title>
 <style>
+  /* KOA 1.0.34 · Chat ZEN — Apple HIG */
+  :root {
+    color-scheme: dark light;
+    --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display",
+            "Segoe UI Variable Text", "Segoe UI", Inter, system-ui, sans-serif;
+    --label: #ffffff;
+    --label-2: rgba(235, 235, 245, 0.62);
+    --label-3: rgba(235, 235, 245, 0.36);
+    --bg: #0c0c0e;
+    --bg-elevated: #161618;
+    --fill: rgba(120, 120, 128, 0.24);
+    --fill-2: rgba(120, 120, 128, 0.16);
+    --fill-3: rgba(120, 120, 128, 0.10);
+    --hairline: rgba(255, 255, 255, 0.08);
+    --material: rgba(24, 24, 27, 0.78);
+    --material-thick: rgba(20, 20, 22, 0.90);
+    --tint: #ff8a5b;
+    --tint-strong: #ff9d74;
+    --tint-fill: rgba(255, 138, 91, 0.16);
+    --tint-ring: rgba(255, 138, 91, 0.30);
+    --on-tint: #1b0e08;
+    --red: #ff453a;
+    --shadow: 0 2px 10px rgba(0, 0, 0, 0.26), 0 18px 50px rgba(0, 0, 0, 0.32);
+    --spring: linear(0, 0.018 1.5%, 0.075 3.4%, 0.23 6.2%, 0.52 10%, 0.79 14%,
+              0.94 18%, 1.01 23%, 1.02 27%, 1.008 34%, 1 46%, 1);
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --label: #000000;
+      --label-2: rgba(60, 60, 67, 0.62);
+      --label-3: rgba(60, 60, 67, 0.38);
+      --bg: #f5f5f7;
+      --bg-elevated: #ffffff;
+      --fill: rgba(118, 118, 128, 0.16);
+      --fill-2: rgba(118, 118, 128, 0.11);
+      --fill-3: rgba(118, 118, 128, 0.07);
+      --hairline: rgba(0, 0, 0, 0.08);
+      --material: rgba(255, 255, 255, 0.78);
+      --material-thick: rgba(255, 255, 255, 0.92);
+      --tint: #cf4f1d;
+      --tint-strong: #b9410f;
+      --tint-fill: rgba(207, 79, 29, 0.10);
+      --tint-ring: rgba(207, 79, 29, 0.24);
+      --on-tint: #ffffff;
+      --red: #d70015;
+      --shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 16px 40px rgba(0, 0, 0, 0.10);
+    }
+  }
+
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { height: 100%; }
   body {
-    background: #0a0a09; color: #f0f0f0;
-    font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
-    display: flex; justify-content: center;
-    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    background: var(--bg);
+    color: var(--label);
+    font-family: var(--font);
+    font-size: 14px;
+    line-height: 1.45;
+    letter-spacing: -0.08px;
+    -webkit-font-smoothing: antialiased;
   }
+  ::selection { background: rgba(255, 138, 91, 0.28); color: var(--label); }
+  ::-webkit-scrollbar { width: 10px; }
+  ::-webkit-scrollbar-thumb { background: var(--fill); border: 3px solid transparent; border-radius: 99px; background-clip: content-box; }
+
   .wrap {
-    width: min(760px, 100vw); min-height: 100vh;
-    display: flex; flex-direction: column;
-    border-left: 1px solid #2a2a2a; border-right: 1px solid #2a2a2a;
-    animation: neo1In 0.2s ease-out;
+    width: min(820px, 100vw);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-elevated);
+    border-left: 1px solid var(--hairline);
+    border-right: 1px solid var(--hairline);
+    animation: wrap-in 380ms var(--spring);
   }
-  @keyframes neo1In { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  @keyframes wrap-in {
+    from { opacity: 0; transform: translateY(6px) scale(0.995); }
+    to { opacity: 1; transform: none; }
+  }
+
   header {
-    display: flex; align-items: center; gap: 10px;
-    padding: 8px 12px; background: #141414;
-    border-bottom: 1px solid #2a2a2a;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 14px 18px;
+    flex-shrink: 0;
+    background: var(--material);
+    -webkit-backdrop-filter: blur(30px) saturate(180%);
+    backdrop-filter: blur(30px) saturate(180%);
+    border-bottom: 1px solid var(--hairline);
   }
-  header .kicker {
-    font-family: ui-monospace, monospace; font-size: 10px; letter-spacing: 0.08em;
-    text-transform: uppercase; color: #9a9a9a;
-  }
+  header .kicker { font-size: 12.5px; font-weight: 600; letter-spacing: -0.1px; color: var(--label); }
   header .badge {
-    font-family: ui-monospace, monospace; font-size: 10px; font-weight: 700;
-    letter-spacing: 0.08em; text-transform: uppercase;
-    background: #e8b04b; color: #0a0a09;
-    border-radius: 4px; padding: 2px 8px;
+    padding: 2px 8px;
+    border-radius: 99px;
+    background: var(--tint-fill);
+    border: 1px solid var(--tint-ring);
+    color: var(--tint);
+    font-size: 9.5px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
   }
   header .spacer { flex: 1; }
   header a {
-    font-family: ui-monospace, monospace; font-size: 10px; letter-spacing: 0.08em;
-    text-transform: uppercase; color: #9a9a9a; text-decoration: none;
+    color: var(--label-2);
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 5px 11px;
+    border-radius: 7px;
+    transition: background-color 140ms ease, color 140ms ease, transform 100ms ease;
   }
-  header a:hover { color: #f0f0f0; }
+  header a:hover { background: var(--fill-3); color: var(--label); }
+  header a:active { transform: scale(0.95); }
+
   #msgs {
-    flex: 1; overflow-y: auto; padding: 14px;
-    display: flex; flex-direction: column; gap: 14px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 20px 18px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
   }
-  .msg { animation: msgIn 0.22s ease-out; max-width: 100%; }
-  @keyframes msgIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+  .msg { max-width: 100%; animation: msg-in 300ms var(--spring); }
+  @keyframes msg-in {
+    from { opacity: 0; transform: translateY(7px) scale(0.99); }
+    to { opacity: 1; transform: none; }
+  }
   .msg .who {
-    font-family: ui-monospace, monospace; font-size: 10px; letter-spacing: 0.08em;
-    text-transform: uppercase; color: #9a9a9a; margin-bottom: 6px;
+    margin-bottom: 5px;
+    font-size: 9.5px;
+    font-weight: 600;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--label-3);
   }
-  .msg.ai .who { color: #e8b04b; }
-  .msg.user { align-self: flex-end; background: #1e1e1e; border: 1px solid #2a2a2a;
-    border-radius: 8px 2px 8px 8px; padding: 10px 14px; max-width: 85%; }
-  .msg.ai { align-self: flex-start; background: #141414; border: 1px solid #2a2a2a;
-    border-radius: 2px 8px 8px 8px; padding: 10px 14px; max-width: 92%; }
-  .msg .body { font-size: 0.92rem; line-height: 1.6; white-space: pre-wrap; word-break: break-word; color: #f0f0f0; }
-  .msg .body code { background: #1e1e1e; border: 1px solid #2a2a2a; color: #e8b04b;
-    border-radius: 3px; padding: 1px 5px; font-family: ui-monospace, monospace; font-size: 0.85em; }
-  .msg.loading .body { color: #9a9a9a; font-family: ui-monospace, monospace; font-size: 11px; }
-  .msg.loading .body .dots { color: #e8b04b; animation: dots 1.2s steps(4) infinite; }
-  @keyframes dots { 0% { opacity: 0.2; } 50% { opacity: 1; } 100% { opacity: 0.2; } }
-  footer { padding: 10px; border-top: 1px solid #2a2a2a; background: #0a0a09; }
-  #form { display: flex; gap: 8px; }
+  .msg.ai .who { color: var(--tint); }
+  .msg.user {
+    align-self: flex-end;
+    max-width: 82%;
+    padding: 10px 14px;
+    background: var(--tint);
+    border-radius: 16px 16px 5px 16px;
+    color: var(--on-tint);
+  }
+  .msg.user .who { color: var(--on-tint); opacity: 0.62; }
+  .msg.ai {
+    align-self: flex-start;
+    max-width: 92%;
+    padding: 11px 15px;
+    background: var(--fill-3);
+    border: 1px solid var(--hairline);
+    border-radius: 16px 16px 16px 5px;
+  }
+  .msg .body {
+    font-size: 13.5px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-break: break-word;
+    color: var(--label);
+  }
+  .msg.user .body { color: var(--on-tint); }
+  .msg .body code {
+    padding: 1px 5px;
+    border-radius: 5px;
+    background: var(--fill-2);
+    border: 1px solid var(--hairline);
+    color: var(--label);
+    font-family: ui-monospace, "SF Mono", Consolas, monospace;
+    font-size: 0.86em;
+  }
+  .msg.loading .body { color: var(--label-2); font-size: 12.5px; }
+  .msg.loading .body .dots { color: var(--tint); animation: dots 1.2s ease-in-out infinite; }
+  @keyframes dots { 0%, 100% { opacity: 0.25; } 50% { opacity: 1; } }
+
+  footer {
+    flex-shrink: 0;
+    padding: 12px 14px 14px;
+    background: var(--material);
+    -webkit-backdrop-filter: blur(30px) saturate(180%);
+    backdrop-filter: blur(30px) saturate(180%);
+    border-top: 1px solid var(--hairline);
+  }
+  #form {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 5px 5px 14px;
+    background: var(--fill-3);
+    border: 1px solid var(--hairline);
+    border-radius: 14px;
+    transition: border-color 160ms ease, box-shadow 240ms ease, background-color 160ms ease;
+  }
+  #form:focus-within { border-color: var(--tint); box-shadow: 0 0 0 4px var(--tint-ring); background: var(--bg-elevated); }
   #input {
-    flex: 1; min-width: 0; background: #0a0a09; color: #f0f0f0;
-    border: 1px solid #2a2a2a; border-radius: 6px;
-    caret-color: #e8b04b; font-size: 15px; padding: 11px 13px; outline: none;
-    font-family: inherit;
+    flex: 1;
+    min-width: 0;
+    height: 36px;
+    border: none;
+    background: transparent;
+    color: var(--label);
+    font-family: var(--font);
+    font-size: 14.5px;
+    letter-spacing: -0.12px;
+    caret-color: var(--tint);
+    outline: none;
   }
-  #input:focus { border-color: #e8b04b; }
+  #input::placeholder { color: var(--label-3); }
   #send {
-    background: #e8b04b; border: 1px solid #e8b04b; color: #0a0a09;
-    border-radius: 6px; font-family: ui-monospace, monospace;
-    font-size: 11px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase;
-    padding: 0 18px; cursor: pointer;
+    flex-shrink: 0;
+    height: 36px;
+    padding: 0 18px;
+    border: none;
+    border-radius: 10px;
+    background: var(--tint);
+    color: var(--on-tint);
+    font-family: var(--font);
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: default;
+    transition: background-color 140ms ease, transform 100ms ease, opacity 140ms ease;
   }
-  #send:hover { background: #f0c06a; }
-  #send:disabled { opacity: 0.5; cursor: default; }
-  ::selection { background: #2e2c29; color: #f0f0f0; }
+  #send:hover { background: var(--tint-strong); }
+  #send:active { transform: scale(0.96); }
+  #send:disabled { opacity: 0.45; }
+  #send:focus-visible { outline: 2px solid var(--tint); outline-offset: 2px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  }
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
-    <span class="kicker">KOA · chat</span>
+    <span class="kicker">KOA · Chat</span>
     <span class="badge">ZEN 7.5 MAX</span>
     <span class="spacer"></span>
     <a href="start.html">Home</a>
@@ -93,7 +251,7 @@
   <div id="msgs"></div>
   <footer>
     <form id="form">
-      <input id="input" type="text" placeholder="Continua a chiedere…" autocomplete="off" />
+      <input id="input" type="text" placeholder="Scrivi a ZEN…" autocomplete="off" />
       <button id="send" type="submit">Invia</button>
     </form>
   </footer>
@@ -197,6 +355,26 @@
     var t = await r.text();
     return zenPickText(t);
   }
+  async function zenViaGroq(messages) {
+    const key = (localStorage.getItem('koa.groq-key') || '').trim();
+    if (!key) throw new Error('Groq non configurato');
+    const models = ['llama-3.3-70b-versatile', 'llama-3.1-8b-instant', 'gemma2-9b-it'];
+    for (const model of models) {
+      try {
+        const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
+          body: JSON.stringify({ model, messages, stream: false })
+        });
+        if (r.status === 429) continue;
+        if (!r.ok) continue;
+        const data = await r.json();
+        const c = data.choices?.[0]?.message?.content;
+        if (c && String(c).trim()) return String(c).trim();
+      } catch (e) {}
+    }
+    throw new Error('groq fallito');
+  }
   async function zenViaLLM7(messages) {
     var models = ['default', 'DeepSeek-V4-Flash-0731', 'GLM-5.3-Flash', 'minimax-m2.7', 'mistral-Nemo-Instruct-2407', 'codestral-latest'];
     var lastErr = null, limited = false;
@@ -231,7 +409,15 @@
       catch (e) { errs.push('pollen: ' + ((e && e.message) || 'errore')); }
     }
     try { return await zenViaLLM7(messages); }
-    catch (e) { errs.push('gratis: ' + ((e && e.message) || 'errore')); }
+    catch (e) {
+      var msg = (e && e.message) || '';
+      if (/limite richieste|429/.test(msg)) {
+        try { return await zenViaGroq(messages); }
+        catch (e2) { errs.push('groq: ' + ((e2 && e2.message) || 'errore')); }
+      } else {
+        errs.push('gratis: ' + msg);
+      }
+    }
     try {
       var r = await fetch('https://text.pollinations.ai/', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },

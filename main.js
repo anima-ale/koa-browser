@@ -549,7 +549,8 @@ function koaRegContent() {
   L.push('".htm"="KOABrowserHTML"');
   L.push('".html"="KOABrowserHTML"');
   L.push('".shtml"="KOABrowserHTML"');
-  L.push('".xhtml"="KOABrowserHTML"', '');
+  L.push('".xhtml"="KOABrowserHTML"');
+  L.push('".pdf"="KOABrowserPDF"', '');
   L.push('[HKEY_CURRENT_USER\\Software\\Clients\\StartMenuInternet\\KOA Browser\\Capabilities\\StartMenu]');
   L.push('"StartMenuInternet"="KOA Browser"', '');
   L.push('[HKEY_CURRENT_USER\\Software\\RegisteredApplications]');
@@ -566,6 +567,12 @@ function koaRegContent() {
   L.push('[HKEY_CURRENT_USER\\Software\\Classes\\KOABrowserHTML\\DefaultIcon]');
   L.push('@="\\"' + exe + '\\",0"', '');
   L.push('[HKEY_CURRENT_USER\\Software\\Classes\\KOABrowserHTML\\shell\\open\\command]');
+  L.push('@="' + openCmd + '"', '');
+  L.push('[HKEY_CURRENT_USER\\Software\\Classes\\KOABrowserPDF]');
+  L.push('@="KOA Browser PDF document"', '');
+  L.push('[HKEY_CURRENT_USER\\Software\\Classes\\KOABrowserPDF\\DefaultIcon]');
+  L.push('@="\\"' + exe + '\\",0"', '');
+  L.push('[HKEY_CURRENT_USER\\Software\\Classes\\KOABrowserPDF\\shell\\open\\command]');
   L.push('@="' + openCmd + '"', '');
   return L.join('\r\n') + '\r\n';
 }
@@ -627,7 +634,7 @@ ipcMain.handle('zen:set-default-browser', async () => {
 function externalUrlFromArg(a) {
   if (!a || typeof a !== 'string') return null;
   if (/^https?:\/\//i.test(a)) return a;
-  if (/^[a-zA-Z]:\\/.test(a) && /\.(html?|xhtml?|shtml)$/i.test(a)) {
+  if (/^[a-zA-Z]:\\/.test(a) && /\.(html?|xhtml?|shtml|pdf)$/i.test(a)) {
     return 'file:///' + a.replace(/\\/g, '/');
   }
   return null;

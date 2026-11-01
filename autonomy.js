@@ -153,6 +153,25 @@ async function koaCloudChat(messages, maxTokens) {
       if (e && /limite richieste/.test(e.message)) throw e;
     }
   }
+  // Groq fallback on 429
+  try {
+    const key = (localStorage.getItem('koa.groq-key') || '').trim();
+    if (!key) throw new Error('Groq non configurato');
+    const models = ['llama-3.3-70b-versatile', 'llama-3.1-8b-instant', 'gemma2-9b-it'];
+    for (const model of models) {
+      try {
+        const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
+          body: JSON.stringify({ model, messages: clean, stream: false })
+        });
+        if (r.status === 429) continue;
+        if (r.ok) {
+          const out = pick(await r.text());
+          return maxTokens ? out.slice(0, maxTokens * 4) : out;
+        }
+      } catch (e2) {}
+    }
+  } catch (e2) {}
   try {
     const r = await fetch('https://text.pollinations.ai/', {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ messages: clean })
@@ -873,7 +892,7 @@ async function koaAutonomyRun(cmd) {
 let tabGroups = [];
 let groupFilter = null;
 let groupSeq = 0;
-const GROUP_COLORS = ['#E86A2C', '#9d4edd', '#4ade80', '#4dd0e1', '#f5c400', '#f472b6'];
+const GROUP_COLORS = ['#ff8a5b', '#bf5af2', '#30d158', '#0a84ff', '#ffd60a', '#ff375f'];
 const GROUP_BUCKETS = [
   { name: 'Viaggi', rx: /(volo|voli|hotel|booking|airbnb|trenitalia|ryanair|skyscanner|trip|maps|viaggi|aereo|treno)/i },
   { name: 'Video', rx: /(youtube|twitch|netflix|vimeo|dailymotion|video|raiplay|mediaset)/i },
