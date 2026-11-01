@@ -1,0 +1,4 @@
+### Corretto
+- Schede completamente grigie dopo l'aggiornamento: se la webview non crea il guest, KOA la stacca e la riaggancia da sola (watchdog all'avvio, al focus e ogni 6 secondi), senza perdere la scheda
+- Aggiornamento portable: il batch ZENdate ora attende anche l'uscita del wrapper, non solo dell'app interna, prima di sostituire l'exe — niente più riavvio su una cartella Temp ancora in uso
+- Ricontrollo automatico delle schede con URL vuoto: le webview zombie vengono ricaricate al massimo due volte, poi restano sotto controllo dell'utente

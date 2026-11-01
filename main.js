@@ -451,6 +451,12 @@ function realExePath() {
 // log diagnostico, rilancio SEMPRE del file appena scritto (mai del vecchio).
 // Il .bat parte solo dopo il via dell'utente (runUpdateBatAndQuit).
 function prepareUpdateBat(cur, filePath, version, expectedSize) {
+  // Nel portable process.ppid è il wrapper che ha estratto l'app in Temp.
+  // Va atteso anche lui: se resta vivo, il nuovo wrapper riusa la stessa
+  // cartella Temp mentre è ancora in uso e le webview possono non partire.
+  const wrapperPid = (() => {
+    try { return process.env.PORTABLE_EXECUTABLE_FILE ? process.ppid : 0; } catch (e) { return 0; }
+  })();
   const bat = path.join(os.tmpdir(), 'koa-zendate-' + Date.now() + '.bat');
   const lines = [
     '@echo off',
@@ -459,6 +465,8 @@ function prepareUpdateBat(cur, filePath, version, expectedSize) {
     'set "ZNEW=%~3"',
     'set "ZVER=%~4"',
     'set "ZEXP=%~5"',
+    'set "ZPPID=' + wrapperPid + '"',
+    'set /a ZWAIT=0',
     'set "ZLOG=%TEMP%\\koa-zendate-last.log"',
     'set "ZBAK=%ZCUR%.bak"',
     'if not exist "%ZNEW%" (',
@@ -468,11 +476,21 @@ function prepareUpdateBat(cur, filePath, version, expectedSize) {
     ')',
     'copy /y "%ZCUR%" "%ZBAK%" >nul',
     ':zendate_wait',
+    'set /a ZWAIT+=1',
+    'if %ZWAIT% GEQ 60 goto zendate_go',
     'tasklist /FI "PID eq %ZPID%" 2>nul | find /I "%ZPID%" >nul',
     'if not errorlevel 1 (',
     '  timeout /t 1 /nobreak >nul',
     '  goto zendate_wait',
     ')',
+    'if not "%ZPPID%"=="0" (',
+    '  tasklist /FI "PID eq %ZPPID%" 2>nul | find /I "%ZPPID%" >nul',
+    '  if not errorlevel 1 (',
+    '    timeout /t 1 /nobreak >nul',
+    '    goto zendate_wait',
+    '  )',
+    ')',
+    ':zendate_go',
     'move /y "%ZNEW%" "%ZCUR%" >nul',
     'set ZSZ=0',
     'for %%A in ("%ZCUR%") do set ZSZ=%%~zA',

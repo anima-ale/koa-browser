@@ -5,6 +5,13 @@ Scrivi qui la storia delle versioni: per ogni release usa
 mostrato nell'app (Impostazioni → note) va nel parametro `-Notes`
 di `zendate\make-zendate.ps1`, più il testo della Release GitHub.
 
+## [1.0.35] - 2026-11-01
+
+### Corretto
+- Schede completamente grigie dopo l'aggiornamento: se la webview non crea il guest, KOA la stacca e la riaggancia da sola (watchdog all'avvio, al focus e ogni 6 secondi), senza perdere la scheda
+- Aggiornamento portable: il batch ZENdate ora attende anche l'uscita del wrapper, non solo dell'app interna, prima di sostituire l'exe — niente più riavvio su una cartella Temp ancora in uso
+- Ricontrollo automatico delle schede con URL vuoto: le webview zombie vengono ricaricate al massimo due volte, poi restano sotto controllo dell'utente
+
 ## [1.0.34] - 2026-11-01
 
 ### Aggiunto

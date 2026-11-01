@@ -2784,6 +2784,45 @@
     slot.appendChild(img);
   }
 
+  // Auto-riparazione delle webview. Dopo alcuni update Windows/portable il
+  // guest può non nascere affatto: la scheda resta grigia e il titolo è
+  // ancora "Nuova scheda". Staccare e riattaccare il <webview> forza Electron
+  // a creare un nuovo guest, senza perdere la scheda né i suoi listener.
+  function reviveWebview(wv) {
+    try {
+      if (!wv || !wv.getAttribute) return false;
+      const src = wv.getAttribute('src');
+      if (!src) return false;
+      let url = '', loading = false, wid = 0;
+      try { url = wv.getURL() || ''; } catch (e) {}
+      try { loading = !!wv.isLoading(); } catch (e) {}
+      try { wid = wv.getWebContentsId() || 0; } catch (e) {}
+      if (url || loading) return false;
+      const created = Number(wv.dataset.koaCreated || 0);
+      if (created && Date.now() - created < 8000) return false;
+      const tries = Number(wv.dataset.koaRevives || 0);
+      if (tries >= 2) return false;
+      wv.dataset.koaRevives = String(tries + 1);
+      if (!wid) {
+        const parent = wv.parentNode;
+        if (!parent) return false;
+        const next = wv.nextSibling;
+        parent.removeChild(wv);
+        parent.insertBefore(wv, next);
+        return true;
+      }
+      try { wv.loadURL(src); return true; } catch (e) { return false; }
+    } catch (e) { return false; }
+  }
+  function reviveAllWebviews() {
+    try { tabs.forEach((t) => { if (t && t.webview) reviveWebview(t.webview); }); } catch (e) {}
+  }
+  setInterval(reviveAllWebviews, 6000);
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) setTimeout(reviveAllWebviews, 700);
+  });
+  window.addEventListener('focus', () => setTimeout(reviveAllWebviews, 700));
+
   // ---- scheda unita dello split (una sola X che chiude tutto) ----
   const groupTabEl = document.createElement('div');
   groupTabEl.className = 'tab group-tab';
@@ -2917,6 +2956,7 @@
     paneEl.className = 'view-slot';
 
     const webview = document.createElement('webview');
+    webview.dataset.koaCreated = String(Date.now());
     webview.setAttribute('src', url);
     webview.setAttribute('allowpopups', '');
     try {
@@ -2924,6 +2964,8 @@
     } catch (e) {}
     paneEl.appendChild(webview);
     viewContainer.appendChild(paneEl);
+    // Watchdog iniziale: se dopo 4s il guest non è mai partito, riprova.
+    setTimeout(() => { try { reviveWebview(webview); } catch (e) {} }, 4000);
 
     webview.addEventListener('page-title-updated', (e) => {
       tab.title = e.title;
